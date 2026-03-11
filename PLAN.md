@@ -191,7 +191,7 @@
 ### Testing
 - [x] Unit tests for Zod schemas (valid/invalid data, edge cases)
 - [x] Unit tests for prompt builders (various preference combos, regeneration context)
-- [ ] Unit tests for Convex functions (credit decrement, status transitions, index queries)
+- [x] Unit tests for Convex functions (credit decrement, status transitions, index queries)
 - [ ] Integration tests for core flows (mock AI responses, verify Convex state transitions)
 
 ---

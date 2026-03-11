@@ -1640,3 +1640,38 @@
 - The codebase already had strong mobile-first design patterns: responsive grids (`grid-cols-1 sm:grid-cols-2 lg:grid-cols-3`), proper `min-w-0` overflow handling, `flex-wrap` for badges, and mobile-specific navigation (bottom nav with safe area insets)
 - The fixes addressed edge cases on very narrow viewports (320-375px) where horizontal layouts needed to stack or wrap
 - All checks pass: TypeScript, Oxlint, Vitest (105 tests — 3 sanity + 48 schema + 54 prompt)
+
+## 2026-03-11: Phase 6 — Unit Tests for Convex Functions
+
+### What was done
+- Installed `convex-test@0.0.41` as a dev dependency for in-memory Convex function testing
+- Updated `vitest.config.ts` to include `convex/**/*.{test,spec}.{ts,tsx}` in the test include pattern
+- Created 64 unit tests across 6 test files covering all Convex function modules:
+  - `convex/__tests__/users.test.ts` (12 tests): createFromAuth (defaults, idempotency, separate users), getByBetterAuthId (found, not found), decrementCredits (single, multiple, zero credits throws, exact-zero throws, boundary at 1 credit), completeOnboarding (sets true, idempotent)
+  - `convex/__tests__/mealPlans.test.ts` (12 tests): create (generating status, multiple plans), updateStatus (generating→reviewing, reviewing→finalized, →archived, re-setting same), getByUserAndWeek (found, not found, user isolation), getByUser (desc order, empty, user isolation)
+  - `convex/__tests__/meals.test.ts` (16 tests): create (defaults, pending/null), getByMealPlan (sorted by sortOrder, empty, plan isolation), updateStatus (pending→accepted, →rejected, rejected→pending), deleteByMealPlanAndStatus (matching only, zero matches, plan isolation), batchCreate (multiple, defaults, empty), updateFullRecipe (full recipe, null nutrition)
+  - `convex/__tests__/preferences.test.ts` (13 tests): create (defaults, idempotent), getByUser (found, not found, user isolation), update (dietary restrictions, cuisines, numerics, foodsToAvoid, equipment, partial update, throws when not found, no-op)
+  - `convex/__tests__/prepGuides.test.ts` (5 tests): create (all fields, empty arrays), getByMealPlan (found, not found, plan isolation)
+  - `convex/__tests__/generationLogs.test.ts` (6 tests): create (success, failed, all types), getByUser (desc order, empty, user isolation)
+- All tests use `vi.mock('../auth')` to mock the Better Auth component (`authComponent`) since `components.betterAuth` is only available in the Convex runtime
+- All tests pass `import.meta.glob('../**/*.ts')` as explicit modules to `convexTest()` for Vite compatibility
+
+### Files added
+- convex/__tests__/users.test.ts (12 tests)
+- convex/__tests__/mealPlans.test.ts (12 tests)
+- convex/__tests__/meals.test.ts (16 tests)
+- convex/__tests__/preferences.test.ts (13 tests)
+- convex/__tests__/prepGuides.test.ts (5 tests)
+- convex/__tests__/generationLogs.test.ts (6 tests)
+
+### Files changed
+- vitest.config.ts (added convex/ test include pattern)
+- package.json (added convex-test dev dependency)
+- bun.lock (updated)
+- PLAN.md (marked task complete)
+
+### Notes
+- `convex-test` provides an in-memory Convex backend — no deployment needed, tests run entirely locally
+- `import.meta.glob` must be passed explicitly; the default auto-discovery via `import.meta.glob` inside `convex-test/dist/index.js` fails because Vite doesn't transform `import.meta.glob` in node_modules
+- `users.getAuthenticated` was not tested because it depends on `authComponent.getAuthUser(ctx)` which requires the full Better Auth component registration — the mock only stubs the import to prevent module-level crashes
+- All checks pass: TypeScript, Oxlint, Vitest (169 tests — 3 sanity + 48 schema + 54 prompt + 64 convex)

@@ -74,7 +74,7 @@
 ### Auth Pages + User Sync
 - [x] Create `convex/users.ts` — `createFromAuth` mutation (generationsRemaining: 25, onboardingCompleted: false), `getByBetterAuthId` query, `decrementCredits` mutation, `completeOnboarding` mutation
 - [x] Create `src/routes/auth/login.tsx` — email/password form, Google OAuth button, link to signup (invoke `frontend-design` and `shadcn` skills)
-- [ ] Create `src/routes/auth/signup.tsx` — name/email/password form, creates user doc in Convex on success, redirects to `/onboarding/diet` (invoke `frontend-design` and `shadcn` skills)
+- [x] Create `src/routes/auth/signup.tsx` — name/email/password form, creates user doc in Convex on success, redirects to `/onboarding/diet` (invoke `frontend-design` and `shadcn` skills)
 - [ ] Create `src/components/auth/google-button.tsx` — shared Google OAuth button (invoke `frontend-design` and `shadcn` skills)
 - [ ] Add Google OAuth env vars to Convex, update `createAuth` with `socialProviders.google`
 - [ ] Update `src/routes/api/ai/generate-meals.ts` to use authenticated context instead of hardcoded userId

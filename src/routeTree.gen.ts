@@ -17,6 +17,7 @@ import { Route as AuthLoginRouteImport } from './routes/auth/login'
 import { Route as AuthSignupRouteImport } from './routes/auth/signup'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiAiGenerateMealsRouteImport } from './routes/api/ai/generate-meals'
+import { Route as OnboardingDietRouteImport } from './routes/onboarding/diet'
 
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
@@ -58,6 +59,11 @@ const ApiAiGenerateMealsRoute = ApiAiGenerateMealsRouteImport.update({
   path: '/api/ai/generate-meals',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OnboardingDietRoute = OnboardingDietRouteImport.update({
+  id: '/onboarding/diet',
+  path: '/onboarding/diet',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -66,6 +72,7 @@ export interface FileRoutesByFullPath {
   '/auth/signup': typeof AuthSignupRoute
   '/demo/better-auth': typeof DemoBetterAuthRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/onboarding/diet': typeof OnboardingDietRoute
   '/api/ai/generate-meals': typeof ApiAiGenerateMealsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
@@ -76,6 +83,7 @@ export interface FileRoutesByTo {
   '/auth/signup': typeof AuthSignupRoute
   '/demo/better-auth': typeof DemoBetterAuthRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/onboarding/diet': typeof OnboardingDietRoute
   '/api/ai/generate-meals': typeof ApiAiGenerateMealsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
@@ -87,6 +95,7 @@ export interface FileRoutesById {
   '/auth/signup': typeof AuthSignupRoute
   '/demo/better-auth': typeof DemoBetterAuthRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/onboarding/diet': typeof OnboardingDietRoute
   '/api/ai/generate-meals': typeof ApiAiGenerateMealsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
@@ -99,6 +108,7 @@ export interface FileRouteTypes {
     | '/auth/signup'
     | '/demo/better-auth'
     | '/demo/tanstack-query'
+    | '/onboarding/diet'
     | '/api/ai/generate-meals'
     | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
@@ -109,6 +119,7 @@ export interface FileRouteTypes {
     | '/auth/signup'
     | '/demo/better-auth'
     | '/demo/tanstack-query'
+    | '/onboarding/diet'
     | '/api/ai/generate-meals'
     | '/api/auth/$'
   id:
@@ -119,6 +130,7 @@ export interface FileRouteTypes {
     | '/auth/signup'
     | '/demo/better-auth'
     | '/demo/tanstack-query'
+    | '/onboarding/diet'
     | '/api/ai/generate-meals'
     | '/api/auth/$'
   fileRoutesById: FileRoutesById
@@ -130,6 +142,7 @@ export interface RootRouteChildren {
   AuthSignupRoute: typeof AuthSignupRoute
   DemoBetterAuthRoute: typeof DemoBetterAuthRoute
   DemoTanstackQueryRoute: typeof DemoTanstackQueryRoute
+  OnboardingDietRoute: typeof OnboardingDietRoute
   ApiAiGenerateMealsRoute: typeof ApiAiGenerateMealsRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
@@ -192,6 +205,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAiGenerateMealsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/onboarding/diet': {
+      id: '/onboarding/diet'
+      path: '/onboarding/diet'
+      fullPath: '/onboarding/diet'
+      preLoaderRoute: typeof OnboardingDietRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -202,6 +222,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthSignupRoute: AuthSignupRoute,
   DemoBetterAuthRoute: DemoBetterAuthRoute,
   DemoTanstackQueryRoute: DemoTanstackQueryRoute,
+  OnboardingDietRoute: OnboardingDietRoute,
   ApiAiGenerateMealsRoute: ApiAiGenerateMealsRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
 }

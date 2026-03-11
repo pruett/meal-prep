@@ -413,3 +413,34 @@
 - The signup stub follows the same pattern used for the login stub — will be replaced when the signup task is implemented
 - TanStack Router's strict route typing requires all `<Link to="...">` targets to be registered in the route tree
 - All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)
+
+## 2026-03-11: Phase 1 — Auth Pages (signup.tsx)
+
+### What was done
+- Replaced the signup stub with a full signup page at `src/routes/auth/signup.tsx`
+- Name, email, and password form using shadcn Input, Label, and Button components
+- Google OAuth button with official Google logo SVG, calls `authClient.signIn.social({ provider: 'google', callbackURL: '/onboarding/diet' })`
+- "or" separator between Google OAuth and email form using shadcn Separator
+- On successful email signup: calls `authClient.signUp.email()`, then creates user doc in Convex via `ConvexHttpClient` calling `api.users.createFromAuth` with the betterAuthId, email, and name
+- Redirects to `/onboarding/diet` after successful signup
+- Loading spinner on submit, error state display with red alert box
+- Session-aware: redirects to `/` if already authenticated, shows loading spinner while session loads
+- Uses app design system: `island-shell` glassmorphic card, `display-title` Fraunces serif heading, `island-kicker` uppercase label, `rise-in` entrance animation, brand CSS variables
+- Link to `/auth/login` at the bottom
+- Created `/onboarding/diet` stub route so TypeScript's strict route typing compiles
+- Updated `src/routeTree.gen.ts` to include the new `/onboarding/diet` route
+
+### Files added
+- src/routes/onboarding/diet.tsx (placeholder stub route)
+
+### Files changed
+- src/routes/auth/signup.tsx (replaced stub with full signup page)
+- src/routeTree.gen.ts (added /onboarding/diet route)
+- PLAN.md (marked task complete)
+
+### Notes
+- Uses `ConvexHttpClient` directly (not `useMutation` from `convex/react`) to create the user doc after signup — avoids timing issues with `expectAuth: true` where the Convex auth token may not be available immediately after `signUp.email()` completes
+- `authClient.signUp.email()` returns `{ data: { user, session }, error }` — `user.id` is the Better Auth ID used as `betterAuthId` in the Convex users table
+- Google OAuth callbackURL set to `/onboarding/diet` (for new signups); user doc creation for Google OAuth will need to be handled separately (e.g., via a webhook or callback) when Google OAuth is configured in a later task
+- The onboarding/diet stub follows the same pattern used for the login/signup stubs — will be replaced when the onboarding wizard is implemented in Phase 2
+- All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)

@@ -1150,3 +1150,25 @@
 - Component interface uses `Doc<'meals'>` from Convex dataModel for type-safe props, same as the inline version
 - NutritionPill kept as a private (non-exported) component within recipe-card.tsx since it's only used by RecipeCard
 - All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)
+
+## 2026-03-11: Phase 4 — Prep Guide UI (shopping-list.tsx component extraction)
+
+### What was done
+- Extracted `ShoppingCategory` inline component and `ShoppingItem` type from `src/routes/plan/$weekStart/prep.tsx` into `src/components/prep/shopping-list.tsx`
+- Created `ShoppingList` top-level component that accepts the full shopping list array, handles categorization/grouping by aisle category internally, and renders sorted `ShoppingCategory` sections
+- `ShoppingCategory` is a private (non-exported) component handling per-category checkbox state and toggle behavior
+- Updated `prep.tsx` to import `ShoppingList` from the new component file, removed inline implementation and category grouping logic
+- Removed unused `useState` import from `prep.tsx`
+
+### Files added
+- src/components/prep/shopping-list.tsx (ShoppingList + ShoppingCategory components)
+
+### Files changed
+- src/routes/plan/$weekStart/prep.tsx (removed inline ShoppingCategory/ShoppingItem, added import from ~/components/prep/shopping-list, removed category grouping logic and unused useState import)
+- PLAN.md (marked task complete)
+
+### Notes
+- `ShoppingList` encapsulates the full categorization logic (grouping by category, sorting categories alphabetically) so the parent just passes the raw items array
+- `ShoppingCategory` uses `useState<Set<number>>` for ephemeral checkbox state — no persistence needed
+- Follows the same extraction pattern as recipe-card.tsx
+- All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)

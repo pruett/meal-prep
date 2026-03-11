@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
 import { useQuery } from '@tanstack/react-query'
@@ -9,6 +8,7 @@ import { Badge } from '~/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
 
 import { RecipeCard } from '~/components/prep/recipe-card'
+import { ShoppingList } from '~/components/prep/shopping-list'
 import { requireAuth } from '~/lib/auth-guard'
 import { getToken } from '~/lib/auth-server'
 import type { Doc } from '../../../../convex/_generated/dataModel'
@@ -115,18 +115,6 @@ function PrepGuidePage() {
     )
   }
 
-  // Group shopping list by category
-  const categorizedShopping = prepGuide.shoppingList.reduce(
-    (acc, item) => {
-      if (!acc[item.category]) acc[item.category] = []
-      acc[item.category].push(item)
-      return acc
-    },
-    {} as Record<string, typeof prepGuide.shoppingList>,
-  )
-
-  const sortedCategories = Object.keys(categorizedShopping).sort()
-
   return (
     <main className="page-wrap rise-in px-4 pb-8 pt-14">
       {/* Header */}
@@ -200,20 +188,7 @@ function PrepGuidePage() {
 
         {/* Shopping List tab */}
         <TabsContent value="shopping">
-          <div className="space-y-6">
-            {sortedCategories.map((category) => (
-              <ShoppingCategory
-                key={category}
-                category={category}
-                items={categorizedShopping[category]}
-              />
-            ))}
-            {prepGuide.shoppingList.length === 0 && (
-              <p className="py-8 text-center text-sm text-[var(--sea-ink-soft)]">
-                No shopping items.
-              </p>
-            )}
-          </div>
+          <ShoppingList items={prepGuide.shoppingList} />
         </TabsContent>
 
         {/* Prep Steps tab */}
@@ -234,87 +209,6 @@ function PrepGuidePage() {
         </TabsContent>
       </Tabs>
     </main>
-  )
-}
-
-/* ── Shopping Category ── */
-
-type ShoppingItem = {
-  item: string
-  quantity: string
-  unit: string
-  category: string
-}
-
-function ShoppingCategory({
-  category,
-  items,
-}: {
-  category: string
-  items: ShoppingItem[]
-}) {
-  const [checked, setChecked] = useState<Set<number>>(new Set())
-
-  const toggle = (idx: number) => {
-    setChecked((prev) => {
-      const next = new Set(prev)
-      if (next.has(idx)) next.delete(idx)
-      else next.add(idx)
-      return next
-    })
-  }
-
-  return (
-    <div>
-      <h3 className="mb-2 text-sm font-semibold uppercase tracking-wider text-[var(--sea-ink-soft)]">
-        {category}
-      </h3>
-      <div className="space-y-1">
-        {items.map((item, i) => {
-          const isChecked = checked.has(i)
-          return (
-            <button
-              key={i}
-              type="button"
-              onClick={() => toggle(i)}
-              className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm transition-colors hover:bg-[var(--sand)] ${
-                isChecked ? 'opacity-50' : ''
-              }`}
-            >
-              <span
-                className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border transition-colors ${
-                  isChecked
-                    ? 'border-[var(--palm)] bg-[var(--palm)]'
-                    : 'border-[var(--line)]'
-                }`}
-              >
-                {isChecked && (
-                  <svg
-                    className="h-3 w-3 text-white"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="3"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                )}
-              </span>
-              <span
-                className={`flex-1 ${isChecked ? 'line-through' : 'text-[var(--sea-ink)]'}`}
-              >
-                {item.item}
-              </span>
-              <span className="shrink-0 text-xs text-[var(--sea-ink-soft)]">
-                {item.quantity} {item.unit}
-              </span>
-            </button>
-          )
-        })}
-      </div>
-    </div>
   )
 }
 

@@ -160,7 +160,7 @@
 
 ### App Shell + Navigation
 - [x] Create `src/components/layout/app-shell.tsx` — mobile bottom nav + desktop sidebar layout (invoke `frontend-design` and `shadcn` skills)
-- [ ] Create `src/components/layout/nav.tsx` — route links (Home, Preferences, Account), active state, inline credits (invoke `frontend-design` and `shadcn` skills)
+- [x] Create `src/components/layout/nav.tsx` — route links (Home, Preferences, Account), active state, inline credits (invoke `frontend-design` and `shadcn` skills)
 - [ ] Update `src/routes/__root.tsx` — wrap authenticated routes with `AppShell`
 
 ### Home Screen

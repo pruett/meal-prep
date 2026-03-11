@@ -1246,3 +1246,24 @@
 - After prep guide generation succeeds, the plan status transitions to `finalized` via the server route, which triggers the reactive `convexQuery` subscription to update the UI — the generate button disappears and the "View Prep Guide" link appears automatically
 - Credit enforcement is handled both client-side (disabled button) and server-side (403 response)
 - All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)
+
+## 2026-03-11: Phase 5 — Navigation Component (nav.tsx)
+
+### What was done
+- Created `src/components/layout/nav.tsx` — extracted navigation logic from `app-shell.tsx` into a dedicated component with route links, active state detection, and inline credits display
+- Exports `SidebarNav` component: renders nav links (Home, Preferences, Account) with icons, active state (lagoon-deep color + tinted background), and an `InlineCredits` widget at the bottom showing remaining generation credits with color-coded states (normal, low ≤5, empty 0)
+- Exports `BottomNav` component: fixed mobile bottom navigation with icon-above-label layout, glassmorphic background, safe area padding
+- `InlineCredits` uses `convexQuery(api.users.getAuthenticated)` for reactive credits display with sparkle/sun icon, matching the header's `CreditsBadge` color logic (red for empty, amber for low, muted for normal)
+- Refactored `src/components/layout/app-shell.tsx` — replaced all inline navigation code (icons, link components, NAV_ITEMS, useIsActive) with imports from `nav.tsx`; reduced from 164 lines to 22 lines
+
+### Files added
+- src/components/layout/nav.tsx (SidebarNav + BottomNav + InlineCredits + icon components + useIsActive hook)
+
+### Files changed
+- src/components/layout/app-shell.tsx (replaced inline nav implementation with imports from nav.tsx)
+- PLAN.md (marked task complete)
+
+### Notes
+- Credits are shown inline in the desktop sidebar (at the bottom, separated by a border) but not in the mobile bottom nav (space-constrained — credits remain visible in the header's CreditsBadge on mobile)
+- `InlineCredits` shares the same `convexQuery` subscription as the header's CreditsBadge — Convex deduplicates reactive subscriptions so there's no double-fetching
+- All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)

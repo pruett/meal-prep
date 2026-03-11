@@ -89,7 +89,7 @@
 - [x] Seed default preferences on signup alongside user creation
 
 ### Wizard Shell + Steps 1-3
-- [ ] Create `src/routes/onboarding/route.tsx` — layout route with auth guard and onboarding-completed redirect
+- [x] Create `src/routes/onboarding/route.tsx` — layout route with auth guard and onboarding-completed redirect
 - [ ] Create `src/components/onboarding/wizard-shell.tsx` — step indicator (6 steps), Back/Next/Skip navigation (invoke `frontend-design` and `shadcn` skills)
 - [ ] Create `src/routes/onboarding/diet.tsx` + `src/components/onboarding/diet-step.tsx` — checkbox grid of 12 dietary restrictions, saves via `api.preferences.update` (invoke `frontend-design` and `shadcn` skills)
   - Route `loader` uses `createServerFn` to prefetch current preferences server-side for instant render

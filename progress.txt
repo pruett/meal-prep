@@ -519,3 +519,24 @@
 - `update` mutation uses `Object.fromEntries` + `filter` to build a clean patch object from only the provided (non-undefined) optional args
 - Default values match the tracer bullet hardcoded preferences: 7 meals/week, household 2, 45min max prep
 - All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)
+
+## 2026-03-11: Phase 2 — Onboarding Layout Route
+
+### What was done
+- Created `src/routes/onboarding/route.tsx` — layout route for the onboarding wizard section
+- Auth guard: checks `context.token` (set by root route's `beforeLoad`) and redirects to `/auth/login` if unauthenticated
+- Onboarding-completed redirect: uses `createServerFn` to query `api.users.getAuthenticated` via `ConvexHttpClient` with auth token; redirects to `/` if `onboardingCompleted` is `true`
+- Renders `<Outlet />` for child routes (diet, cuisines, avoid, meals, cooking, generate)
+- Route tree auto-regenerated: `OnboardingDietRoute` is now a child of `OnboardingRouteRoute` instead of the root route
+
+### Files added
+- src/routes/onboarding/route.tsx (onboarding layout route with auth guard + onboarding-completed redirect)
+
+### Files changed
+- src/routeTree.gen.ts (auto-regenerated — onboarding/diet re-parented under onboarding layout)
+- PLAN.md (marked task complete)
+
+### Notes
+- Uses per-request `ConvexHttpClient` (not singleton) for auth-safe server-side queries, following the pattern from `index.tsx` and `generate-meals.ts`
+- `beforeLoad` runs before the component renders and before any child route `beforeLoad`/`loader` functions, so auth + onboarding checks gate all child routes
+- All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)

@@ -969,3 +969,33 @@
 - Button positioned between the status banner and the meals grid for natural flow
 - Follows the same fetch + error handling pattern as the existing handleGenerate function
 - All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)
+
+## 2026-03-11: Phase 3 — Real Preferences in AI Prompts
+
+### What was done
+- Updated `src/lib/ai/prompts.ts` — replaced hardcoded preferences with dynamic `buildMealSuggestionsPrompt(totalMeals, preferences?, acceptedMeals?)`:
+  - Accepts `MealPromptPreferences` interface matching the Convex preferences schema (dietaryRestrictions, cuisinePreferences, householdSize, maxPrepTimeMinutes, kitchenEquipment, foodsToAvoid)
+  - Accepts optional `acceptedMeals` array for regeneration context (avoids suggesting duplicates)
+  - Falls back to hardcoded defaults when preferences are null/undefined (backward compatible)
+  - Builds dynamic preference section: dietary restrictions, liked/disliked cuisines, household size, max prep time, equipment list, foods to avoid
+  - Extracted `buildPreferencesSection()` helper for clean separation
+- Updated `src/routes/api/ai/generate-meals.ts`:
+  - Fetches user preferences via `api.preferences.getByUser` before generation
+  - Uses `preferences?.mealsPerWeek ?? 7` for totalMeals (respects user's meals-per-week setting)
+  - Passes preferences to `buildMealSuggestionsPrompt(totalMeals, preferences)`
+- Updated `src/routes/api/ai/regenerate-meals.ts`:
+  - Fetches user preferences via `api.preferences.getByUser` before generation
+  - Replaced inline 20-line prompt string with `buildMealSuggestionsPrompt(rejectedCount, preferences, acceptedMeals)`
+  - Passes accepted meals as context to avoid duplicate suggestions
+
+### Files changed
+- src/lib/ai/prompts.ts (rewrote with dynamic preferences support + MealPromptPreferences interface)
+- src/routes/api/ai/generate-meals.ts (added preferences fetch, dynamic totalMeals, passed preferences to prompt)
+- src/routes/api/ai/regenerate-meals.ts (added preferences fetch, replaced inline prompt with shared builder)
+- PLAN.md (marked 2 tasks complete)
+
+### Notes
+- `buildMealSuggestionsPrompt` signature is backward compatible — `preferences` and `acceptedMeals` are optional, defaulting to the same hardcoded values as before
+- The regenerate route now uses the same prompt builder as generate, ensuring consistent prompt structure and preference handling
+- `mealsPerWeek` from preferences drives `totalMealsRequested` in generate-meals (was hardcoded to 7)
+- All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)

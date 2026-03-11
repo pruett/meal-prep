@@ -39,12 +39,16 @@ export const Route = createFileRoute('/api/ai/generate-meals')({
           )
         }
 
+        const preferences = await convex.query(api.preferences.getByUser, {
+          userId: user._id,
+        })
+
         const now = new Date()
         const day = now.getDay()
         const diff = now.getDate() - day + (day === 0 ? -6 : 1)
         const monday = new Date(now.getFullYear(), now.getMonth(), diff)
         const weekStartDate = monday.toISOString().split('T')[0]!
-        const totalMeals = 7
+        const totalMeals = preferences?.mealsPerWeek ?? 7
 
         const mealPlanId = await convex.mutation(api.mealPlans.create, {
           userId: user._id,
@@ -57,7 +61,7 @@ export const Route = createFileRoute('/api/ai/generate-meals')({
           try {
             const result = streamText({
               model: openai('gpt-4o-mini'),
-              prompt: buildMealSuggestionsPrompt(totalMeals),
+              prompt: buildMealSuggestionsPrompt(totalMeals, preferences),
               output: Output.array({
                 element: mealSuggestionSchema,
               }),

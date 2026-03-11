@@ -129,8 +129,8 @@
 - [x] Add "Regenerate Rejected" button to plan page, visible when rejected meals exist (invoke `frontend-design` and `shadcn` skills)
 
 ### Real Preferences in AI Prompts
-- [ ] Update `src/lib/ai/prompts.ts` — replace hardcoded preferences with dynamic `buildMealSuggestionsPrompt(preferences, acceptedMeals?)` using all preference fields
-- [ ] Update both generation server routes to fetch user preferences from Convex and pass to prompt builder
+- [x] Update `src/lib/ai/prompts.ts` — replace hardcoded preferences with dynamic `buildMealSuggestionsPrompt(preferences, acceptedMeals?)` using all preference fields
+- [x] Update both generation server routes to fetch user preferences from Convex and pass to prompt builder
 
 ---
 

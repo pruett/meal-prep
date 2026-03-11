@@ -4,6 +4,7 @@ import { openai } from '@ai-sdk/openai'
 import { ConvexHttpClient } from 'convex/browser'
 import { api } from '../../../../convex/_generated/api'
 import { mealSuggestionSchema } from '~/lib/ai/schemas'
+import { buildMealSuggestionsPrompt } from '~/lib/ai/prompts'
 import { getToken } from '~/lib/auth-server'
 
 const MAX_RETRIES = 2
@@ -65,6 +66,10 @@ export const Route = createFileRoute('/api/ai/regenerate-meals')({
           )
         }
 
+        const preferences = await convex.query(api.preferences.getByUser, {
+          userId: user._id,
+        })
+
         await convex.mutation(api.meals.deleteByMealPlanAndStatus, {
           mealPlanId,
           status: 'rejected',
@@ -75,28 +80,14 @@ export const Route = createFileRoute('/api/ai/regenerate-meals')({
           status: 'generating',
         })
 
-        const acceptedContext = acceptedMeals
-          .map((m) => `- ${m.name}: ${m.description}`)
-          .join('\n')
-
-        const prompt = `You are a meal planning assistant. Generate exactly ${rejectedCount} replacement meal suggestions for a week of home cooking.
-
-The user already has these accepted meals in their plan:
-${acceptedContext || '(none)'}
-
-Requirements:
-- Do NOT suggest any meals similar to the accepted meals listed above
-- Each meal should be practical for home cooking
-- Vary the cuisines and protein sources
-- Include a mix of quick weeknight meals and slightly more involved options
-- All meals should be nutritious and well-balanced
-- Estimated prep time should include both preparation and cooking
-
-For each meal, provide:
-- A descriptive name
-- A brief description (1-2 sentences)
-- Key ingredients (5-8 main ingredients, not seasonings/oil/salt)
-- Estimated total prep and cooking time in minutes`
+        const prompt = buildMealSuggestionsPrompt(
+          rejectedCount,
+          preferences,
+          acceptedMeals.map((m) => ({
+            name: m.name,
+            description: m.description,
+          })),
+        )
 
         const nextSortOrder =
           existingMeals.length > 0

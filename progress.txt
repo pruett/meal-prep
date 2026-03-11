@@ -296,3 +296,27 @@
 - User must set `CONVEX_SITE_URL` in `.env.local` (for local dev, this is the Convex HTTP Actions URL from the dashboard, ending in `.convex.site`)
 - Existing demo pages (`/demo/better-auth`, header user component) continue working since they import from `#/lib/auth-client` which still exports `authClient`
 - All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)
+
+## 2026-03-11: Phase 1 — Auth Provider + Route Guards (root route)
+
+### What was done
+- Updated `src/routes/__root.tsx` with SSR-compatible auth context:
+  - Created `getAuth` server function via `createServerFn` that calls `getToken()` from `~/lib/auth-server` and returns the auth token (or null)
+  - Added `beforeLoad` to root route that calls `getAuth()` and sets the token on `convexQueryClient.serverHttpClient` for authenticated SSR queries
+  - Returns `{ token }` in route context so all downstream `loader` functions can access the auth token
+  - Added `component: RootComponent` that wraps app content in `ConvexBetterAuthProvider` with `initialToken` from route context
+  - `ConvexBetterAuthProvider` replaces the previous `ConvexProvider` — it uses `ConvexProviderWithAuth` internally which manages auth state via the Better Auth client
+  - Moved Header, Footer, and DevTools from `shellComponent` into `RootComponent` so they render inside the auth-aware Convex context
+  - Simplified `shellComponent` (RootDocument) to just the HTML shell with `TanStackQueryProvider` wrapping `{children}`
+
+### Files changed
+- src/routes/__root.tsx (added getAuth serverFn, beforeLoad, RootComponent with ConvexBetterAuthProvider, simplified RootDocument)
+- PLAN.md (marked task complete)
+
+### Notes
+- `ConvexBetterAuthProvider` from `@convex-dev/better-auth/react` wraps `ConvexProviderWithAuth` from `convex/react` — it replaces `ConvexProvider`, not supplements it
+- `ConvexBetterAuthProvider` accepts `initialToken` for SSR hydration — avoids flash of unauthenticated content on first render; the auth client takes over token management on the client side
+- `convexQueryClient.serverHttpClient` is a `ConvexHttpClient` only created on the server side (via `typeof window === 'undefined'` check in ConvexQueryClient constructor); `.setAuth(token)` sets a static token for server-side queries during SSR
+- The `token` returned from `beforeLoad` is automatically merged into the route context — child routes access it via `context.token` in their `beforeLoad`/`loader` functions
+- The old `ConvexProvider` wrapper (`src/integrations/convex/provider.tsx`) is no longer imported from `__root.tsx`; file kept for now as it may be referenced elsewhere
+- All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)

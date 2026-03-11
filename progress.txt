@@ -901,3 +901,18 @@
 - Server-side enforcement already returns 403 when credits are 0 (implemented in previous task) — this adds the client-side UX to prevent the request entirely
 - Uses the same `convexQuery` + `authClient.useSession()` pattern as the header's `CreditsBadge` for consistency
 - All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)
+
+## 2026-03-11: Phase 3 — Regenerate Rejected Meals (Convex mutations)
+
+### What was done
+- Added `deleteByMealPlanAndStatus` mutation to `convex/meals.ts` — deletes all meals for a given meal plan matching a specific status (pending/accepted/rejected); uses `by_mealPlan` index to query, then filters by status and deletes matching docs; returns count of deleted meals
+- Added `batchCreate` mutation to `convex/meals.ts` — accepts an array of meal objects and inserts them all with `status: 'pending'` and `fullRecipe: null`; returns array of created IDs
+
+### Files changed
+- convex/meals.ts (added deleteByMealPlanAndStatus and batchCreate mutations)
+- PLAN.md (marked task complete)
+
+### Notes
+- `deleteByMealPlanAndStatus` queries by index then filters in-memory by status — Convex doesn't support compound filtering on non-indexed fields, but meal count per plan is small (3-14)
+- `batchCreate` uses a loop with individual `ctx.db.insert` calls — Convex mutations are transactional, so all inserts succeed or fail atomically
+- All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)

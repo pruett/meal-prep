@@ -626,3 +626,24 @@
 - `cyclePreference` cycles neutral → like → dislike → neutral on tap; individual like/dislike buttons toggle their state directly
 - Only stores non-neutral preferences in the Map — entries are deleted when cycling back to neutral, keeping the saved array minimal
 - All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)
+
+## 2026-03-11: Phase 2 — Onboarding Avoid Step
+
+### What was done
+- Created `src/components/onboarding/avoid-step.tsx` — free-text textarea for listing foods, ingredients, or allergens to avoid
+- Textarea with placeholder examples, helper text for formatting (commas or newlines), and skip guidance
+- Registers async save callback via `useWizard().setOnSave` — saves `foodsToAvoid` string to Convex via `api.preferences.update` on "Next" click; skip bypasses save (defaults preserved)
+- Updated `src/routes/onboarding/avoid.tsx` with `createServerFn` SSR loader (`fetchPreferences`) that fetches the authenticated user's current `foodsToAvoid` value server-side for instant hydration
+- Error state displayed if preferences can't be loaded
+
+### Files added
+- src/components/onboarding/avoid-step.tsx (AvoidStep component with textarea + save logic)
+
+### Files changed
+- src/routes/onboarding/avoid.tsx (replaced stub with full route + SSR loader + AvoidStep)
+- PLAN.md (marked task complete)
+
+### Notes
+- `foodsToAvoid` is a single `v.string()` field in the schema — simplest approach, free-text stored as-is (trimmed on save)
+- Follows the same patterns as diet-step and cuisines-step: ConvexHttpClient on client for save, useWizard hook for save registration, createServerFn for SSR prefetch
+- All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)

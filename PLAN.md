@@ -95,7 +95,7 @@
   - Route `loader` uses `createServerFn` to prefetch current preferences server-side for instant render
 - [x] Create `src/routes/onboarding/cuisines.tsx` + `src/components/onboarding/cuisines-step.tsx` — cuisine list with like/neutral/dislike toggles (invoke `frontend-design` and `shadcn` skills)
   - Route `loader` uses `createServerFn` to prefetch current preferences server-side for instant render
-- [ ] Create `src/routes/onboarding/avoid.tsx` + `src/components/onboarding/avoid-step.tsx` — free-text textarea for foods to avoid (invoke `frontend-design` and `shadcn` skills)
+- [x] Create `src/routes/onboarding/avoid.tsx` + `src/components/onboarding/avoid-step.tsx` — free-text textarea for foods to avoid (invoke `frontend-design` and `shadcn` skills)
   - Route `loader` uses `createServerFn` to prefetch current preferences server-side for instant render
 
 ### Steps 4-6

@@ -576,3 +576,28 @@
 - Steps save on "Next" but not on "Skip" — allows skipping with defaults as designed
 - The `rise-in` animation class is applied to the wizard container for smooth entrance
 - All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)
+
+## 2026-03-11: Phase 2 — Onboarding Diet Step
+
+### What was done
+- Created `src/components/onboarding/diet-step.tsx` — checkbox grid of 12 dietary restrictions (Vegetarian, Vegan, Pescatarian, Gluten-Free, Dairy-Free, Nut-Free, Keto, Paleo, Low-Carb, Low-Sodium, Halal, Kosher)
+- Each restriction is a toggleable button with emoji icon, label, and checkmark indicator when selected
+- Selected state: lagoon border/background tint with shadow, checkmark SVG; unselected: subtle border with hover effect
+- Responsive grid: 2 columns on mobile, 3 columns at `sm` breakpoint
+- Registers async save callback via `useWizard().setOnSave` — saves selected restrictions to Convex via `api.preferences.update` on "Next" click; skip bypasses save (defaults preserved)
+- Updated `src/routes/onboarding/diet.tsx` with `createServerFn` SSR loader (`fetchPreferences`) that fetches the authenticated user's current dietary restrictions server-side for instant hydration
+- Error state displayed if preferences can't be loaded
+
+### Files added
+- src/components/onboarding/diet-step.tsx (DietStep component with toggle grid + save logic)
+
+### Files changed
+- src/routes/onboarding/diet.tsx (replaced stub with full route + SSR loader + DietStep)
+- PLAN.md (marked task complete)
+
+### Notes
+- Uses `ConvexHttpClient` on the client side (via `import.meta.env.VITE_CONVEX_URL`) for the save mutation — same pattern as signup page
+- `setOnSave(() => save())` works correctly because `setOnSave` assigns to a ref (not React state setter), so the arrow function is stored as-is
+- `useCallback` wraps `save` with `[userId, selected]` deps so the registered callback always captures current selections
+- Helper text "No restrictions? Just skip this step" guides users who don't need this step
+- All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)

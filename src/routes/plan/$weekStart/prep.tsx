@@ -4,9 +4,9 @@ import { useQuery } from '@tanstack/react-query'
 import { convexQuery } from '@convex-dev/react-query'
 import { ConvexHttpClient } from 'convex/browser'
 import { api } from '../../../../convex/_generated/api'
-import { Badge } from '~/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
 
+import { PrepSteps } from '~/components/prep/prep-steps'
 import { RecipeCard } from '~/components/prep/recipe-card'
 import { ShoppingList } from '~/components/prep/shopping-list'
 import { requireAuth } from '~/lib/auth-guard'
@@ -193,68 +193,9 @@ function PrepGuidePage() {
 
         {/* Prep Steps tab */}
         <TabsContent value="prep">
-          <div className="space-y-4">
-            {prepGuide.batchPrepSteps
-              .slice()
-              .sort((a, b) => a.stepNumber - b.stepNumber)
-              .map((step) => (
-                <PrepStep key={step.stepNumber} step={step} />
-              ))}
-            {prepGuide.batchPrepSteps.length === 0 && (
-              <p className="py-8 text-center text-sm text-[var(--sea-ink-soft)]">
-                No prep steps.
-              </p>
-            )}
-          </div>
+          <PrepSteps steps={prepGuide.batchPrepSteps} />
         </TabsContent>
       </Tabs>
     </main>
-  )
-}
-
-/* ── Prep Step ── */
-
-type BatchPrepStep = {
-  stepNumber: number
-  instruction: string
-  estimatedMinutes: number
-  relatedMeals: string[]
-}
-
-function PrepStep({ step }: { step: BatchPrepStep }) {
-  return (
-    <div className="flex gap-4 rounded-xl border border-[var(--line)] p-4">
-      <span
-        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white"
-        style={{ backgroundColor: 'var(--lagoon-deep)' }}
-      >
-        {step.stepNumber}
-      </span>
-      <div className="min-w-0 flex-1">
-        <p className="text-sm text-[var(--sea-ink)]">{step.instruction}</p>
-        <div className="mt-2 flex flex-wrap items-center gap-2">
-          <span className="inline-flex items-center gap-1 text-xs text-[var(--sea-ink-soft)]">
-            <svg
-              className="h-3.5 w-3.5"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <circle cx="12" cy="12" r="10" />
-              <polyline points="12 6 12 12 16 14" />
-            </svg>
-            {step.estimatedMinutes} min
-          </span>
-          {step.relatedMeals.map((meal) => (
-            <Badge key={meal} variant="secondary" className="text-xs">
-              {meal}
-            </Badge>
-          ))}
-        </div>
-      </div>
-    </div>
   )
 }

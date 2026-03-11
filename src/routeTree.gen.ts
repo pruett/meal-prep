@@ -10,6 +10,8 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AboutRouteImport } from './routes/about'
+import { Route as PreferencesRouteImport } from './routes/preferences'
+import { Route as AccountRouteImport } from './routes/account'
 import { Route as OnboardingRouteRouteImport } from './routes/onboarding/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as OnboardingGenerateRouteImport } from './routes/onboarding/generate'
@@ -32,6 +34,16 @@ import { Route as ApiAiGeneratePrepRouteImport } from './routes/api/ai/generate-
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
   path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PreferencesRoute = PreferencesRouteImport.update({
+  id: '/preferences',
+  path: '/preferences',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AccountRoute = AccountRouteImport.update({
+  id: '/account',
+  path: '/account',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OnboardingRouteRoute = OnboardingRouteRouteImport.update({
@@ -129,6 +141,8 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/onboarding': typeof OnboardingRouteRouteWithChildren
   '/about': typeof AboutRoute
+  '/preferences': typeof PreferencesRoute
+  '/account': typeof AccountRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
   '/demo/better-auth': typeof DemoBetterAuthRoute
@@ -150,6 +164,8 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/onboarding': typeof OnboardingRouteRouteWithChildren
   '/about': typeof AboutRoute
+  '/preferences': typeof PreferencesRoute
+  '/account': typeof AccountRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
   '/demo/better-auth': typeof DemoBetterAuthRoute
@@ -172,6 +188,8 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/onboarding': typeof OnboardingRouteRouteWithChildren
   '/about': typeof AboutRoute
+  '/preferences': typeof PreferencesRoute
+  '/account': typeof AccountRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
   '/demo/better-auth': typeof DemoBetterAuthRoute
@@ -195,6 +213,8 @@ export interface FileRouteTypes {
     | '/'
     | '/onboarding'
     | '/about'
+    | '/preferences'
+    | '/account'
     | '/auth/login'
     | '/auth/signup'
     | '/demo/better-auth'
@@ -216,6 +236,8 @@ export interface FileRouteTypes {
     | '/'
     | '/onboarding'
     | '/about'
+    | '/preferences'
+    | '/account'
     | '/auth/login'
     | '/auth/signup'
     | '/demo/better-auth'
@@ -237,6 +259,8 @@ export interface FileRouteTypes {
     | '/'
     | '/onboarding'
     | '/about'
+    | '/preferences'
+    | '/account'
     | '/auth/login'
     | '/auth/signup'
     | '/demo/better-auth'
@@ -259,6 +283,8 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   OnboardingRouteRoute: typeof OnboardingRouteRouteWithChildren
   AboutRoute: typeof AboutRoute
+  PreferencesRoute: typeof PreferencesRoute
+  AccountRoute: typeof AccountRoute
   AuthLoginRoute: typeof AuthLoginRoute
   AuthSignupRoute: typeof AuthSignupRoute
   DemoBetterAuthRoute: typeof DemoBetterAuthRoute
@@ -350,6 +376,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DemoBetterAuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/preferences': {
+      id: '/preferences'
+      path: '/preferences'
+      fullPath: '/preferences'
+      preLoaderRoute: typeof PreferencesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/account': {
+      id: '/account'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof AccountRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth/signup': {
       id: '/auth/signup'
       path: '/auth/signup'
@@ -435,6 +475,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   OnboardingRouteRoute: OnboardingRouteRouteWithChildren,
   AboutRoute: AboutRoute,
+  PreferencesRoute: PreferencesRoute,
+  AccountRoute: AccountRoute,
   AuthLoginRoute: AuthLoginRoute,
   AuthSignupRoute: AuthSignupRoute,
   DemoBetterAuthRoute: DemoBetterAuthRoute,

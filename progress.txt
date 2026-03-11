@@ -1194,6 +1194,35 @@
 - Follows the same extraction pattern as recipe-card.tsx and shopping-list.tsx
 - All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)
 
+## 2026-03-11: Phase 5 — App Shell Layout (app-shell.tsx)
+
+### What was done
+- Created `src/components/layout/app-shell.tsx` — responsive app shell with mobile bottom nav and desktop sidebar layout
+- Desktop sidebar: sticky below header (`top-[57px]`), 208px wide (`w-52`), right border, contains `SidebarLink` items with icons and labels; active state uses lagoon-deep color with subtle tinted background; hover state uses `link-bg-hover`
+- Mobile bottom nav: fixed at bottom with `z-40`, glassmorphic background matching header (`header-bg` + `backdrop-blur-lg`), safe area padding via `env(safe-area-inset-bottom)`; contains `BottomNavLink` items with icon-above-label layout
+- Three nav items: Home (`/`), Preferences (`/preferences`), Account (`/account`) with inline SVG icons (house, sliders, user)
+- Active state detection via `useRouterState` — exact match for `/`, prefix match for other routes
+- Main content area has bottom padding (`pb-[4.5rem]`) on mobile to prevent overlap with bottom nav, removed on desktop (`lg:pb-0`)
+- Created stub routes for `/preferences` and `/account` (placeholder pages — will be replaced in later Phase 5 tasks)
+- Updated `src/routeTree.gen.ts` to register both new routes in all type interfaces, route children, and declare module block
+
+### Files added
+- src/components/layout/app-shell.tsx (AppShell component + SidebarLink + BottomNavLink + icon components)
+- src/routes/preferences.tsx (placeholder stub route)
+- src/routes/account.tsx (placeholder stub route)
+
+### Files changed
+- src/routeTree.gen.ts (added /preferences and /account routes to imports, updates, types, children, and declare module block)
+- PLAN.md (marked task complete)
+
+### Notes
+- AppShell does not check auth internally — the root route update (next task after nav.tsx) will conditionally render AppShell for authenticated routes only
+- Stub routes follow the established pattern (login created signup stub, signup created onboarding/diet stub, etc.) — necessary for TanStack Router's strict route typing on `Link` `to` prop
+- `useIsActive` hook uses `useRouterState` with a selector for efficient re-renders (only subscribes to `location.pathname`)
+- The sidebar uses no explicit background (transparent, showing body background through) with just a right border — keeps the design light and minimal
+- `routeTree.gen.ts` manually updated; TanStack router plugin will regenerate on `vite dev`/`vite build`
+- All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)
+
 ## 2026-03-11: Phase 4 — Finalization Flow (Generate Prep Guide button + View Prep Guide navigation)
 
 ### What was done

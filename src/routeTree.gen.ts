@@ -12,7 +12,6 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DemoTanstackQueryRouteImport } from './routes/demo/tanstack-query'
-import { Route as DemoConvexRouteImport } from './routes/demo/convex'
 import { Route as DemoBetterAuthRouteImport } from './routes/demo/better-auth'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
@@ -31,11 +30,6 @@ const DemoTanstackQueryRoute = DemoTanstackQueryRouteImport.update({
   path: '/demo/tanstack-query',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DemoConvexRoute = DemoConvexRouteImport.update({
-  id: '/demo/convex',
-  path: '/demo/convex',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const DemoBetterAuthRoute = DemoBetterAuthRouteImport.update({
   id: '/demo/better-auth',
   path: '/demo/better-auth',
@@ -51,7 +45,6 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/demo/better-auth': typeof DemoBetterAuthRoute
-  '/demo/convex': typeof DemoConvexRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
@@ -59,7 +52,6 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/demo/better-auth': typeof DemoBetterAuthRoute
-  '/demo/convex': typeof DemoConvexRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
@@ -68,7 +60,6 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/demo/better-auth': typeof DemoBetterAuthRoute
-  '/demo/convex': typeof DemoConvexRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
@@ -78,7 +69,6 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/demo/better-auth'
-    | '/demo/convex'
     | '/demo/tanstack-query'
     | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
@@ -86,7 +76,6 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/demo/better-auth'
-    | '/demo/convex'
     | '/demo/tanstack-query'
     | '/api/auth/$'
   id:
@@ -94,7 +83,6 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/demo/better-auth'
-    | '/demo/convex'
     | '/demo/tanstack-query'
     | '/api/auth/$'
   fileRoutesById: FileRoutesById
@@ -103,7 +91,6 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   DemoBetterAuthRoute: typeof DemoBetterAuthRoute
-  DemoConvexRoute: typeof DemoConvexRoute
   DemoTanstackQueryRoute: typeof DemoTanstackQueryRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
@@ -131,13 +118,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DemoTanstackQueryRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/demo/convex': {
-      id: '/demo/convex'
-      path: '/demo/convex'
-      fullPath: '/demo/convex'
-      preLoaderRoute: typeof DemoConvexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/demo/better-auth': {
       id: '/demo/better-auth'
       path: '/demo/better-auth'
@@ -159,7 +139,6 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   DemoBetterAuthRoute: DemoBetterAuthRoute,
-  DemoConvexRoute: DemoConvexRoute,
   DemoTanstackQueryRoute: DemoTanstackQueryRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
 }

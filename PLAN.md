@@ -19,10 +19,10 @@
 - [x] Verify Tailwind renders correctly in browser
 
 ### Convex Backend
-- [ ] Install Convex packages: `convex`, `@convex-dev/react-query`, `@tanstack/react-query`, `@tanstack/react-router-with-query`
-- [ ] Run `bun x convex dev` to provision deployment, create `convex/` dir, populate `.env.local` with `CONVEX_DEPLOYMENT` and `VITE_CONVEX_URL`
-- [ ] Create minimal `convex/schema.ts` with just `users` table to validate the schema pipeline
-- [ ] Wire `ConvexQueryClient` in `src/router.tsx` with `ConvexProvider`, verify a test query works from `index.tsx`
+- [x] Install Convex packages: `convex`, `@convex-dev/react-query`, `@tanstack/react-query`, `@tanstack/react-router-with-query`
+- [x] Run `bun x convex dev` to provision deployment, create `convex/` dir, populate `.env.local` with `CONVEX_DEPLOYMENT` and `VITE_CONVEX_URL`
+- [x] Create minimal `convex/schema.ts` with just `users` table to validate the schema pipeline
+- [x] Wire `ConvexQueryClient` in `src/router.tsx` with `ConvexProvider`, verify a test query works from `index.tsx`
 
 ### Linting, Formatting, Testing
 - [ ] Install Oxlint (`bun add -D oxlint`), run `oxlint --init` for `.oxlintrc.json`; create `.oxfmtrc.json`

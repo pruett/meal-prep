@@ -25,9 +25,9 @@
 - [x] Wire `ConvexQueryClient` in `src/router.tsx` with `ConvexProvider`, verify a test query works from `index.tsx`
 
 ### Linting, Formatting, Testing
-- [ ] Install Oxlint (`bun add -D oxlint`), run `oxlint --init` for `.oxlintrc.json`; create `.oxfmtrc.json`
-- [ ] Install Vitest (`bun add -D vitest`), create `vitest.config.ts`, add sanity test in `src/lib/__tests__/sanity.test.ts`
-- [ ] Add package.json scripts: `lint`, `format`, `test`, `check`
+- [x] Install Oxlint (`bun add -D oxlint`), run `oxlint --init` for `.oxlintrc.json`; create `.oxfmtrc.json`
+- [x] Install Vitest (`bun add -D vitest`), create `vitest.config.ts`, add sanity test in `src/lib/__tests__/sanity.test.ts`
+- [x] Add package.json scripts: `lint`, `format`, `test`, `check`
 
 ### Tracer: Full Convex Schema + Meal Server Functions
 - [ ] Expand `convex/schema.ts` to all 6 tables (`users`, `preferences`, `mealPlans`, `meals`, `prepGuides`, `generationLogs`) with full field definitions and indexes (`mealPlans.by_user`, `mealPlans.by_user_week`, `meals.by_mealPlan`, `meals.by_user`, `preferences.by_user`)

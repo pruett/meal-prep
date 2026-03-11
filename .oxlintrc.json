@@ -1,0 +1,33 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["react", "typescript", "import"],
+  "categories": {
+    "correctness": "error"
+  },
+  "rules": {
+    "no-unused-vars": [
+      "error",
+      {
+        "caughtErrors": "none",
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_"
+      }
+    ]
+  },
+  "settings": {
+    "react": {
+      "formComponents": [],
+      "linkComponents": [],
+      "version": "19",
+      "componentWrapperFunctions": []
+    },
+    "vitest": {
+      "typecheck": false
+    }
+  },
+  "env": {
+    "builtin": true
+  },
+  "globals": {},
+  "ignorePatterns": ["convex/_generated/**", "src/routeTree.gen.ts"]
+}

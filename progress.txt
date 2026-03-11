@@ -1,0 +1,25 @@
+## 2026-03-10: Phase 0 — Initialize TanStack Start + Bun
+
+### What was done
+- Scaffolded TanStack Start project using `bunx @tanstack/cli@latest create` with Bun, Tailwind, TanStack Query, Convex, and better-auth add-ons
+- Moved scaffolded files from subdirectory to project root
+- Added `~/*` path alias to tsconfig.json (alongside existing `#/*` and `@/*`)
+- Renamed package to "meal-prep"
+- Verified vite.config.ts has tanstackStart() plugin and tsconfigPaths
+- Verified dev server starts on port 3000
+- TypeScript type check passes clean
+
+### Files added/changed
+- package.json (renamed, all deps installed)
+- tsconfig.json (added ~/* path alias)
+- vite.config.ts (tanstackStart, tsconfigPaths, tailwindcss, viteReact)
+- bun.lock
+- .gitignore, .env.local, .cta.json, .vscode/settings.json
+- src/ directory (router.tsx, routes/, components/, integrations/, lib/, styles.css)
+- convex/ directory (schema.ts, todos.ts, _generated/)
+- public/ directory (favicon, logos, manifest, robots.txt)
+
+### Notes
+- The scaffold includes demo files (about route, convex demo, better-auth demo, todo convex functions) that will be replaced/removed in later phases
+- `ssr: { noExternal: ['@convex-dev/better-auth'] }` not added to vite.config.ts — `@convex-dev/better-auth` isn't used yet; will evaluate in Phase 1
+- Tailwind v4 is used (CSS-first config via `@import "tailwindcss"` in styles.css, no tailwind.config.ts)

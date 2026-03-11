@@ -9,10 +9,10 @@
 > Stand up the full toolchain, then prove the core architecture with a hardcoded-user → AI-generated meals → reactive UI slice.
 
 ### Initialize TanStack Start + Bun
-- [ ] Scaffold TanStack Start project (`bunx @tanstack/cli@latest create my-tanstack-app --package-manager bun --tailwind --add-ons tanstack-query,start,convex,better-auth`) This uses TanStack CLI to bootstrap a project with Convex and better-auth packages installed
-- [ ] Note: The CLI command above should properly configure `vite.config.ts`. Some things to double-check: `tanstackStart()` plugin from `@tanstack/react-start/plugin/vite` and `tsconfigPaths`; verify if `ssr: { noExternal: ['@convex-dev/better-auth'] }` is warranted or not
-- [ ] Set `tsconfig.json` path aliases: `"~/*": ["./src/*"]`
-- [ ] Verify dev server starts with `bun run dev`
+- [x] Scaffold TanStack Start project (`bunx @tanstack/cli@latest create my-tanstack-app --package-manager bun --tailwind --add-ons tanstack-query,start,convex,better-auth`) This uses TanStack CLI to bootstrap a project with Convex and better-auth packages installed
+- [x] Note: The CLI command above should properly configure `vite.config.ts`. Some things to double-check: `tanstackStart()` plugin from `@tanstack/react-start/plugin/vite` and `tsconfigPaths`; verify if `ssr: { noExternal: ['@convex-dev/better-auth'] }` is warranted or not
+- [x] Set `tsconfig.json` path aliases: `"~/*": ["./src/*"]`
+- [x] Verify dev server starts with `bun run dev`
 
 ### Tailwind CSS + shadcn/ui
 - [ ] Bootstrap shadcn/ui (`bunx --bun shadcn@latest init --preset aJ4XDay --base base --template start`) This will initialize shadcn but might create a new project entirely in a subdirectory of the project. make sure to pull the important files out of the generated project like `components.json`, `/components/ui`, `~/lib/utils`), and global/index css file (invoke `shadcn` skill)

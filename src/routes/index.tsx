@@ -3,30 +3,29 @@ import { createFileRoute } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
 import { useQuery } from '@tanstack/react-query'
 import { convexQuery } from '@convex-dev/react-query'
+import { ConvexHttpClient } from 'convex/browser'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
-import { getConvexHttpClient } from '~/lib/convex'
 import { MealGrid } from '~/components/meals/meal-grid'
 import { MealSkeleton } from '~/components/meals/meal-skeleton'
 import { Button } from '~/components/ui/button'
-
-// Hardcoded tracer bullet values — replaced with auth in Phase 1
-const TRACER_USER_ID = 'tracer-user'
-
-function getWeekStartDate(): string {
-  const now = new Date()
-  const day = now.getDay()
-  const diff = now.getDate() - day + (day === 0 ? -6 : 1)
-  const monday = new Date(now.getFullYear(), now.getMonth(), diff)
-  return monday.toISOString().split('T')[0]!
-}
+import { requireAuth } from '~/lib/auth-guard'
+import { getToken } from '~/lib/auth-server'
 
 const fetchLatestMealPlan = createServerFn({ method: 'GET' }).handler(
   async () => {
     try {
-      const convex = getConvexHttpClient()
+      const token = await getToken()
+      if (!token) return null
+
+      const convex = new ConvexHttpClient(process.env.VITE_CONVEX_URL!)
+      convex.setAuth(token)
+
+      const user = await convex.query(api.users.getAuthenticated, {})
+      if (!user) return null
+
       const plans = await convex.query(api.mealPlans.getByUser, {
-        userId: TRACER_USER_ID as Id<'users'>,
+        userId: user._id,
       })
       if (plans.length === 0) return null
       const plan = plans[0]!
@@ -41,6 +40,7 @@ const fetchLatestMealPlan = createServerFn({ method: 'GET' }).handler(
 )
 
 export const Route = createFileRoute('/')({
+  beforeLoad: requireAuth,
   loader: () => fetchLatestMealPlan(),
   component: TracerPage,
 })
@@ -70,11 +70,6 @@ function TracerPage() {
       const response = await fetch('/api/ai/generate-meals', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: TRACER_USER_ID,
-          weekStartDate: getWeekStartDate(),
-          totalMeals: 7,
-        }),
       })
 
       const data = await response.json()

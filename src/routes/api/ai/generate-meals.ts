@@ -1,37 +1,46 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { Output, streamText } from 'ai'
 import { openai } from '@ai-sdk/openai'
-import type { Id } from '../../../../convex/_generated/dataModel'
+import { ConvexHttpClient } from 'convex/browser'
 import { api } from '../../../../convex/_generated/api'
-import { getConvexHttpClient } from '~/lib/convex'
 import { mealSuggestionSchema } from '~/lib/ai/schemas'
 import { buildMealSuggestionsPrompt } from '~/lib/ai/prompts'
+import { getToken } from '~/lib/auth-server'
 
 const MAX_RETRIES = 2
 
 export const Route = createFileRoute('/api/ai/generate-meals')({
   server: {
     handlers: {
-      POST: async ({ request }) => {
-        const body = (await request.json()) as {
-          userId: string
-          weekStartDate: string
-          totalMeals?: number
-        }
-
-        const { userId, weekStartDate, totalMeals = 7 } = body
-
-        if (!userId || !weekStartDate) {
+      POST: async () => {
+        const token = await getToken()
+        if (!token) {
           return new Response(
-            JSON.stringify({ error: 'userId and weekStartDate are required' }),
-            { status: 400, headers: { 'Content-Type': 'application/json' } },
+            JSON.stringify({ error: 'Unauthorized' }),
+            { status: 401, headers: { 'Content-Type': 'application/json' } },
           )
         }
 
-        const convex = getConvexHttpClient()
+        const convex = new ConvexHttpClient(process.env.VITE_CONVEX_URL!)
+        convex.setAuth(token)
+
+        const user = await convex.query(api.users.getAuthenticated, {})
+        if (!user) {
+          return new Response(
+            JSON.stringify({ error: 'User not found' }),
+            { status: 401, headers: { 'Content-Type': 'application/json' } },
+          )
+        }
+
+        const now = new Date()
+        const day = now.getDay()
+        const diff = now.getDate() - day + (day === 0 ? -6 : 1)
+        const monday = new Date(now.getFullYear(), now.getMonth(), diff)
+        const weekStartDate = monday.toISOString().split('T')[0]!
+        const totalMeals = 7
 
         const mealPlanId = await convex.mutation(api.mealPlans.create, {
-          userId: userId as Id<'users'>,
+          userId: user._id,
           weekStartDate,
           totalMealsRequested: totalMeals,
         })
@@ -51,7 +60,7 @@ export const Route = createFileRoute('/api/ai/generate-meals')({
             for await (const meal of result.elementStream) {
               await convex.mutation(api.meals.create, {
                 mealPlanId,
-                userId: userId as Id<'users'>,
+                userId: user._id,
                 name: meal.name,
                 description: meal.description,
                 keyIngredients: meal.keyIngredients,

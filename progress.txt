@@ -465,3 +465,33 @@
 - Component handles the `authClient.signIn.social()` call internally — pages just pass config props
 - Google OAuth won't function until env vars and `socialProviders.google` are configured (next task)
 - All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)
+
+## 2026-03-11: Phase 1 — Use authenticated context in generate-meals route
+
+### What was done
+- Updated `src/routes/api/ai/generate-meals.ts` to derive userId from the auth token instead of the request body:
+  - Calls `getToken()` from `~/lib/auth-server` to get the JWT, returns 401 if unauthenticated
+  - Creates a per-request `ConvexHttpClient` with auth token set (avoids shared state on singleton)
+  - Calls new `api.users.getAuthenticated` query to resolve the app user from the auth identity
+  - Removed `userId` from request body parsing — server now computes weekStartDate and totalMeals internally
+- Updated `src/routes/index.tsx` to use authenticated context:
+  - Removed hardcoded `TRACER_USER_ID` constant
+  - Added `beforeLoad: requireAuth` to protect the route
+  - Updated `fetchLatestMealPlan` SSR loader to use `getToken()` + per-request `ConvexHttpClient` with auth to look up the user's meal plans
+  - Removed `userId` from the generate request body (server derives it from auth)
+- Added `getAuthenticated` query to `convex/users.ts`:
+  - Combines `authComponent.getAuthUser(ctx)` with app user lookup by `betterAuthId` in a single Convex query
+  - Returns `null` if not authenticated or user not found
+
+### Files changed
+- convex/users.ts (added `getAuthenticated` query, imported `authComponent` from `./auth`)
+- src/routes/api/ai/generate-meals.ts (replaced body-based userId with auth-derived userId)
+- src/routes/index.tsx (removed TRACER_USER_ID, added auth guard, updated SSR loader)
+- PLAN.md (marked task complete)
+
+### Notes
+- Uses per-request `ConvexHttpClient` (not singleton from `getConvexHttpClient()`) for authenticated operations to avoid shared auth state between concurrent requests
+- `authComponent.getAuthUser(ctx)` returns a Convex document from the Better Auth component's `user` table; its `_id` maps to the `betterAuthId` stored in our app's `users` table
+- `getToken()` should work in TanStack Start server handlers since they run in the Vinxi request context
+- The POST handler no longer accepts any body parameters — weekStartDate and totalMeals are computed server-side
+- All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)

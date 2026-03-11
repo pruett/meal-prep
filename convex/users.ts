@@ -1,5 +1,20 @@
 import { v } from 'convex/values'
 import { mutation, query } from './_generated/server'
+import { authComponent } from './auth'
+
+export const getAuthenticated = query({
+  args: {},
+  handler: async (ctx) => {
+    const authUser = await authComponent.getAuthUser(ctx)
+    if (!authUser) return null
+    return await ctx.db
+      .query('users')
+      .withIndex('by_betterAuthId', (q) =>
+        q.eq('betterAuthId', authUser._id as string),
+      )
+      .unique()
+  },
+})
 
 export const createFromAuth = mutation({
   args: {

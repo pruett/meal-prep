@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
 import { useQuery } from '@tanstack/react-query'
 import { convexQuery } from '@convex-dev/react-query'
 import { ConvexHttpClient } from 'convex/browser'
+import { useMutation } from 'convex/react'
 import { api } from '../../../../convex/_generated/api'
 import { GenerationStatus } from '~/components/meals/generation-status'
 import { MealCard } from '~/components/meals/meal-card'
@@ -78,6 +79,9 @@ function MealPlanPage() {
   const { data: user } = useQuery({
     ...convexQuery(api.users.getAuthenticated, isAuthenticated ? {} : 'skip'),
   })
+
+  const navigate = useNavigate()
+  const updatePlanStatus = useMutation(api.mealPlans.updateStatus)
 
   const [isGenerating, setIsGenerating] = useState(false)
   const [isRegenerating, setIsRegenerating] = useState(false)
@@ -175,6 +179,12 @@ function MealPlanPage() {
     } finally {
       setIsGeneratingPrep(false)
     }
+  }
+
+  const handleArchive = async () => {
+    if (!mealPlanId) return
+    await updatePlanStatus({ id: mealPlanId, status: 'archived' })
+    navigate({ to: '/' })
   }
 
   if (!loaderData) {
@@ -435,6 +445,33 @@ function MealPlanPage() {
         <p className="py-12 text-center text-[var(--sea-ink-soft)]">
           No meals in this plan yet.
         </p>
+      )}
+
+      {/* Archive plan */}
+      {plan && (planStatus === 'reviewing' || planStatus === 'finalized') && (
+        <div className="mt-10 flex justify-center border-t border-[var(--line)] pt-6">
+          <button
+            type="button"
+            onClick={handleArchive}
+            className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-[var(--sea-ink-soft)] transition-colors hover:bg-[var(--surface-strong)] hover:text-[var(--sea-ink)]"
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polyline points="21 8 21 21 3 21 3 8" />
+              <rect x="1" y="3" width="22" height="5" />
+              <line x1="10" y1="12" x2="14" y2="12" />
+            </svg>
+            Archive Plan
+          </button>
+        </div>
       )}
     </main>
   )

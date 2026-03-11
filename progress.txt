@@ -1376,3 +1376,22 @@
 - `formatRelativeDate()` helper shows "Just now", "Xm ago", "Xh ago", "Xd ago", or "Mon DD" for older dates
 - Credits progress bar assumes 25 initial credits (matching `users.createFromAuth` default)
 - All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)
+
+## 2026-03-11: Phase 5 — Plan Archiving
+
+### What was done
+- Added "Archive Plan" button to `src/routes/plan/$weekStart/index.tsx` — visible when plan status is `reviewing` or `finalized`
+  - Uses `useMutation(api.mealPlans.updateStatus)` to set status to `"archived"`
+  - Navigates back to home (`/`) after archiving via `useNavigate`
+  - Styled as a subtle secondary action: muted text, archive box icon, bottom of page below a top border separator
+  - Hover state transitions to stronger text color with surface background
+
+### Files changed
+- src/routes/plan/$weekStart/index.tsx (added useNavigate, useMutation imports; added updatePlanStatus mutation, handleArchive handler, Archive button UI)
+- PLAN.md (marked task complete)
+
+### Notes
+- The `updateStatus` mutation in `convex/mealPlans.ts` already accepts `"archived"` as a valid status — no backend changes needed
+- `PlanSummary` component already has styling config for archived status (muted dot and text)
+- Archive is intentionally low-prominence (not a Button component, just a styled native button) to avoid accidental clicks
+- All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)

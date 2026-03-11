@@ -15,8 +15,8 @@
 - [x] Verify dev server starts with `bun run dev`
 
 ### Tailwind CSS + shadcn/ui
-- [ ] Bootstrap shadcn/ui (`bunx --bun shadcn@latest init --preset aJ4XDay --base base --template start`) This will initialize shadcn but might create a new project entirely in a subdirectory of the project. make sure to pull the important files out of the generated project like `components.json`, `/components/ui`, `~/lib/utils`), and global/index css file (invoke `shadcn` skill)
-- [ ] Verify Tailwind renders correctly in browser
+- [x] Bootstrap shadcn/ui (`bunx --bun shadcn@latest init --preset aJ4XDay --base base --template start`) This will initialize shadcn but might create a new project entirely in a subdirectory of the project. make sure to pull the important files out of the generated project like `components.json`, `/components/ui`, `~/lib/utils`), and global/index css file (invoke `shadcn` skill)
+- [x] Verify Tailwind renders correctly in browser
 
 ### Convex Backend
 - [ ] Install Convex packages: `convex`, `@convex-dev/react-query`, `@tanstack/react-query`, `@tanstack/react-router-with-query`

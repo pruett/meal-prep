@@ -23,3 +23,24 @@
 - The scaffold includes demo files (about route, convex demo, better-auth demo, todo convex functions) that will be replaced/removed in later phases
 - `ssr: { noExternal: ['@convex-dev/better-auth'] }` not added to vite.config.ts — `@convex-dev/better-auth` isn't used yet; will evaluate in Phase 1
 - Tailwind v4 is used (CSS-first config via `@import "tailwindcss"` in styles.css, no tailwind.config.ts)
+
+## 2026-03-10: Phase 0 — Tailwind CSS + shadcn/ui
+
+### What was done
+- Bootstrapped shadcn/ui via `bunx --bun shadcn@latest init --preset aJ4XDay --base base --template start`
+- Init ran in-place (no subdirectory created) — created `components.json`, `src/components/ui/button.tsx`, `src/lib/utils.ts`, updated `src/styles.css`
+- Resolved font conflict: removed duplicate `@theme` block (scaffold's Manrope) so shadcn's `@theme inline` (Geist Variable) is the sole `--font-sans` definition
+- Verified TypeScript compiles clean, dev server starts, and production build succeeds
+
+### Files added/changed
+- components.json (shadcn config: base-vega style, base primitives, hugeicons, stone base color, ~/components alias)
+- src/components/ui/button.tsx (shadcn Button with CVA variants)
+- src/lib/utils.ts (cn() utility using clsx + tailwind-merge)
+- src/styles.css (added shadcn CSS variables, @theme inline block, @layer base, tw-animate-css import)
+- package.json (added @base-ui/react, @fontsource-variable/geist, @hugeicons/*, class-variance-authority, clsx, shadcn, tailwind-merge, tw-animate-css, @tailwindcss/typography)
+- bun.lock (updated)
+
+### Notes
+- Preset aJ4XDay resolved to `base-vega` style with `base` primitives (not radix), `hugeicons` icon library, `stone` base color
+- Existing scaffold demo CSS (sea-ink, lagoon, island-shell, etc.) preserved — demo pages still work; will be cleaned up when demo content is replaced
+- The `@layer base` styles from shadcn have lower specificity than the existing non-layered body styles, so no visual breakage on demo pages

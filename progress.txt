@@ -1395,3 +1395,29 @@
 - `PlanSummary` component already has styling config for archived status (muted dot and text)
 - Archive is intentionally low-prominence (not a Button component, just a styled native button) to avoid accidental clicks
 - All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)
+
+## 2026-03-11: Phase 6 — Reusable Error Boundary Component
+
+### What was done
+- Created `src/components/error-boundary.tsx` with two exports:
+  - `ErrorFallback` — presentational error component that works as:
+    - A TanStack Router `errorComponent` (receives `{ error, reset }` props)
+    - The fallback UI for the `ErrorBoundary` class component
+    - A standalone error display anywhere in the app
+  - `ErrorBoundary` — React class-based error boundary that catches render errors in its subtree and renders `ErrorFallback` (or a custom fallback)
+- `ErrorFallback` has two display modes:
+  - **Full mode** (default): centered `island-shell` card with `display-title` heading, error message, `rise-in` animation, and "Try again" button — matches the app's glassmorphic design system
+  - **Compact mode** (`compact` prop): inline alert bar with icon, message, and "Retry" button — suitable for embedding within page sections
+- "Try again" behavior is context-aware: uses provided `reset` prop if available, falls back to `router.invalidate()` if inside TanStack Router context, and falls back to `window.location.reload()` as a last resort
+- `ErrorBoundary` class component accepts `children`, optional `fallback`, `title`, and `compact` props; logs errors to console with component stack trace
+
+### Files added
+- src/components/error-boundary.tsx (ErrorFallback + ErrorBoundary)
+
+### Files changed
+- PLAN.md (marked task complete)
+
+### Notes
+- Uses the app's design system: `island-shell` card, `display-title` Fraunces serif heading, `rise-in` entrance animation, `--sea-ink`/`--sea-ink-soft`/`--destructive` color variables
+- `useRouter()` is wrapped in try/catch since `ErrorFallback` may render outside a router context (e.g., in the root error boundary before the router is initialized)
+- All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)

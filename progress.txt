@@ -696,3 +696,28 @@
 - Slider step is 5 minutes (15, 20, 25, ..., 120) for practical granularity
 - Default maxPrepTimeMinutes is 45 (from preferences.create defaults)
 - All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)
+
+## 2026-03-11: Phase 2 — Onboarding Generate Step
+
+### What was done
+- Created `src/components/onboarding/generate-step.tsx` — review summary of all user preferences with "Generate My First Meal Plan" flow:
+  - Summary display: 5 compact rows showing diet restrictions, cuisine likes/dislikes, foods to avoid, meals/week + household size, and max prep time + equipment
+  - Registers async save callback via `useWizard().setOnSave` — triggered by wizard's "Finish" button
+  - Save callback: POSTs to `/api/ai/generate-meals`, then calls `api.users.completeOnboarding`, then navigates to `/`
+  - Generating state: animated spinner with "Generating your meal plan…" message
+  - Error state: rose-colored alert box with error message
+- Updated `src/routes/onboarding/generate.tsx` with `createServerFn` SSR loader (`fetchPreferences`) that fetches the authenticated user's full preferences server-side for instant hydration
+
+### Files added
+- src/components/onboarding/generate-step.tsx (GenerateStep component with summary display + generation flow)
+
+### Files changed
+- src/routes/onboarding/generate.tsx (replaced stub with full route + SSR loader + GenerateStep)
+- PLAN.md (marked task complete)
+
+### Notes
+- The wizard shell's "Finish" button (shown on last step) triggers the save callback which handles the entire generation flow
+- Redirects to `/` after generation since `/plan/$weekStart` route doesn't exist yet (Phase 3); will update redirect target when that route is created
+- Does not re-throw errors from the save callback — errors are displayed in the component and the wizard shell completes normally (no next step to navigate to on last step)
+- Follows the same patterns as all previous onboarding steps: ConvexHttpClient on client for mutations, useWizard hook for save registration, createServerFn for SSR prefetch
+- All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)

@@ -1565,3 +1565,38 @@
 - All schemas use Zod's default `strip` mode — extra properties are silently removed, which is verified by the `strips unknown properties` test
 - Schemas don't enforce min/max on arrays or numeric ranges — they trust the AI SDK to produce reasonable output. Tests verify the structural contracts only.
 - All checks pass: TypeScript, Oxlint, Vitest (51 tests — 3 sanity + 48 schema)
+
+## 2026-03-11: Phase 6 — Unit Tests for Prompt Builders
+
+### What was done
+- Created `src/lib/ai/__tests__/prompts.test.ts` — 54 unit tests covering both exported prompt builder functions in `src/lib/ai/prompts.ts`
+- `buildMealSuggestionsPrompt` (40 tests across 8 describe blocks):
+  - **Default behavior** (5 tests): default meal count of 7, default preferences section (Mediterranean/Asian/Mexican, household 2, 45 min prep, standard equipment), null preferences fallback, requirements section, output format instructions
+  - **Custom meal count** (3 tests): specific count, large count (14), minimum count (3)
+  - **Dietary restrictions** (3 tests): multiple restrictions comma-separated, empty array shows "No dietary restrictions", single restriction
+  - **Cuisine preferences** (5 tests): liked cuisines, disliked cuisines, both liked and disliked together, neutral cuisines filtered out, empty array shows "Open to all cuisines"
+  - **Household and cooking** (4 tests): household size, max prep time, kitchen equipment lowercased, empty equipment shows "Standard kitchen equipment only"
+  - **Foods to avoid** (4 tests): foods to avoid text, empty string shows "No foods to avoid", whitespace trimming, whitespace-only treated as empty
+  - **Full preferences** (1 test): all preference fields combined in a single prompt with custom meal count
+  - **Accepted meals context** (5 tests): includes accepted meals with names and descriptions, "Do NOT suggest similar" instruction, empty array excluded, undefined excluded, combined with full preferences
+  - **Prompt structure** (2 tests): double-newline section separation, starts with role instruction
+- `buildPrepGuidePrompt` (14 tests across 8 describe blocks):
+  - **Basic generation** (3 tests): meal count and default household, starts with role, lists all meals with details (description, key ingredients, prep time)
+  - **Household size** (4 tests): specified size, singular "person" for 1, default of 2, large household (10)
+  - **Recipe instructions** (4 tests): requires ingredient list, step-by-step instructions, nutrition estimate, exact mealName match
+  - **Shopping list** (3 tests): combine duplicates, quantity/unit, grocery aisle categories
+  - **Batch prep plan** (5 tests): shared prep grouping, sequential numbering, time estimates, related meals, total prep time
+  - **Single meal** (1 test): generates prompt for one meal
+  - **Many meals** (1 test): generates prompt for 7 meals with varying prep times
+  - **Prompt structure** (2 tests): 5 sections separated by double newlines, sections appear in correct order
+
+### Files added
+- src/lib/ai/__tests__/prompts.test.ts (54 tests across 16 describe blocks)
+
+### Files changed
+- PLAN.md (marked task complete)
+
+### Notes
+- Tests verify prompt content via `toContain` assertions rather than exact string matching — this makes tests resilient to minor wording changes while still validating all preference fields are included
+- Tests cover the key behavioral branches: null/undefined preferences vs full preferences, empty arrays vs populated arrays, whitespace trimming, singular vs plural grammar, cuisine preference filtering (like/dislike/neutral)
+- All checks pass: TypeScript, Oxlint, Vitest (105 tests — 3 sanity + 48 schema + 54 prompt)

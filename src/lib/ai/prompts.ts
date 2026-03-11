@@ -57,6 +57,54 @@ For each meal, provide:
   return sections.join('\n\n')
 }
 
+interface PrepGuideMeal {
+  name: string
+  description: string
+  keyIngredients: string[]
+  estimatedPrepMinutes: number
+}
+
+export function buildPrepGuidePrompt(
+  acceptedMeals: PrepGuideMeal[],
+  householdSize: number = 2,
+): string {
+  const sections: string[] = []
+
+  sections.push(
+    `You are a meal prep assistant. Generate a complete prep guide for the following ${acceptedMeals.length} meals, serving ${householdSize} ${householdSize === 1 ? 'person' : 'people'}.`,
+  )
+
+  // List accepted meals with their details
+  const mealList = acceptedMeals
+    .map(
+      (m) =>
+        `- ${m.name}: ${m.description} (Key ingredients: ${m.keyIngredients.join(', ')}; ~${m.estimatedPrepMinutes} min)`,
+    )
+    .join('\n')
+  sections.push(`Meals to prepare:\n${mealList}`)
+
+  sections.push(`For each meal, provide a full recipe including:
+- Complete ingredient list with exact quantities scaled for ${householdSize} ${householdSize === 1 ? 'serving' : 'servings'}
+- Step-by-step cooking instructions
+- Per-serving nutrition estimate (calories, protein, carbs, fat)
+- The "mealName" field must exactly match the meal name listed above`)
+
+  sections.push(`Generate a consolidated shopping list:
+- Combine duplicate ingredients across all recipes (e.g. if two recipes need onions, sum the quantities)
+- Include the quantity and unit for each item
+- Categorize each item into a grocery aisle: "Produce", "Meat & Seafood", "Dairy & Eggs", "Pantry", "Frozen", "Bakery", "Spices & Seasonings", or "Other"`)
+
+  sections.push(`Generate an efficient batch prep plan:
+- Group shared prep work across meals (e.g. chop all vegetables at once, cook all grains together)
+- Order steps to maximize efficiency — start with tasks that take longest or can run unattended (e.g. oven roasting, slow cooking)
+- Number each step sequentially
+- Include the estimated time for each step
+- List which meals each step contributes to
+- Provide the total estimated batch prep time in minutes`)
+
+  return sections.join('\n\n')
+}
+
 function buildPreferencesSection(
   prefs?: MealPromptPreferences | null,
 ): string {

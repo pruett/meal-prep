@@ -1019,3 +1019,25 @@
 - `fullRecipeSchema` includes `mealName` field (not in Convex schema) so the server route can map each recipe to the correct meal doc when calling `updateFullRecipe`
 - `nutritionEstimate` is required in the Zod schema (not nullable) — the AI should always provide estimates; the Convex schema allows null for backward compat with meals that don't have recipes yet
 - All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)
+
+## 2026-03-11: Phase 4 — Prep Guide Prompt Builder
+
+### What was done
+- Added `buildPrepGuidePrompt(acceptedMeals, householdSize)` to `src/lib/ai/prompts.ts`
+- Accepts an array of accepted meals (name, description, keyIngredients, estimatedPrepMinutes) and household size (default 2)
+- Generates a multi-section prompt instructing the AI to produce:
+  - Full recipes for each meal with ingredients scaled to household size, step-by-step instructions, and per-serving nutrition estimates
+  - Consolidated shopping list with combined quantities and grocery aisle categorization
+  - Efficient batch prep plan with shared prep work grouped, time estimates, and related meals per step
+- Added `PrepGuideMeal` interface for the accepted meals input type
+- Prompt requires `mealName` to exactly match accepted meal names for reliable server-side mapping
+
+### Files changed
+- src/lib/ai/prompts.ts (added buildPrepGuidePrompt function + PrepGuideMeal interface)
+- PLAN.md (marked task complete)
+
+### Notes
+- Prompt output aligns with `prepGuideOutputSchema` in schemas.ts (recipes, shoppingList, batchPrepSteps, totalEstimatedMinutes)
+- `mealName` field in the prompt matches `fullRecipeSchema`'s `mealName` field — used by the server route to map recipes to meal docs
+- Household size drives serving count in recipe scaling instructions
+- All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)

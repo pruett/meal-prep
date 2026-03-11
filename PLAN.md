@@ -140,7 +140,7 @@
 ### Prep Guide Generation
 - [x] Add prep guide Zod schemas to `src/lib/ai/schemas.ts` — `fullRecipeSchema`, `shoppingListItemSchema`, `batchPrepStepSchema`, `prepGuideOutputSchema`
 - [x] Add `buildPrepGuidePrompt(acceptedMeals, householdSize)` to `src/lib/ai/prompts.ts`
-- [ ] Create `src/routes/api/ai/generate-prep.ts` — POST route: queries accepted meals, calls `streamText` with `Output.object`, updates each meal's `fullRecipe`, creates `prepGuides` doc, finalizes plan, decrements credits
+- [x] Create `src/routes/api/ai/generate-prep.ts` — POST route: queries accepted meals, calls `generateObject` with `prepGuideOutputSchema`, updates each meal's `fullRecipe`, creates `prepGuides` doc, finalizes plan, decrements credits
 - [x] Create `convex/prepGuides.ts` — `create` mutation, `getByMealPlan` query; add `updateFullRecipe` mutation to `convex/meals.ts`
 
 ### Prep Guide UI

@@ -1063,3 +1063,34 @@
 - `getByMealPlan` uses `.filter()` instead of an index since the schema doesn't define a `by_mealPlan` index on `prepGuides` — there's only one prep guide per plan so performance is fine
 - `updateFullRecipe` accepts the full recipe object matching the Convex schema's `meals.fullRecipe` shape (excluding the null variant — only sets actual recipes)
 - All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)
+
+## 2026-03-11: Phase 4 — Prep Guide Generation Server Route
+
+### What was done
+- Created `src/routes/api/ai/generate-prep.ts` — POST server route for generating prep guides:
+  - Auth: calls `getToken()` from `~/lib/auth-server`, returns 401 if unauthenticated
+  - Credit enforcement: returns 403 if `generationsRemaining <= 0`
+  - Accepts `mealPlanId` in request body, validates it exists and has accepted meals
+  - Queries accepted meals for the plan, fetches user preferences for household size
+  - Builds prep guide prompt via `buildPrepGuidePrompt()` with accepted meal details and household size
+  - Calls `generateObject()` with `prepGuideOutputSchema` to get the full structured prep guide (recipes, shopping list, batch prep steps)
+  - Maps each recipe back to its accepted meal by `mealName` and calls `api.meals.updateFullRecipe` for each match
+  - Creates `prepGuides` doc via `api.prepGuides.create` with shopping list, batch prep steps, and total estimated minutes
+  - Finalizes the plan via `api.mealPlans.updateStatus` with `"finalized"`
+  - On success: decrements credits, logs with `type: "prep-guide"` and `status: "success"`
+  - On failure (all retries exhausted): logs with `status: "failed"` and `creditsUsed: 0`
+  - Includes 2-retry with exponential backoff (same pattern as generate-meals/regenerate-meals)
+- Updated `src/routeTree.gen.ts` to register `/api/ai/generate-prep` route in all type interfaces, route children, and declare module block
+
+### Files added
+- src/routes/api/ai/generate-prep.ts (POST server route for prep guide generation)
+
+### Files changed
+- src/routeTree.gen.ts (added /api/ai/generate-prep route)
+- PLAN.md (marked task complete)
+
+### Notes
+- Uses `generateObject()` (not `streamText()` + `Output.object`) because the prep guide is a single structured object needed in full before processing — no element-by-element streaming needed; `streamText` with `Output.object` doesn't expose a `.object` property in AI SDK v6
+- Recipe-to-meal matching relies on exact `mealName` match — the prompt instructs the AI to use exact meal names
+- Follows the same architecture as `generate-meals.ts` and `regenerate-meals.ts`: per-request `ConvexHttpClient` with auth, credit enforcement, generation logging, retry with backoff
+- All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)

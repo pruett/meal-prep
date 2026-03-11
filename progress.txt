@@ -380,3 +380,36 @@
 - `createFromAuth` is idempotent — checks for existing user by `betterAuthId` before inserting, preventing duplicates on repeated auth callbacks
 - `decrementCredits` validates both user existence and credit availability server-side, enforcing credit rules at the data layer
 - All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)
+
+## 2026-03-11: Phase 1 — Auth Pages (login.tsx)
+
+### What was done
+- Replaced the login stub with a full login page at `src/routes/auth/login.tsx`
+- Email/password form using shadcn Input, Label, and Button components
+- Google OAuth button with official Google logo SVG, calls `authClient.signIn.social({ provider: 'google' })`
+- "or" separator between Google OAuth and email form using shadcn Separator
+- Loading spinner on submit, error state display with red alert box
+- Session-aware: redirects to `/` if already authenticated, shows loading spinner while session loads
+- Uses app design system: `island-shell` glassmorphic card, `display-title` Fraunces serif heading, `island-kicker` uppercase label, `rise-in` entrance animation, brand CSS variables
+- Link to `/auth/signup` at the bottom
+- Installed shadcn Input, Label, and Separator components
+- Created `/auth/signup` stub route so TypeScript's strict route typing compiles
+- Updated `src/routeTree.gen.ts` to include the new `/auth/signup` route
+
+### Files added
+- src/components/ui/input.tsx (shadcn Input, auto-generated)
+- src/components/ui/label.tsx (shadcn Label, auto-generated)
+- src/components/ui/separator.tsx (shadcn Separator, auto-generated)
+- src/routes/auth/signup.tsx (placeholder stub route)
+
+### Files changed
+- src/routes/auth/login.tsx (replaced stub with full login page)
+- src/routeTree.gen.ts (added /auth/signup route)
+- PLAN.md (marked task complete)
+
+### Notes
+- `authClient.signIn.email()` and `authClient.signIn.social()` are the Better Auth client methods for email and social login
+- Google OAuth won't work until env vars and `socialProviders.google` are configured in a later task
+- The signup stub follows the same pattern used for the login stub — will be replaced when the signup task is implemented
+- TanStack Router's strict route typing requires all `<Link to="...">` targets to be registered in the route tree
+- All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)

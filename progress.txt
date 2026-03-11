@@ -845,3 +845,23 @@
 - `authClient.useSession()` is called in both `UserMenu` (for auth state display) and `Header` (to gate the credits query) — Better Auth client deduplicates these
 - Uses the same sticky header pattern (z-50, backdrop-blur, header-bg) as the original scaffold header
 - All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)
+
+## 2026-03-11: Phase 3 — Generation Logs Data Layer
+
+### What was done
+- Created `convex/generationLogs.ts` with two exported functions:
+  - `create` mutation — logs a generation event with userId, type (meal-suggestions/meal-regeneration/prep-guide), provider (openai/anthropic), creditsUsed, and status (success/failed); auto-timestamps with `createdAt`
+  - `getByUser` query — fetches all generation logs for a user, ordered descending (most recent first)
+- Updated `convex/_generated/api.d.ts` to include the `generationLogs` module reference
+
+### Files added
+- convex/generationLogs.ts (2 exported functions: create, getByUser)
+
+### Files changed
+- convex/_generated/api.d.ts (added generationLogs module reference)
+- PLAN.md (marked task complete)
+
+### Notes
+- `getByUser` uses `.filter()` instead of an index since the schema doesn't define a `by_user` index on `generationLogs` — sufficient for the expected volume of logs per user
+- Follows the same mutation/query patterns as other Convex modules (mealPlans, meals, users)
+- All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)

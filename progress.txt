@@ -210,3 +210,25 @@
 - Skeleton uses `rounded-full` for ingredient placeholders to match Badge pill shape
 - Varying widths on ingredient skeletons (w-14 to w-20) for visual realism
 - All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)
+
+## 2026-03-11: Phase 0 — Tracer: Reactive Meal UI (index.tsx tracer page)
+
+### What was done
+- Replaced demo scaffold landing page with tracer page wiring up the full meal generation flow
+- Added `createServerFn` SSR loader (`fetchLatestMealPlan`) that fetches the most recent meal plan and its meals server-side via `ConvexHttpClient` for SSR initial render
+- Added "Generate Meals" button that POSTs to `/api/ai/generate-meals` with hardcoded tracer userId and computed week start date
+- Added reactive `convexQuery(api.meals.getByMealPlan)` subscription that activates once a `mealPlanId` is available, enabling live updates via Convex reactivity
+- SSR loader data seeds `initialData` on the `useQuery` hook for seamless SSR-to-client hydration
+- Loading state shows 7 `MealSkeleton` cards during generation; error state displays below the button
+- Used `convexQuery` "skip" pattern (`'skip'` as second arg) to disable the query when no mealPlanId exists
+
+### Files changed
+- src/routes/index.tsx (replaced demo content with tracer page)
+- PLAN.md (marked task complete)
+
+### Notes
+- `createServerFn` is imported from `@tanstack/react-start` (re-exported via `@tanstack/start-client-core`)
+- `convexQuery` from `@convex-dev/react-query` returns `{ queryKey, queryFn, staleTime }` (or adds `enabled: false` when `'skip'` is passed)
+- Hardcoded `TRACER_USER_ID = 'tracer-user'` — will be replaced with authenticated userId in Phase 1
+- The SSR loader gracefully returns `null` when Convex isn't provisioned or no plans exist (try/catch)
+- All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)

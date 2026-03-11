@@ -177,3 +177,20 @@
 - Badge uses `variant="secondary"` for ingredient chips — subtle, doesn't compete with card content
 - Prep time shown as muted footer text
 - Accept/reject visual states will be added in Phase 3
+
+## 2026-03-11: Phase 0 — Tracer: Reactive Meal UI (meal-grid)
+
+### What was done
+- Created `src/components/meals/meal-grid.tsx` — responsive grid that renders `MealCard` components
+- Grid is 1-column on mobile, 2-column at `sm` (640px), 3-column at `lg` (1024px)
+- Includes empty state message when no meals exist
+- Uses `Doc<'meals'>` type from Convex for type-safe props
+- All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)
+
+### Files added
+- src/components/meals/meal-grid.tsx (MealGrid component)
+
+### Notes
+- Minimal component — just the grid layout and empty state
+- Accept/reject buttons and visual states will be added to MealCard in Phase 3
+- MealSkeleton (next task) will provide a loading state for the grid

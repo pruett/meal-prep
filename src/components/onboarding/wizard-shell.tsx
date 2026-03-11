@@ -146,10 +146,10 @@ export function WizardShell({ children }: WizardShellProps) {
                 {isSaving ? (
                   <span className="flex items-center gap-2">
                     <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground/40 border-t-primary-foreground" />
-                    Saving…
+                    {isLastStep ? 'Generating…' : 'Saving…'}
                   </span>
                 ) : isLastStep ? (
-                  'Finish'
+                  'Generate Plan'
                 ) : (
                   'Next'
                 )}

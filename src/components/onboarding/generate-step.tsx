@@ -61,6 +61,12 @@ export function GenerateStep({ userId, preferences }: GenerateStepProps) {
     .filter((c) => c.preference === 'dislike')
     .map((c) => c.cuisine)
 
+  const isUsingDefaults =
+    preferences.dietaryRestrictions.length === 0 &&
+    preferences.cuisinePreferences.length === 0 &&
+    preferences.foodsToAvoid.trim() === '' &&
+    preferences.kitchenEquipment.length === 0
+
   const formatTime = (minutes: number) => {
     if (minutes >= 120) return '2 hrs'
     if (minutes >= 60) {
@@ -77,8 +83,9 @@ export function GenerateStep({ userId, preferences }: GenerateStepProps) {
           Ready to generate
         </h2>
         <p className="mt-1 text-sm text-[var(--sea-ink-soft)]">
-          Here's a summary of your preferences. Click Finish to generate your
-          first meal plan.
+          {isUsingDefaults
+            ? "We've set smart defaults for you. Hit Finish to generate, or go back to customize."
+            : "Here's a summary of your preferences. Click Finish to generate your first meal plan."}
         </p>
       </div>
 
@@ -106,14 +113,14 @@ export function GenerateStep({ userId, preferences }: GenerateStepProps) {
                 ]
                   .filter(Boolean)
                   .join(' · ')
-              : 'No preferences'
+              : 'Open to all cuisines'
           }
         />
 
         <SummaryRow
           icon="🚫"
           label="Avoid"
-          value={preferences.foodsToAvoid.trim() || 'None'}
+          value={preferences.foodsToAvoid.trim() || 'Nothing specific'}
         />
 
         <SummaryRow

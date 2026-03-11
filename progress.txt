@@ -721,3 +721,23 @@
 - Does not re-throw errors from the save callback — errors are displayed in the component and the wizard shell completes normally (no next step to navigate to on last step)
 - Follows the same patterns as all previous onboarding steps: ConvexHttpClient on client for mutations, useWizard hook for save registration, createServerFn for SSR prefetch
 - All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)
+
+## 2026-03-11: Phase 2 — Handle skip-all flow
+
+### What was done
+- Verified the skip-all onboarding flow works end-to-end: user skips all 5 preference steps → generate step loads defaults from DB → generation proceeds → onboarding completes
+- Added `isUsingDefaults` detection in `generate-step.tsx` — checks if dietary restrictions, cuisine preferences, foods to avoid, and kitchen equipment are all empty (indicating the user skipped customization)
+- When defaults detected, the subtitle changes to encourage the user: "We've set smart defaults for you. Hit Finish to generate, or go back to customize."
+- Improved default value copy to be more positive: "No preferences" → "Open to all cuisines", "None" → "Nothing specific"
+- Updated wizard shell's last-step button from "Finish" → "Generate Plan" and loading text from "Saving…" → "Generating…" for clearer action context
+
+### Files changed
+- src/components/onboarding/generate-step.tsx (added isUsingDefaults detection, contextual subtitle, friendlier default value copy)
+- src/components/onboarding/wizard-shell.tsx (last-step button text: "Generate Plan", loading text: "Generating…")
+- PLAN.md (marked task complete)
+
+### Notes
+- Default preferences are created during signup (preferences.create with sensible defaults: 7 meals/week, 2 household, 45min max prep)
+- All edge cases handled: empty arrays show friendly fallback text, null checks in place for missing preferences
+- The AI generation route still uses hardcoded prompt defaults (connecting real preferences is a Phase 3 task)
+- All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)

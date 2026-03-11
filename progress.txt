@@ -999,3 +999,23 @@
 - The regenerate route now uses the same prompt builder as generate, ensuring consistent prompt structure and preference handling
 - `mealsPerWeek` from preferences drives `totalMealsRequested` in generate-meals (was hardcoded to 7)
 - All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)
+
+## 2026-03-11: Phase 4 — Prep Guide Zod Schemas
+
+### What was done
+- Added four Zod schemas to `src/lib/ai/schemas.ts` for the prep guide AI output:
+  - `fullRecipeSchema` — ingredients (name/quantity/unit), step-by-step instructions, per-serving nutrition estimate (calories/protein/carbs/fat), and `mealName` to map recipes back to accepted meals
+  - `shoppingListItemSchema` — item name, combined quantity, unit, and grocery aisle category
+  - `batchPrepStepSchema` — stepNumber, instruction, estimatedMinutes, and relatedMeals array
+  - `prepGuideOutputSchema` — top-level schema combining recipes array, shopping list, batch prep steps, and totalEstimatedMinutes
+- Each schema field has `.describe()` annotations to guide the AI model's output
+- All schemas align with the Convex `meals.fullRecipe` and `prepGuides` table definitions in `convex/schema.ts`
+
+### Files changed
+- src/lib/ai/schemas.ts (added fullRecipeSchema, shoppingListItemSchema, batchPrepStepSchema, prepGuideOutputSchema + type exports)
+- PLAN.md (marked task complete)
+
+### Notes
+- `fullRecipeSchema` includes `mealName` field (not in Convex schema) so the server route can map each recipe to the correct meal doc when calling `updateFullRecipe`
+- `nutritionEstimate` is required in the Zod schema (not nullable) — the AI should always provide estimates; the Convex schema allows null for backward compat with meals that don't have recipes yet
+- All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)

@@ -22,7 +22,13 @@ import type {
  * const myFunctionReference = api.myModule.myFunction;
  * ```
  */
-declare const fullApi: ApiFromModules<{}>
+import type * as mealPlans from '../mealPlans.ts'
+import type * as meals from '../meals.ts'
+
+declare const fullApi: ApiFromModules<{
+  mealPlans: typeof mealPlans
+  meals: typeof meals
+}>
 export declare const api: FilterApi<
   typeof fullApi,
   FunctionReference<any, 'public'>

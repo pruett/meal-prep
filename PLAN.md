@@ -35,11 +35,11 @@
 - [x] Create `convex/meals.ts` — `create` mutation, `getByMealPlan` query (sorted by `sortOrder`), `updateStatus` mutation
 
 ### Tracer: AI SDK + Server Route
-- [ ] Install AI SDK packages: `ai`, `@ai-sdk/openai`, `@ai-sdk/anthropic`, `zod`
-- [ ] Create `src/lib/ai/schemas.ts` — Zod schema for meal suggestions (name, description, keyIngredients, estimatedPrepMinutes)
-- [ ] Create `src/lib/ai/prompts.ts` — `buildMealSuggestionsPrompt()` with hardcoded default preferences for tracer bullet
-- [ ] Create `src/lib/convex.ts` — exports `getConvexHttpClient()` using `ConvexHttpClient`
-- [ ] Create `src/routes/api/ai/generate-meals.ts` — POST server route: creates mealPlan in Convex, calls `streamText()` with `Output.array()`, iterates `elementStream` writing each meal to Convex, updates plan status to `"reviewing"`; includes 2-retry error handling
+- [x] Install AI SDK packages: `ai`, `@ai-sdk/openai`, `@ai-sdk/anthropic`, `zod`
+- [x] Create `src/lib/ai/schemas.ts` — Zod schema for meal suggestions (name, description, keyIngredients, estimatedPrepMinutes)
+- [x] Create `src/lib/ai/prompts.ts` — `buildMealSuggestionsPrompt()` with hardcoded default preferences for tracer bullet
+- [x] Create `src/lib/convex.ts` — exports `getConvexHttpClient()` using `ConvexHttpClient`
+- [x] Create `src/routes/api/ai/generate-meals.ts` — POST server route: creates mealPlan in Convex, calls `streamText()` with `Output.array()`, iterates `elementStream` writing each meal to Convex, updates plan status to `"reviewing"`; includes 2-retry error handling
 - [ ] Add `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` to `.env.local`
 
 ### Tracer: Reactive Meal UI

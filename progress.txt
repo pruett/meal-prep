@@ -103,6 +103,39 @@
 - `bun run check` runs both `tsc --noEmit` and `oxlint` — all passing clean
 - `bun run test` runs vitest — 3/3 tests passing
 
+## 2026-03-10: Phase 0 — Tracer: AI SDK + Server Route
+
+### What was done
+- Installed AI SDK packages: `ai@6.0.116`, `@ai-sdk/openai@3.0.41`, `@ai-sdk/anthropic@3.0.58`, `zod@4.3.6`
+- Created `src/lib/ai/schemas.ts` — Zod schema for meal suggestions with `name`, `description`, `keyIngredients`, and `estimatedPrepMinutes` fields, each with `.describe()` for AI guidance
+- Created `src/lib/ai/prompts.ts` — `buildMealSuggestionsPrompt(totalMeals)` with hardcoded default preferences (Mediterranean/Asian/Mexican cuisines, 2 household, 45min max prep, standard equipment)
+- Created `src/lib/convex.ts` — singleton `getConvexHttpClient()` using `ConvexHttpClient` from `convex/browser`, reads `VITE_CONVEX_URL` from `process.env` (server-side)
+- Created `src/routes/api/ai/generate-meals.ts` — POST server route using TanStack Start's `createFileRoute` with `server.handlers.POST`: parses body, creates mealPlan in Convex, streams AI response via `streamText()` + `Output.array()` + `elementStream`, writes each meal to Convex individually, updates plan status to "reviewing"; includes 2-retry with backoff
+- Updated `convex/_generated/api.d.ts` to include `mealPlans` and `meals` module type references
+- Updated `src/routeTree.gen.ts` to include the new `/api/ai/generate-meals` route
+
+### Files added
+- src/lib/ai/schemas.ts (mealSuggestionSchema + MealSuggestion type)
+- src/lib/ai/prompts.ts (buildMealSuggestionsPrompt function)
+- src/lib/convex.ts (getConvexHttpClient singleton)
+- src/routes/api/ai/generate-meals.ts (POST server route for AI meal generation)
+
+### Files changed
+- package.json (added ai, @ai-sdk/openai, @ai-sdk/anthropic, zod)
+- bun.lock (updated)
+- convex/_generated/api.d.ts (added mealPlans and meals module references)
+- src/routeTree.gen.ts (added /api/ai/generate-meals route)
+- PLAN.md (marked 5 tasks complete)
+
+### Notes
+- AI SDK 6.x uses `Output.array({ element: schema })` with `streamText()` — `elementStream` yields validated objects one at a time
+- Zod 4.x installed (4.3.6) — backward-compatible with Zod 3 usage patterns
+- `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` not added to `.env.local` — user must add these manually
+- `convex/_generated/api.d.ts` manually updated; `convex dev` will regenerate when provisioned
+- `routeTree.gen.ts` manually updated; TanStack router plugin will regenerate on `vite dev`/`vite build`
+- Server route uses `process.env.VITE_CONVEX_URL`; Bun auto-loads `.env.local`
+- Default model: `gpt-4o-mini` (fast, cheap for tracer development)
+
 ## 2026-03-10: Phase 0 — Tracer: Full Convex Schema + Meal Server Functions
 
 ### What was done

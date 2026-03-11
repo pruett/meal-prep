@@ -5,6 +5,8 @@ import { convexQuery } from '@convex-dev/react-query'
 import { ConvexHttpClient } from 'convex/browser'
 import { api } from '../../convex/_generated/api'
 import { Button } from '~/components/ui/button'
+import { ErrorFallback } from '~/components/error-boundary'
+import { AccountSkeleton } from '~/components/route-skeletons'
 import { requireAuth } from '~/lib/auth-guard'
 import { getToken } from '~/lib/auth-server'
 import { authClient } from '~/lib/auth-client'
@@ -36,6 +38,8 @@ export const Route = createFileRoute('/account')({
   beforeLoad: requireAuth,
   loader: () => fetchAccountData(),
   component: AccountPage,
+  pendingComponent: AccountSkeleton,
+  errorComponent: ErrorFallback,
 })
 
 // ─── Helpers ────────────────────────────────────────────────────────────────────

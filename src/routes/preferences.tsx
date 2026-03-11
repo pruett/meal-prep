@@ -9,6 +9,8 @@ import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 import { Button } from '~/components/ui/button'
 import { Slider } from '~/components/ui/slider'
+import { ErrorFallback } from '~/components/error-boundary'
+import { PreferencesSkeleton } from '~/components/route-skeletons'
 import { requireAuth } from '~/lib/auth-guard'
 import { getToken } from '~/lib/auth-server'
 import { authClient } from '~/lib/auth-client'
@@ -93,6 +95,8 @@ export const Route = createFileRoute('/preferences')({
   beforeLoad: requireAuth,
   loader: () => fetchPreferences(),
   component: PreferencesPage,
+  pendingComponent: PreferencesSkeleton,
+  errorComponent: ErrorFallback,
 })
 
 // ─── Collapsible Section ───────────────────────────────────────────────────────

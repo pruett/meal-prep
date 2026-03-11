@@ -1485,3 +1485,40 @@
 - Convex mutation failures (meal accept/reject, archive, save preferences) show simple error toasts without retry since the mutation can be re-triggered naturally via the UI
 - The `next-themes` package was pulled in as a dependency by shadcn's sonner template but is unused — the Toaster component was simplified to not depend on it
 - All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)
+
+## 2026-03-11: Phase 6 — Suspense Boundaries with Skeleton Fallbacks at Route Level
+
+### What was done
+- Created `src/components/route-skeletons.tsx` — shared file with page-level skeleton fallback components for all 5 authenticated routes:
+  - `HomeSkeleton`: header + plan card skeleton + past plans section
+  - `MealPlanSkeleton`: header + status banner skeleton + 6-item responsive meal card grid
+  - `PrepGuideSkeleton`: back link + header + 3-tab skeleton + 3 recipe card skeletons
+  - `PreferencesSkeleton`: header + 5 collapsible section skeletons
+  - `AccountSkeleton`: header + profile card + credits section + 3 history items + sign-out button
+- Added `pendingComponent` and `errorComponent` to all 5 authenticated route definitions:
+  - `/` (Home) — `HomeSkeleton` + `ErrorFallback`
+  - `/plan/$weekStart` (Meal Plan) — `MealPlanSkeleton` + `ErrorFallback`
+  - `/plan/$weekStart/prep` (Prep Guide) — `PrepGuideSkeleton` + `ErrorFallback`
+  - `/preferences` (Preferences) — `PreferencesSkeleton` + `ErrorFallback`
+  - `/account` (Account) — `AccountSkeleton` + `ErrorFallback`
+- Added default `pendingComponent` (`DefaultPendingFallback`) and `errorComponent` (`ErrorFallback`) on the root route as fallbacks for any routes without explicit overrides
+- Shared building blocks in route-skeletons.tsx: `PageHeader` (kicker + title/subtitle skeletons), `SectionHeading`, `CardSkeleton`, `CollapsibleSectionSkeleton`
+
+### Files added
+- src/components/route-skeletons.tsx (5 page skeleton components + 4 shared building blocks)
+
+### Files changed
+- src/routes/__root.tsx (added ErrorFallback, Skeleton imports; added DefaultPendingFallback component; set errorComponent + pendingComponent on root route)
+- src/routes/index.tsx (added ErrorFallback, HomeSkeleton imports; set pendingComponent + errorComponent)
+- src/routes/plan/$weekStart/index.tsx (added ErrorFallback, MealPlanSkeleton imports; set pendingComponent + errorComponent)
+- src/routes/plan/$weekStart/prep.tsx (added ErrorFallback, PrepGuideSkeleton imports; set pendingComponent + errorComponent)
+- src/routes/preferences.tsx (added ErrorFallback, PreferencesSkeleton imports; set pendingComponent + errorComponent)
+- src/routes/account.tsx (added ErrorFallback, AccountSkeleton imports; set pendingComponent + errorComponent)
+- PLAN.md (marked task complete)
+
+### Notes
+- `pendingComponent` in TanStack Router shows during client-side navigations when the route's loader is pending — SSR initial loads render on the server so no skeleton is needed there
+- `errorComponent` uses the existing `ErrorFallback` component (from Phase 6 error boundary task) which supports both full and compact display modes and has context-aware retry behavior
+- The root route's `DefaultPendingFallback` provides a generic skeleton for any future routes that don't define their own `pendingComponent`
+- Skeleton layouts mirror each page's actual visual structure so the transition from skeleton → content feels smooth and doesn't cause layout shift
+- All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)

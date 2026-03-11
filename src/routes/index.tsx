@@ -9,6 +9,8 @@ import { api } from '../../convex/_generated/api'
 import { PastPlansList } from '~/components/plan/past-plans-list'
 import { PlanSummary } from '~/components/plan/plan-summary'
 import { Button } from '~/components/ui/button'
+import { ErrorFallback } from '~/components/error-boundary'
+import { HomeSkeleton } from '~/components/route-skeletons'
 import { requireAuth } from '~/lib/auth-guard'
 import { getToken } from '~/lib/auth-server'
 import { authClient } from '~/lib/auth-client'
@@ -60,6 +62,8 @@ export const Route = createFileRoute('/')({
   beforeLoad: requireAuth,
   loader: () => fetchHomeData(),
   component: HomePage,
+  pendingComponent: HomeSkeleton,
+  errorComponent: ErrorFallback,
 })
 
 function HomePage() {

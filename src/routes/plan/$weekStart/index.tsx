@@ -11,6 +11,8 @@ import { GenerationStatus } from '~/components/meals/generation-status'
 import { MealCard } from '~/components/meals/meal-card'
 import { MealSkeleton } from '~/components/meals/meal-skeleton'
 import { Button } from '~/components/ui/button'
+import { ErrorFallback } from '~/components/error-boundary'
+import { MealPlanSkeleton } from '~/components/route-skeletons'
 import { requireAuth } from '~/lib/auth-guard'
 import { getToken } from '~/lib/auth-server'
 import { authClient } from '~/lib/auth-client'
@@ -69,6 +71,8 @@ export const Route = createFileRoute('/plan/$weekStart')({
   beforeLoad: requireAuth,
   loader: ({ params }) => fetchMealPlanData({ data: params.weekStart }),
   component: MealPlanPage,
+  pendingComponent: MealPlanSkeleton,
+  errorComponent: ErrorFallback,
 })
 
 function MealPlanPage() {

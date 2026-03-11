@@ -13,6 +13,8 @@ import Footer from '../components/Footer'
 import Header from '../components/layout/header'
 import AppShell from '../components/layout/app-shell'
 import { Toaster } from '~/components/ui/sonner'
+import { ErrorFallback } from '~/components/error-boundary'
+import { Skeleton } from '~/components/ui/skeleton'
 
 import TanStackQueryProvider, {
   convexQueryClient,
@@ -68,7 +70,24 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
   }),
   component: RootComponent,
   shellComponent: RootDocument,
+  errorComponent: ErrorFallback,
+  pendingComponent: DefaultPendingFallback,
 })
+
+function DefaultPendingFallback() {
+  return (
+    <main className="page-wrap px-4 pb-8 pt-14">
+      <div className="space-y-4">
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-4 w-64" />
+        <div className="mt-8 space-y-3">
+          <Skeleton className="h-20 w-full rounded-xl" />
+          <Skeleton className="h-20 w-full rounded-xl" />
+        </div>
+      </div>
+    </main>
+  )
+}
 
 function RootComponent() {
   const { token } = Route.useRouteContext()

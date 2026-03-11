@@ -9,6 +9,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
 import { PrepSteps } from '~/components/prep/prep-steps'
 import { RecipeCard } from '~/components/prep/recipe-card'
 import { ShoppingList } from '~/components/prep/shopping-list'
+import { ErrorFallback } from '~/components/error-boundary'
+import { PrepGuideSkeleton } from '~/components/route-skeletons'
 import { requireAuth } from '~/lib/auth-guard'
 import { getToken } from '~/lib/auth-server'
 import type { Doc } from '../../../../convex/_generated/dataModel'
@@ -70,6 +72,8 @@ export const Route = createFileRoute('/plan/$weekStart/prep')({
   beforeLoad: requireAuth,
   loader: ({ params }) => fetchPrepGuideData({ data: params.weekStart }),
   component: PrepGuidePage,
+  pendingComponent: PrepGuideSkeleton,
+  errorComponent: ErrorFallback,
 })
 
 function PrepGuidePage() {

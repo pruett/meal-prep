@@ -185,7 +185,7 @@
 
 ### Mobile + Loading States
 - [ ] Audit all components for mobile layout (stacking, full-width steps, responsive grids) (invoke `frontend-design` skill)
-- [ ] Add `Suspense` boundaries with skeleton fallbacks at route level
+- [x] Add `Suspense` boundaries with skeleton fallbacks at route level
 - [ ] Add empty states for: no plans, no preferences, no history, no credits (invoke `frontend-design` and `shadcn` skills)
 
 ### Testing

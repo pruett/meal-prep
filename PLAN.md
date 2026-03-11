@@ -169,7 +169,7 @@
 - [x] Create `src/components/plan/past-plans-list.tsx` — scrollable list of past plans via `api.mealPlans.getByUser` (invoke `frontend-design` and `shadcn` skills)
 
 ### Preferences + Account Pages
-- [ ] Create `src/routes/preferences.tsx` — `loader` uses `createServerFn` to fetch current preferences server-side for SSR; single-page edit view reusing onboarding form components in collapsible sections (invoke `frontend-design` and `shadcn` skills)
+- [x] Create `src/routes/preferences.tsx` — `loader` uses `createServerFn` to fetch current preferences server-side for SSR; single-page edit view reusing onboarding form components in collapsible sections (invoke `frontend-design` and `shadcn` skills)
 - [ ] Create `src/routes/account.tsx` — `loader` uses `createServerFn` to fetch user info and generation history server-side for SSR; credits remaining, sign-out button (invoke `frontend-design` and `shadcn` skills)
 - [ ] Add plan archiving: "Archive" button calling `api.mealPlans.updateStatus` with `"archived"`
 

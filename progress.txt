@@ -1323,3 +1323,32 @@
 - Current week calculation mirrors the same Monday-based logic used in `generate-meals.ts`
 - `formatWeekRange` is duplicated between `plan-summary.tsx` and `plan/$weekStart/index.tsx` — could be extracted to a shared util later
 - All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)
+
+## 2026-03-11: Phase 5 — Preferences Page
+
+### What was done
+- Replaced `src/routes/preferences.tsx` stub with full preferences editing page:
+  - SSR loader (`fetchPreferences`) using `createServerFn` to fetch authenticated user's preferences server-side via `ConvexHttpClient`
+  - Auth guard via `beforeLoad: requireAuth`
+  - Reactive Convex subscription: `convexQuery(api.preferences.getByUser)` with `initialData` from SSR loader for live updates
+  - 5 collapsible sections matching onboarding wizard steps:
+    1. **Dietary Restrictions**: checkbox grid of 12 dietary options (same UI as `diet-step.tsx`)
+    2. **Cuisine Preferences**: 16 cuisines with like/neutral/dislike toggles (same UI as `cuisines-step.tsx`)
+    3. **Foods to Avoid**: free-text textarea (same UI as `avoid-step.tsx`)
+    4. **Meal Planning**: meals-per-week slider (3-14) + household size stepper (1-10) (same UI as `meals-step.tsx`)
+    5. **Cooking Preferences**: max prep time slider (15-120 min) + equipment checkbox grid (same UI as `cooking-step.tsx`)
+  - Each section has a collapsed summary line and a per-section "Save" button
+  - `SaveButton` component: idle → saving (spinner) → saved (checkmark, auto-resets after 2s)
+  - `Section` component: collapsible disclosure with chevron rotation, summary text when collapsed
+  - Page header follows the same pattern as Home page (island-kicker, display-title)
+
+### Files changed
+- src/routes/preferences.tsx (complete rewrite from stub to full preferences page)
+- PLAN.md (marked task complete)
+
+### Notes
+- Onboarding components are tightly coupled to `useWizard` context so they can't be directly reused as-is; instead, the preferences page replicates the same visual UI patterns and data constants (DIETARY_RESTRICTIONS, CUISINES, EQUIPMENT) inline
+- Per-section save approach chosen over a single "Save All" button — gives finer-grained control and immediate feedback per preference area
+- Save uses `ConvexHttpClient` on the client (same pattern as onboarding steps) rather than `useMutation` from `convex/react` for consistency with how preferences.update expects a userId argument
+- Summaries in collapsed state provide at-a-glance view: "Vegetarian, Keto", "7 meals/week · 2 people", "45 min max · 3 items", etc.
+- All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)

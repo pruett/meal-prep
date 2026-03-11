@@ -189,7 +189,7 @@
 - [x] Add empty states for: no plans, no preferences, no history, no credits (invoke `frontend-design` and `shadcn` skills)
 
 ### Testing
-- [ ] Unit tests for Zod schemas (valid/invalid data, edge cases)
+- [x] Unit tests for Zod schemas (valid/invalid data, edge cases)
 - [ ] Unit tests for prompt builders (various preference combos, regeneration context)
 - [ ] Unit tests for Convex functions (credit decrement, status transitions, index queries)
 - [ ] Integration tests for core flows (mock AI responses, verify Convex state transitions)

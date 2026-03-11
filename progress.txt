@@ -1544,3 +1544,24 @@
 - `EmptyState` is intentionally minimal: icon + title + description + optional action. No heavy styling or animations — keeps the focus on content
 - The preferences page doesn't need a traditional empty state because preferences always have default values seeded on signup; the form renders with defaults pre-filled
 - All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)
+
+## 2026-03-11: Phase 6 — Unit Tests for Zod Schemas
+
+### What was done
+- Created `src/lib/ai/__tests__/schemas.test.ts` — 48 unit tests covering all 5 Zod schemas in `src/lib/ai/schemas.ts`
+- `mealSuggestionSchema` (11 tests): valid input, missing required fields, wrong types (non-string name, non-number prep time, non-array ingredients, non-string ingredient elements), empty array edge case, unknown property stripping
+- `fullRecipeSchema` (11 tests): valid input, missing top-level fields, missing nested ingredient fields (name, quantity, unit), incomplete nutritionEstimate, non-number nutrition values, empty arrays edge cases
+- `shoppingListItemSchema` (7 tests): valid input, missing each required field, non-string quantity type enforcement, unconstrained category string acceptance
+- `batchPrepStepSchema` (8 tests): valid input, missing each required field, wrong types for stepNumber/estimatedMinutes, empty relatedMeals edge case
+- `prepGuideOutputSchema` (11 tests): valid input, missing top-level fields, invalid nested objects (recipe, shopping item, prep step), all-empty-arrays edge case, non-number totalEstimatedMinutes
+
+### Files added
+- src/lib/ai/__tests__/schemas.test.ts (48 tests across 5 describe blocks)
+
+### Files changed
+- PLAN.md (marked task complete)
+
+### Notes
+- All schemas use Zod's default `strip` mode — extra properties are silently removed, which is verified by the `strips unknown properties` test
+- Schemas don't enforce min/max on arrays or numeric ranges — they trust the AI SDK to produce reasonable output. Tests verify the structural contracts only.
+- All checks pass: TypeScript, Oxlint, Vitest (51 tests — 3 sanity + 48 schema)

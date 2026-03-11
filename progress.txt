@@ -741,3 +741,31 @@
 - All edge cases handled: empty arrays show friendly fallback text, null checks in place for missing preferences
 - The AI generation route still uses hardcoded prompt defaults (connecting real preferences is a Phase 3 task)
 - All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)
+
+## 2026-03-11: Phase 3 — Meal Plan Page ($weekStart.tsx)
+
+### What was done
+- Created `src/routes/plan/$weekStart.tsx` — full meal plan page for a specific week
+- SSR loader (`fetchMealPlanData`) using `createServerFn` with `.inputValidator()` to accept the `weekStart` route param, fetches the authenticated user's meal plan and meals server-side via `ConvexHttpClient`
+- Auth guard via `beforeLoad: requireAuth`
+- Reactive Convex subscriptions: `convexQuery(api.mealPlans.getByUserAndWeek)` tracks plan status changes, `convexQuery(api.meals.getByMealPlan)` tracks streaming meal additions — both seeded with `initialData` from the SSR loader
+- Week range header: `formatWeekRange()` displays "Mar 9 – 15" style date range with `island-kicker` label
+- Status badge component (`StatusBadge`): color-coded badges for generating (pulse animation), reviewing, finalized, archived statuses with meal count progress
+- Generate CTA: `island-shell` card with "Generate Meals" button when no plan exists, POSTs to `/api/ai/generate-meals`
+- Meals grid: renders `MealCard` components with `MealSkeleton` placeholders during generation, showing remaining skeleton count based on `totalMealsRequested`
+- Error/empty states for loader failure, generation errors, and empty plan
+- Updated `src/routeTree.gen.ts` to register `/plan/$weekStart` route in all type interfaces
+
+### Files added
+- src/routes/plan/$weekStart.tsx (MealPlanPage component + fetchMealPlanData serverFn + StatusBadge + formatWeekRange)
+
+### Files changed
+- src/routeTree.gen.ts (added /plan/$weekStart route to imports, types, children, and declare module block)
+- PLAN.md (marked task complete)
+
+### Notes
+- `createServerFn({ method: 'GET' }).inputValidator((d: string) => d)` is the correct pattern for passing data to GET server functions in TanStack Start v1.166 — `.validator()` does not exist
+- The `convexQuery` "skip" pattern (`'skip'` as second arg) disables the query when the required ID is not yet available
+- `initialData` from SSR loader seeds the React Query cache for seamless SSR-to-client hydration
+- Status badge uses inline `style` for dynamic colors from CSS variables (--lagoon-deep, --palm, --sea-ink-soft)
+- All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)

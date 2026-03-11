@@ -23,6 +23,7 @@ import { Route as DemoBetterAuthRouteImport } from './routes/demo/better-auth'
 import { Route as AuthSignupRouteImport } from './routes/auth/signup'
 import { Route as AuthLoginRouteImport } from './routes/auth/login'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as PlanWeekStartRouteImport } from './routes/plan/$weekStart'
 import { Route as ApiAiGenerateMealsRouteImport } from './routes/api/ai/generate-meals'
 
 const AboutRoute = AboutRouteImport.update({
@@ -95,6 +96,11 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PlanWeekStartRoute = PlanWeekStartRouteImport.update({
+  id: '/plan/$weekStart',
+  path: '/plan/$weekStart',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAiGenerateMealsRoute = ApiAiGenerateMealsRouteImport.update({
   id: '/api/ai/generate-meals',
   path: '/api/ai/generate-meals',
@@ -115,6 +121,7 @@ export interface FileRoutesByFullPath {
   '/onboarding/diet': typeof OnboardingDietRoute
   '/onboarding/generate': typeof OnboardingGenerateRoute
   '/onboarding/meals': typeof OnboardingMealsRoute
+  '/plan/$weekStart': typeof PlanWeekStartRoute
   '/api/ai/generate-meals': typeof ApiAiGenerateMealsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
@@ -132,6 +139,7 @@ export interface FileRoutesByTo {
   '/onboarding/diet': typeof OnboardingDietRoute
   '/onboarding/generate': typeof OnboardingGenerateRoute
   '/onboarding/meals': typeof OnboardingMealsRoute
+  '/plan/$weekStart': typeof PlanWeekStartRoute
   '/api/ai/generate-meals': typeof ApiAiGenerateMealsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
@@ -150,6 +158,7 @@ export interface FileRoutesById {
   '/onboarding/diet': typeof OnboardingDietRoute
   '/onboarding/generate': typeof OnboardingGenerateRoute
   '/onboarding/meals': typeof OnboardingMealsRoute
+  '/plan/$weekStart': typeof PlanWeekStartRoute
   '/api/ai/generate-meals': typeof ApiAiGenerateMealsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
@@ -169,6 +178,7 @@ export interface FileRouteTypes {
     | '/onboarding/diet'
     | '/onboarding/generate'
     | '/onboarding/meals'
+    | '/plan/$weekStart'
     | '/api/ai/generate-meals'
     | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
@@ -186,6 +196,7 @@ export interface FileRouteTypes {
     | '/onboarding/diet'
     | '/onboarding/generate'
     | '/onboarding/meals'
+    | '/plan/$weekStart'
     | '/api/ai/generate-meals'
     | '/api/auth/$'
   id:
@@ -203,6 +214,7 @@ export interface FileRouteTypes {
     | '/onboarding/diet'
     | '/onboarding/generate'
     | '/onboarding/meals'
+    | '/plan/$weekStart'
     | '/api/ai/generate-meals'
     | '/api/auth/$'
   fileRoutesById: FileRoutesById
@@ -215,6 +227,7 @@ export interface RootRouteChildren {
   AuthSignupRoute: typeof AuthSignupRoute
   DemoBetterAuthRoute: typeof DemoBetterAuthRoute
   DemoTanstackQueryRoute: typeof DemoTanstackQueryRoute
+  PlanWeekStartRoute: typeof PlanWeekStartRoute
   ApiAiGenerateMealsRoute: typeof ApiAiGenerateMealsRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
@@ -319,6 +332,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/plan/$weekStart': {
+      id: '/plan/$weekStart'
+      path: '/plan/$weekStart'
+      fullPath: '/plan/$weekStart'
+      preLoaderRoute: typeof PlanWeekStartRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/ai/generate-meals': {
       id: '/api/ai/generate-meals'
       path: '/api/ai/generate-meals'
@@ -359,6 +379,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthSignupRoute: AuthSignupRoute,
   DemoBetterAuthRoute: DemoBetterAuthRoute,
   DemoTanstackQueryRoute: DemoTanstackQueryRoute,
+  PlanWeekStartRoute: PlanWeekStartRoute,
   ApiAiGenerateMealsRoute: ApiAiGenerateMealsRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
 }

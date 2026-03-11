@@ -121,7 +121,7 @@
 ### Credits + Generation Logging
 - [x] Create `convex/generationLogs.ts` — `create` mutation, `getByUser` query
 - [x] Add credit enforcement to generation server routes: check `generationsRemaining > 0` before AI call, `decrementCredits` + log on success, log with `status: "failed"` and no charge on failure
-- [ ] Add "out of credits" UI: disable generate buttons, show message when `generationsRemaining === 0` (invoke `frontend-design` and `shadcn` skills)
+- [x] Add "out of credits" UI: disable generate buttons, show message when `generationsRemaining === 0` (invoke `frontend-design` and `shadcn` skills)
 
 ### Regenerate Rejected Meals
 - [ ] Create `src/routes/api/ai/regenerate-meals.ts` — POST route: queries accepted meals for context, generates replacements for rejected meals, writes to Convex, decrements credits

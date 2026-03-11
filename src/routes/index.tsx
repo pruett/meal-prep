@@ -11,6 +11,7 @@ import { MealSkeleton } from '~/components/meals/meal-skeleton'
 import { Button } from '~/components/ui/button'
 import { requireAuth } from '~/lib/auth-guard'
 import { getToken } from '~/lib/auth-server'
+import { authClient } from '~/lib/auth-client'
 
 const fetchLatestMealPlan = createServerFn({ method: 'GET' }).handler(
   async () => {
@@ -47,6 +48,12 @@ export const Route = createFileRoute('/')({
 
 function TracerPage() {
   const loaderData = Route.useLoaderData()
+  const { data: session } = authClient.useSession()
+  const isAuthenticated = !!session?.user
+
+  const { data: user } = useQuery({
+    ...convexQuery(api.users.getAuthenticated, isAuthenticated ? {} : 'skip'),
+  })
 
   const [mealPlanId, setMealPlanId] = useState<Id<'mealPlans'> | null>(
     loaderData?.plan._id ?? null,
@@ -61,6 +68,8 @@ function TracerPage() {
     ),
     initialData: loaderData?.meals,
   })
+
+  const outOfCredits = user?.generationsRemaining === 0
 
   const handleGenerate = async () => {
     setIsGenerating(true)
@@ -98,10 +107,19 @@ function TracerPage() {
       </section>
 
       <section className="mb-8 flex items-center gap-4">
-        <Button onClick={handleGenerate} disabled={isGenerating} size="lg">
+        <Button
+          onClick={handleGenerate}
+          disabled={isGenerating || outOfCredits}
+          size="lg"
+        >
           {isGenerating ? 'Generating...' : 'Generate Meals'}
         </Button>
         {error && <p className="text-sm text-destructive">{error}</p>}
+        {outOfCredits && (
+          <p className="text-sm font-medium text-destructive">
+            You've used all your generation credits.
+          </p>
+        )}
       </section>
 
       {isGenerating && !meals?.length && (

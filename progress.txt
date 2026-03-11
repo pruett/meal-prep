@@ -883,3 +883,21 @@
 - Failed generation log uses `creditsUsed: 0` since no credit is deducted on failure
 - Provider is hardcoded to `'openai'` matching the current `gpt-4o-mini` model usage
 - All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)
+
+## 2026-03-11: Phase 3 — Out of Credits UI
+
+### What was done
+- Updated `src/routes/index.tsx` to disable the "Generate Meals" button and show "You've used all your generation credits." message when `generationsRemaining === 0`
+- Updated `src/routes/plan/$weekStart.tsx` to disable the "Generate Meals" button and replace the CTA subtitle with credits-exhausted message when `generationsRemaining === 0`
+- Both pages add a reactive `convexQuery(api.users.getAuthenticated)` subscription to track credits in real time (credits badge in header already updates reactively)
+- Onboarding generate step not modified — new users always start with 25 credits, and server-side enforcement is the real guard
+
+### Files changed
+- src/routes/index.tsx (added authClient import, user query, outOfCredits flag, disabled button + message)
+- src/routes/plan/$weekStart.tsx (added authClient import, user query, outOfCredits flag, disabled button + contextual CTA text)
+- PLAN.md (marked task complete)
+
+### Notes
+- Server-side enforcement already returns 403 when credits are 0 (implemented in previous task) — this adds the client-side UX to prevent the request entirely
+- Uses the same `convexQuery` + `authClient.useSession()` pattern as the header's `CreditsBadge` for consistency
+- All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)

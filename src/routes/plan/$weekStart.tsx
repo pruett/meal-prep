@@ -11,6 +11,7 @@ import { MealSkeleton } from '~/components/meals/meal-skeleton'
 import { Button } from '~/components/ui/button'
 import { requireAuth } from '~/lib/auth-guard'
 import { getToken } from '~/lib/auth-server'
+import { authClient } from '~/lib/auth-client'
 import type { Doc } from '../../../convex/_generated/dataModel'
 
 function formatWeekRange(weekStart: string): string {
@@ -71,11 +72,18 @@ export const Route = createFileRoute('/plan/$weekStart')({
 function MealPlanPage() {
   const { weekStart } = Route.useParams()
   const loaderData = Route.useLoaderData()
+  const { data: session } = authClient.useSession()
+  const isAuthenticated = !!session?.user
+
+  const { data: user } = useQuery({
+    ...convexQuery(api.users.getAuthenticated, isAuthenticated ? {} : 'skip'),
+  })
 
   const [isGenerating, setIsGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const userId = loaderData?.userId ?? null
+  const outOfCredits = user?.generationsRemaining === 0
 
   // Reactive subscription for the meal plan (tracks status changes)
   const { data: plan } = useQuery({
@@ -168,9 +176,15 @@ function MealPlanPage() {
             No meals planned yet
           </p>
           <p className="mb-6 text-sm text-[var(--sea-ink-soft)]">
-            Generate an AI-powered meal plan for this week.
+            {outOfCredits
+              ? "You've used all your generation credits."
+              : 'Generate an AI-powered meal plan for this week.'}
           </p>
-          <Button onClick={handleGenerate} size="lg">
+          <Button
+            onClick={handleGenerate}
+            disabled={outOfCredits}
+            size="lg"
+          >
             Generate Meals
           </Button>
           {error && (

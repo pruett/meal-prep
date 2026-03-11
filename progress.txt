@@ -194,3 +194,19 @@
 - Minimal component — just the grid layout and empty state
 - Accept/reject buttons and visual states will be added to MealCard in Phase 3
 - MealSkeleton (next task) will provide a loading state for the grid
+
+## 2026-03-11: Phase 0 — Tracer: Reactive Meal UI (meal-skeleton)
+
+### What was done
+- Installed shadcn Skeleton component via `bunx --bun shadcn@latest add skeleton`
+- Created `src/components/meals/meal-skeleton.tsx` — skeleton loading state that mimics the MealCard layout structure
+- Skeleton includes: title placeholder (h-5, 3/4 width), two description lines, four pill-shaped ingredient placeholders (rounded-full), and a prep time placeholder
+
+### Files added
+- src/components/meals/meal-skeleton.tsx (MealSkeleton component)
+- src/components/ui/skeleton.tsx (shadcn Skeleton, auto-generated)
+
+### Notes
+- Skeleton uses `rounded-full` for ingredient placeholders to match Badge pill shape
+- Varying widths on ingredient skeletons (w-14 to w-20) for visual realism
+- All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)

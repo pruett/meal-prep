@@ -540,3 +540,39 @@
 - Uses per-request `ConvexHttpClient` (not singleton) for auth-safe server-side queries, following the pattern from `index.tsx` and `generate-meals.ts`
 - `beforeLoad` runs before the component renders and before any child route `beforeLoad`/`loader` functions, so auth + onboarding checks gate all child routes
 - All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)
+
+## 2026-03-11: Phase 2 — Wizard Shell
+
+### What was done
+- Created `src/components/onboarding/wizard-shell.tsx` — step indicator (6 steps) with progress bar, dot markers, and Back/Next/Skip navigation
+- Component derives current step from URL path (`useLocation`), navigates between steps via `useNavigate`
+- Progress indicator: gradient progress bar with dot markers for each step, current step highlighted with ring, completed steps filled
+- Navigation: Back (disabled on step 1), Skip (hidden on last step), Next/Finish with loading state
+- Provides `WizardContext` with `setOnSave` callback so individual step components can register save logic that runs on "Next" click (skip bypasses save)
+- Exports `useWizard()` hook for step components to access context
+- Content area wrapped in `island-shell` card matching auth page aesthetics
+- Created stub routes for all remaining onboarding steps: cuisines, avoid, meals, cooking, generate
+- Updated `src/routes/onboarding/route.tsx` to wrap `<Outlet />` in `<WizardShell>`
+- Updated `src/routes/onboarding/diet.tsx` stub — removed self-contained layout (shell now provides it)
+- Updated `src/routeTree.gen.ts` with all 6 onboarding child routes
+
+### Files added
+- src/components/onboarding/wizard-shell.tsx (WizardShell component + WizardContext + useWizard hook)
+- src/routes/onboarding/cuisines.tsx (stub route)
+- src/routes/onboarding/avoid.tsx (stub route)
+- src/routes/onboarding/meals.tsx (stub route)
+- src/routes/onboarding/cooking.tsx (stub route)
+- src/routes/onboarding/generate.tsx (stub route)
+
+### Files changed
+- src/routes/onboarding/route.tsx (wrapped Outlet in WizardShell)
+- src/routes/onboarding/diet.tsx (simplified stub content)
+- src/routeTree.gen.ts (added 5 new onboarding child routes)
+- PLAN.md (marked task complete)
+
+### Notes
+- STEPS array uses `as const` for type-safe path navigation — all step paths are registered routes
+- `onSaveRef` uses `useRef` (not state) to avoid re-renders when steps register save callbacks
+- Steps save on "Next" but not on "Skip" — allows skipping with defaults as designed
+- The `rise-in` animation class is applied to the wizard container for smooth entrance
+- All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)

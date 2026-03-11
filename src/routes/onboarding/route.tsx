@@ -3,6 +3,7 @@ import { createServerFn } from '@tanstack/react-start'
 import { ConvexHttpClient } from 'convex/browser'
 import { api } from '../../../convex/_generated/api'
 import { getToken } from '~/lib/auth-server'
+import { WizardShell } from '~/components/onboarding/wizard-shell'
 
 const fetchOnboardingStatus = createServerFn({ method: 'GET' }).handler(
   async () => {
@@ -34,5 +35,9 @@ export const Route = createFileRoute('/onboarding')({
 })
 
 function OnboardingLayout() {
-  return <Outlet />
+  return (
+    <WizardShell>
+      <Outlet />
+    </WizardShell>
+  )
 }

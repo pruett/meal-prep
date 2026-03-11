@@ -1,13 +1,13 @@
 import { createFileRoute } from '@tanstack/react-router'
 
-export const Route = createFileRoute('/onboarding/diet')({
-  component: DietPage,
+export const Route = createFileRoute('/onboarding/meals')({
+  component: MealsPage,
 })
 
-function DietPage() {
+function MealsPage() {
   return (
     <p className="py-12 text-center text-muted-foreground">
-      Dietary restrictions — coming soon
+      Meal preferences — coming soon
     </p>
   )
 }

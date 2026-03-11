@@ -769,3 +769,27 @@
 - `initialData` from SSR loader seeds the React Query cache for seamless SSR-to-client hydration
 - Status badge uses inline `style` for dynamic colors from CSS variables (--lagoon-deep, --palm, --sea-ink-soft)
 - All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)
+
+## 2026-03-11: Phase 3 — MealCard accept/reject buttons + visual states
+
+### What was done
+- Updated `src/components/meals/meal-card.tsx` with accept/reject functionality:
+  - Added `showActions` prop (default `false`) to conditionally render action buttons
+  - Accept button: toggles between `accepted` ↔ `pending`, uses `--palm` green color scheme (filled when accepted, tinted when pending)
+  - Reject button: toggles between `rejected` ↔ `pending`, uses `destructive` color scheme (filled when rejected, tinted when pending)
+  - Accepted visual state: green `ring-2` border using `--palm`, subtle green gradient background tint
+  - Rejected visual state: `opacity-50` with `grayscale-[20%]`, title gets strikethrough decoration
+  - Uses `useMutation(api.meals.updateStatus)` from `convex/react` for reactive status updates
+  - Buttons show in `CardFooter` with inline SVG icons (checkmark and X)
+- Updated `src/routes/plan/$weekStart.tsx` to pass `showActions={planStatus === 'reviewing'}` to `MealCard` — actions only appear when the plan is in reviewing status
+
+### Files changed
+- src/components/meals/meal-card.tsx (added accept/reject buttons, visual states, useMutation, showActions prop)
+- src/routes/plan/$weekStart.tsx (pass showActions to MealCard based on plan status)
+- PLAN.md (marked task complete)
+
+### Notes
+- Uses `useMutation` from `convex/react` (not `ConvexHttpClient`) since MealCard renders inside the `ConvexBetterAuthProvider` context — simpler and handles auth automatically
+- Visual states are always shown regardless of `showActions` (e.g., returning to a page with already-reviewed meals shows accepted/rejected states even without buttons)
+- Buttons toggle their state: clicking Accept on an accepted meal returns it to pending, same for Reject
+- All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)

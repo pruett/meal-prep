@@ -180,7 +180,11 @@ function MealPlanPage() {
       {(mealsCount > 0 || isActivelyGenerating) && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {meals?.map((meal) => (
-            <MealCard key={meal._id} meal={meal} />
+            <MealCard
+              key={meal._id}
+              meal={meal}
+              showActions={planStatus === 'reviewing'}
+            />
           ))}
           {isActivelyGenerating &&
             mealsCount < totalRequested &&

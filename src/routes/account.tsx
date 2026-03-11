@@ -5,6 +5,7 @@ import { convexQuery } from '@convex-dev/react-query'
 import { ConvexHttpClient } from 'convex/browser'
 import { api } from '../../convex/_generated/api'
 import { Button } from '~/components/ui/button'
+import { EmptyState } from '~/components/empty-state'
 import { ErrorFallback } from '~/components/error-boundary'
 import { AccountSkeleton } from '~/components/route-skeletons'
 import { requireAuth } from '~/lib/auth-guard'
@@ -187,6 +188,18 @@ function AccountPage() {
         <p className="mt-2 text-xs text-[var(--sea-ink-soft)]">
           {creditsUsed} of 25 credits used
         </p>
+
+        {isEmpty && (
+          <div className="mt-4 rounded-lg border border-[var(--destructive)]/20 bg-[var(--destructive)]/[0.04] px-4 py-3">
+            <p className="text-sm font-medium text-[var(--sea-ink)]">
+              Out of credits
+            </p>
+            <p className="mt-0.5 text-xs text-[var(--sea-ink-soft)]">
+              You've used all your generation credits. Meal generation is
+              currently unavailable.
+            </p>
+          </div>
+        )}
       </section>
 
       {/* Generation History */}
@@ -196,10 +209,25 @@ function AccountPage() {
         </h2>
 
         {logs.length === 0 ? (
-          <p className="py-4 text-center text-sm text-[var(--sea-ink-soft)]">
-            No generation history yet. Generate your first meal plan to get
-            started.
-          </p>
+          <EmptyState
+            icon={
+              <svg
+                className="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={1.5}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 010 3.75H5.625a1.875 1.875 0 010-3.75z"
+                />
+              </svg>
+            }
+            title="No generation history"
+            description="Generate your first meal plan to see your activity here."
+          />
         ) : (
           <div className="space-y-2">
             {logs.map((log) => (

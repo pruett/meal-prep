@@ -9,6 +9,7 @@ import { api } from '../../convex/_generated/api'
 import { PastPlansList } from '~/components/plan/past-plans-list'
 import { PlanSummary } from '~/components/plan/plan-summary'
 import { Button } from '~/components/ui/button'
+import { EmptyState } from '~/components/empty-state'
 import { ErrorFallback } from '~/components/error-boundary'
 import { HomeSkeleton } from '~/components/route-skeletons'
 import { requireAuth } from '~/lib/auth-guard'
@@ -209,19 +210,39 @@ function HomePage() {
               </Link>
             )}
           </div>
+        ) : outOfCredits ? (
+          <div className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6">
+            <EmptyState
+              icon={
+                <svg
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={1.5}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"
+                  />
+                </svg>
+              }
+              title="Out of credits"
+              description="You've used all your generation credits. Meal generation is currently unavailable."
+            />
+          </div>
         ) : (
           <div className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6 text-center">
             <p className="mb-1 text-base font-semibold text-[var(--sea-ink)]">
               No plan for this week
             </p>
             <p className="mb-5 text-sm text-[var(--sea-ink-soft)]">
-              {outOfCredits
-                ? "You've used all your generation credits."
-                : 'Generate an AI-powered meal plan to get started.'}
+              Generate an AI-powered meal plan to get started.
             </p>
             <Button
               onClick={handleGenerate}
-              disabled={isGenerating || outOfCredits}
+              disabled={isGenerating}
               size="lg"
             >
               {isGenerating ? (

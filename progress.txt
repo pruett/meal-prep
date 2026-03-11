@@ -1522,3 +1522,25 @@
 - The root route's `DefaultPendingFallback` provides a generic skeleton for any future routes that don't define their own `pendingComponent`
 - Skeleton layouts mirror each page's actual visual structure so the transition from skeleton → content feels smooth and doesn't cause layout shift
 - All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)
+
+## 2026-03-11: Phase 6 — Empty States for No Plans, No History, No Credits
+
+### What was done
+- Created `src/components/empty-state.tsx` — reusable `EmptyState` component with icon (in a circular sand-colored badge), title, description, and optional action slot; centered layout with max-width constraint on description text
+- Updated `src/components/plan/past-plans-list.tsx` — replaced plain text empty state with `EmptyState` component using a clock icon, "No past plans" title, and descriptive subtitle
+- Updated `src/routes/account.tsx` — replaced plain text generation history empty state with `EmptyState` component using a list icon, "No generation history" title; added an "Out of credits" inline alert in the credits section (destructive-tinted border + background) when `generationsRemaining === 0`
+- Updated `src/routes/index.tsx` — split the "no plan for this week" section into two distinct states: out-of-credits shows `EmptyState` with a warning icon and clear messaging; normal state shows the generate CTA with button (removed now-unnecessary `outOfCredits` disable logic from the button since the entire card is replaced)
+
+### Files added
+- src/components/empty-state.tsx (EmptyState reusable component)
+
+### Files changed
+- src/components/plan/past-plans-list.tsx (replaced plain text with EmptyState)
+- src/routes/account.tsx (replaced plain history text with EmptyState, added out-of-credits alert)
+- src/routes/index.tsx (split no-plan state into out-of-credits vs normal variants)
+- PLAN.md (marked task complete)
+
+### Notes
+- `EmptyState` is intentionally minimal: icon + title + description + optional action. No heavy styling or animations — keeps the focus on content
+- The preferences page doesn't need a traditional empty state because preferences always have default values seeded on signup; the form renders with defaults pre-filled
+- All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)

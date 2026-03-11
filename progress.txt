@@ -102,3 +102,27 @@
 - Oxlint's `no-unused-vars` does not respect `_` prefix convention by default — needs explicit `caughtErrors: "none"` and `argsIgnorePattern`/`varsIgnorePattern` config
 - `bun run check` runs both `tsc --noEmit` and `oxlint` — all passing clean
 - `bun run test` runs vitest — 3/3 tests passing
+
+## 2026-03-10: Phase 0 — Tracer: Full Convex Schema + Meal Server Functions
+
+### What was done
+- Expanded `convex/schema.ts` from 1 table (users) to all 6 tables: `users`, `preferences`, `mealPlans`, `meals`, `prepGuides`, `generationLogs`
+- Added `betterAuthId` and `createdAt` fields to `users` table per DISCUSSION.md spec
+- Defined indexes: `preferences.by_user`, `mealPlans.by_user`, `mealPlans.by_user_week`, `meals.by_mealPlan`, `meals.by_user`
+- Created `convex/mealPlans.ts` with `create` mutation (sets status to "generating", auto-timestamps), `updateStatus` mutation, `getByUserAndWeek` query (uses compound index, returns unique), `getByUser` query (ordered desc by creation)
+- Created `convex/meals.ts` with `create` mutation (defaults status to "pending", fullRecipe to null), `getByMealPlan` query (fetches by index then sorts by sortOrder), `updateStatus` mutation
+
+### Files added
+- convex/mealPlans.ts (4 exported functions: create, updateStatus, getByUserAndWeek, getByUser)
+- convex/meals.ts (3 exported functions: create, getByMealPlan, updateStatus)
+
+### Files changed
+- convex/schema.ts (expanded from 1 table to 6 tables with full field definitions and indexes)
+- PLAN.md (marked 3 tasks complete)
+
+### Notes
+- `meals.getByMealPlan` collects all meals then sorts in-memory by `sortOrder` since Convex index ordering is by the indexed field, not an arbitrary sort field
+- `mealPlans.getByUserAndWeek` uses `.unique()` since there should only be one plan per user per week
+- `mealPlans.getByUser` orders descending so most recent plans appear first
+- Schema uses `v.union(v.literal(...))` pattern for enums (status fields, provider, type)
+- `meals.fullRecipe` is `v.union(v.object(...), v.null())` — null until prep guide generation populates it

@@ -30,9 +30,9 @@
 - [x] Add package.json scripts: `lint`, `format`, `test`, `check`
 
 ### Tracer: Full Convex Schema + Meal Server Functions
-- [ ] Expand `convex/schema.ts` to all 6 tables (`users`, `preferences`, `mealPlans`, `meals`, `prepGuides`, `generationLogs`) with full field definitions and indexes (`mealPlans.by_user`, `mealPlans.by_user_week`, `meals.by_mealPlan`, `meals.by_user`, `preferences.by_user`)
-- [ ] Create `convex/mealPlans.ts` — `create` mutation, `updateStatus` mutation, `getByUserAndWeek` query, `getByUser` query
-- [ ] Create `convex/meals.ts` — `create` mutation, `getByMealPlan` query (sorted by `sortOrder`), `updateStatus` mutation
+- [x] Expand `convex/schema.ts` to all 6 tables (`users`, `preferences`, `mealPlans`, `meals`, `prepGuides`, `generationLogs`) with full field definitions and indexes (`mealPlans.by_user`, `mealPlans.by_user_week`, `meals.by_mealPlan`, `meals.by_user`, `preferences.by_user`)
+- [x] Create `convex/mealPlans.ts` — `create` mutation, `updateStatus` mutation, `getByUserAndWeek` query, `getByUser` query
+- [x] Create `convex/meals.ts` — `create` mutation, `getByMealPlan` query (sorted by `sortOrder`), `updateStatus` mutation
 
 ### Tracer: AI SDK + Server Route
 - [ ] Install AI SDK packages: `ai`, `@ai-sdk/openai`, `@ai-sdk/anthropic`, `zod`

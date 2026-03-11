@@ -9,7 +9,7 @@ export default defineSchema({
     generationsRemaining: v.number(),
     onboardingCompleted: v.boolean(),
     createdAt: v.number(),
-  }),
+  }).index('by_betterAuthId', ['betterAuthId']),
 
   preferences: defineTable({
     userId: v.id('users'),

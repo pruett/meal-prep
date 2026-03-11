@@ -72,7 +72,7 @@
 - [x] Create reusable `beforeLoad` auth guard redirecting to `/auth/login` for protected routes
 
 ### Auth Pages + User Sync
-- [ ] Create `convex/users.ts` — `createFromAuth` mutation (generationsRemaining: 25, onboardingCompleted: false), `getByBetterAuthId` query, `decrementCredits` mutation, `completeOnboarding` mutation
+- [x] Create `convex/users.ts` — `createFromAuth` mutation (generationsRemaining: 25, onboardingCompleted: false), `getByBetterAuthId` query, `decrementCredits` mutation, `completeOnboarding` mutation
 - [ ] Create `src/routes/auth/login.tsx` — email/password form, Google OAuth button, link to signup (invoke `frontend-design` and `shadcn` skills)
 - [ ] Create `src/routes/auth/signup.tsx` — name/email/password form, creates user doc in Convex on success, redirects to `/onboarding/diet` (invoke `frontend-design` and `shadcn` skills)
 - [ ] Create `src/components/auth/google-button.tsx` — shared Google OAuth button (invoke `frontend-design` and `shadcn` skills)

@@ -356,3 +356,27 @@
 - `requireAuth` can be used directly as `beforeLoad: requireAuth` or composed: `beforeLoad: ({ context }) => { requireAuth({ context }); /* extra logic */ }`
 - TanStack Router's `redirect()` with `to` is strictly typed against registered routes — the login stub route was necessary to satisfy the type system
 - All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)
+
+## 2026-03-11: Phase 1 — Auth Pages + User Sync (convex/users.ts)
+
+### What was done
+- Created `convex/users.ts` with four exported functions:
+  - `createFromAuth` mutation — creates a user doc from Better Auth data with 25 initial credits and `onboardingCompleted: false`; idempotent (returns existing user if `betterAuthId` already exists)
+  - `getByBetterAuthId` query — looks up a user by their Better Auth ID using the `by_betterAuthId` index
+  - `decrementCredits` mutation — decrements `generationsRemaining` by 1; throws if user not found or no credits remaining
+  - `completeOnboarding` mutation — sets `onboardingCompleted: true`
+- Added `by_betterAuthId` index to the `users` table in `convex/schema.ts`
+- Updated `convex/_generated/api.d.ts` to include the `users` module reference
+
+### Files added
+- convex/users.ts (4 exported functions: createFromAuth, getByBetterAuthId, decrementCredits, completeOnboarding)
+
+### Files changed
+- convex/schema.ts (added by_betterAuthId index on users table)
+- convex/_generated/api.d.ts (added users module reference)
+- PLAN.md (marked task complete)
+
+### Notes
+- `createFromAuth` is idempotent — checks for existing user by `betterAuthId` before inserting, preventing duplicates on repeated auth callbacks
+- `decrementCredits` validates both user existence and credit availability server-side, enforcing credit rules at the data layer
+- All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)

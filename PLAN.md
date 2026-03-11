@@ -55,10 +55,10 @@
 > Wire better-auth with Convex adapter for email + Google OAuth, create auth pages, sync user records.
 
 ### Better Auth Backend
-- [ ] Install: `@convex-dev/better-auth`, `better-auth@1.4.9`
-- [ ] Create `convex/convex.config.ts` — register `betterAuth` component
-- [ ] Create `convex/auth.config.ts` — export `AuthConfig` via `getAuthConfigProvider()`
-- [ ] Create `convex/auth.ts` — `betterAuth()` instance with email/password enabled, Convex adapter, `convex({ authConfig })` plugin; export `createAuth` and `getCurrentUser`
+- [x] Install: `@convex-dev/better-auth`, `better-auth@1.4.9`
+- [x] Create `convex/convex.config.ts` — register `betterAuth` component
+- [x] Create `convex/auth.config.ts` — export `AuthConfig` via `getAuthConfigProvider()`
+- [x] Create `convex/auth.ts` — `betterAuth()` instance with email/password enabled, Convex adapter, `convex({ authConfig })` plugin; export `createAuth` and `getCurrentUser`
 
 ### Better Auth HTTP + Client
 - [ ] Create `convex/http.ts` — HTTP router registering auth routes via `authComponent.registerRoutes()`

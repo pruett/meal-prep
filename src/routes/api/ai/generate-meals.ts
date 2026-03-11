@@ -32,6 +32,13 @@ export const Route = createFileRoute('/api/ai/generate-meals')({
           )
         }
 
+        if (user.generationsRemaining <= 0) {
+          return new Response(
+            JSON.stringify({ error: 'No credits remaining' }),
+            { status: 403, headers: { 'Content-Type': 'application/json' } },
+          )
+        }
+
         const now = new Date()
         const day = now.getDay()
         const diff = now.getDate() - day + (day === 0 ? -6 : 1)
@@ -74,6 +81,18 @@ export const Route = createFileRoute('/api/ai/generate-meals')({
               status: 'reviewing',
             })
 
+            await convex.mutation(api.users.decrementCredits, {
+              id: user._id,
+            })
+
+            await convex.mutation(api.generationLogs.create, {
+              userId: user._id,
+              type: 'meal-suggestions',
+              provider: 'openai',
+              creditsUsed: 1,
+              status: 'success',
+            })
+
             return new Response(
               JSON.stringify({ mealPlanId }),
               {
@@ -92,6 +111,14 @@ export const Route = createFileRoute('/api/ai/generate-meals')({
         }
 
         console.error('Meal generation failed after retries:', lastError)
+
+        await convex.mutation(api.generationLogs.create, {
+          userId: user._id,
+          type: 'meal-suggestions',
+          provider: 'openai',
+          creditsUsed: 0,
+          status: 'failed',
+        })
 
         return new Response(
           JSON.stringify({ error: 'Meal generation failed', mealPlanId }),

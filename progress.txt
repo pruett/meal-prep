@@ -865,3 +865,21 @@
 - `getByUser` uses `.filter()` instead of an index since the schema doesn't define a `by_user` index on `generationLogs` — sufficient for the expected volume of logs per user
 - Follows the same mutation/query patterns as other Convex modules (mealPlans, meals, users)
 - All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)
+
+## 2026-03-11: Phase 3 — Credit Enforcement in Generation Server Route
+
+### What was done
+- Updated `src/routes/api/ai/generate-meals.ts` with credit enforcement:
+  - Pre-flight check: returns 403 with "No credits remaining" if `user.generationsRemaining <= 0` before any AI call or meal plan creation
+  - On success: calls `api.users.decrementCredits` after plan status is set to "reviewing", then logs via `api.generationLogs.create` with `status: "success"` and `creditsUsed: 1`
+  - On failure (all retries exhausted): logs via `api.generationLogs.create` with `status: "failed"` and `creditsUsed: 0` — no credit charge on failure
+
+### Files changed
+- src/routes/api/ai/generate-meals.ts (added credit check, decrementCredits on success, generation logging on success/failure)
+- PLAN.md (marked task complete)
+
+### Notes
+- Credit decrement happens after successful AI completion but before the HTTP response — ensures the decrement only occurs when meals are actually generated
+- Failed generation log uses `creditsUsed: 0` since no credit is deducted on failure
+- Provider is hardcoded to `'openai'` matching the current `gpt-4o-mini` model usage
+- All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)

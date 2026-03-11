@@ -184,7 +184,7 @@
 - [x] Add client-side error states: toast/alert on fetch failures, "Retry" buttons (invoke `frontend-design` and `shadcn` skills)
 
 ### Mobile + Loading States
-- [ ] Audit all components for mobile layout (stacking, full-width steps, responsive grids) (invoke `frontend-design` skill)
+- [x] Audit all components for mobile layout (stacking, full-width steps, responsive grids) (invoke `frontend-design` skill)
 - [x] Add `Suspense` boundaries with skeleton fallbacks at route level
 - [x] Add empty states for: no plans, no preferences, no history, no credits (invoke `frontend-design` and `shadcn` skills)
 

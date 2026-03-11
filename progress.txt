@@ -1600,3 +1600,43 @@
 - Tests verify prompt content via `toContain` assertions rather than exact string matching — this makes tests resilient to minor wording changes while still validating all preference fields are included
 - Tests cover the key behavioral branches: null/undefined preferences vs full preferences, empty arrays vs populated arrays, whitespace trimming, singular vs plural grammar, cuisine preference filtering (like/dislike/neutral)
 - All checks pass: TypeScript, Oxlint, Vitest (105 tests — 3 sanity + 48 schema + 54 prompt)
+
+## 2026-03-11: Phase 6 — Mobile Layout Audit
+
+### What was done
+- Audited all 27 components and route files for mobile responsiveness issues (stacking, full-width steps, responsive grids, wrapping, spacing)
+- Fixed 6 specific mobile layout issues across 6 files:
+  1. **plan/$weekStart/index.tsx** — "All meals accepted" card: changed from `flex items-center justify-between` to `flex-col gap-3 sm:flex-row sm:items-center sm:justify-between` so text and button stack vertically on mobile; reduced no-plan CTA padding from `p-8` to `p-6 sm:p-8`
+  2. **plan/$weekStart/prep.tsx** — Metadata line (time/recipes/items): added `flex-wrap` and split gap into `gap-x-3 gap-y-1` so stats wrap gracefully on narrow screens instead of overflowing
+  3. **preferences.tsx** — Cuisine legend (Like/Neutral/Dislike indicators): added `flex-wrap` and responsive gap `gap-2 sm:gap-3` to prevent overflow on narrow viewports
+  4. **onboarding/cuisines-step.tsx** — Same legend fix as preferences page for consistency
+  5. **prep/prep-steps.tsx** — Prep step cards: reduced gap and padding on mobile with `gap-3 p-3 sm:gap-4 sm:p-4` for better use of limited screen space
+  6. **error-boundary.tsx** — Full error fallback card: reduced padding on mobile with `p-5 sm:p-8` to prevent cramped content on small screens
+- Verified the following components were already well-designed for mobile (no changes needed):
+  - meal-card.tsx: uses `flex-wrap` for badges, compact action buttons
+  - meal-grid.tsx: uses `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3`
+  - plan-summary.tsx: compact content fits within flex row at any width
+  - recipe-card.tsx: uses `grid-cols-1 sm:grid-cols-2` for ingredients
+  - shopping-list.tsx: full-width buttons with proper flex layout
+  - generation-status.tsx: uses `min-w-0 flex-1` for content overflow handling
+  - app-shell.tsx: uses `hidden lg:flex` / `lg:hidden` for sidebar/bottom nav swap
+  - header.tsx: responsive padding `px-3 sm:px-4`
+  - nav.tsx: safe area padding `env(safe-area-inset-bottom)` for mobile notch
+  - wizard-shell.tsx: `max-w-lg` constraint, small step dots, proper mobile padding
+  - all onboarding steps: grids use `grid-cols-2 sm:grid-cols-3`
+  - route-skeletons.tsx: mirrors actual component responsive grids
+  - empty-state.tsx: centered with `max-w-[260px]` text constraint
+
+### Files changed
+- src/routes/plan/$weekStart/index.tsx (stacking layout for prep guide card, responsive padding on CTA)
+- src/routes/plan/$weekStart/prep.tsx (wrapping metadata line)
+- src/routes/preferences.tsx (wrapping cuisine legend)
+- src/components/onboarding/cuisines-step.tsx (wrapping cuisine legend)
+- src/components/prep/prep-steps.tsx (responsive gap and padding)
+- src/components/error-boundary.tsx (responsive padding)
+- PLAN.md (marked task complete)
+
+### Notes
+- The codebase already had strong mobile-first design patterns: responsive grids (`grid-cols-1 sm:grid-cols-2 lg:grid-cols-3`), proper `min-w-0` overflow handling, `flex-wrap` for badges, and mobile-specific navigation (bottom nav with safe area insets)
+- The fixes addressed edge cases on very narrow viewports (320-375px) where horizontal layouts needed to stack or wrap
+- All checks pass: TypeScript, Oxlint, Vitest (105 tests — 3 sanity + 48 schema + 54 prompt)

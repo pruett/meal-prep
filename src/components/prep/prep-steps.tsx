@@ -33,7 +33,7 @@ export function PrepSteps({ steps }: PrepStepsProps) {
 
 function PrepStep({ step }: { step: BatchPrepStep }) {
   return (
-    <div className="flex gap-4 rounded-xl border border-[var(--line)] p-4">
+    <div className="flex gap-3 rounded-xl border border-[var(--line)] p-3 sm:gap-4 sm:p-4">
       <span
         className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white"
         style={{ backgroundColor: 'var(--lagoon-deep)' }}

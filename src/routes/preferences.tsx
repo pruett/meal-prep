@@ -486,7 +486,7 @@ function PreferencesPage() {
 
         {/* ── Cuisines ─────────────────────────────────────────────────────── */}
         <Section title="Cuisine Preferences" summary={cuisineSummary}>
-          <div className="mb-3 flex items-center gap-3 px-1">
+          <div className="mb-3 flex flex-wrap items-center gap-2 px-1 sm:gap-3">
             <div className="flex items-center gap-1.5 text-xs text-[var(--sea-ink-soft)]">
               <span className="inline-block h-2.5 w-2.5 rounded-full bg-[var(--lagoon)]" />
               Like

@@ -145,7 +145,7 @@ function PrepGuidePage() {
         <h1 className="display-title mb-2 text-3xl font-bold tracking-tight text-[var(--sea-ink)] sm:text-4xl">
           {formatWeekRange(weekStart)}
         </h1>
-        <div className="flex items-center gap-3 text-sm text-[var(--sea-ink-soft)]">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-[var(--sea-ink-soft)]">
           <span className="inline-flex items-center gap-1.5">
             <svg
               className="h-4 w-4"

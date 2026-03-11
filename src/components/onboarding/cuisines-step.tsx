@@ -105,7 +105,7 @@ export function CuisinesStep({ userId, initialPreferences }: CuisinesStepProps) 
         </p>
       </div>
 
-      <div className="flex items-center gap-3 mb-3 px-1">
+      <div className="flex flex-wrap items-center gap-2 mb-3 px-1 sm:gap-3">
         <div className="flex items-center gap-1.5 text-xs text-[var(--sea-ink-soft)]">
           <span className="inline-block h-2.5 w-2.5 rounded-full bg-[var(--lagoon)]" />
           Like

@@ -308,7 +308,7 @@ function MealPlanPage() {
         mealsCount > 0 &&
         acceptedCount === mealsCount && (
           <div className="mb-6">
-            <div className="island-shell flex items-center justify-between rounded-xl p-4">
+            <div className="island-shell flex flex-col gap-3 rounded-xl p-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-sm font-semibold text-[var(--sea-ink)]">
                   All meals accepted
@@ -409,7 +409,7 @@ function MealPlanPage() {
 
       {/* No plan — generate CTA */}
       {!plan && !isGenerating && (
-        <section className="island-shell mb-8 rounded-2xl p-8 text-center">
+        <section className="island-shell mb-8 rounded-2xl p-6 text-center sm:p-8">
           <p className="mb-1 text-lg font-semibold text-[var(--sea-ink)]">
             No meals planned yet
           </p>

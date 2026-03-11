@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query'
 import { convexQuery } from '@convex-dev/react-query'
 import { ConvexHttpClient } from 'convex/browser'
 import { useMutation } from 'convex/react'
+import { toast } from 'sonner'
 import { api } from '../../../../convex/_generated/api'
 import { GenerationStatus } from '~/components/meals/generation-status'
 import { MealCard } from '~/components/meals/meal-card'
@@ -86,7 +87,6 @@ function MealPlanPage() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [isRegenerating, setIsRegenerating] = useState(false)
   const [isGeneratingPrep, setIsGeneratingPrep] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
   const userId = loaderData?.userId ?? null
   const outOfCredits = user?.generationsRemaining === 0
@@ -113,7 +113,6 @@ function MealPlanPage() {
 
   const handleGenerate = async () => {
     setIsGenerating(true)
-    setError(null)
 
     try {
       const response = await fetch('/api/ai/generate-meals', {
@@ -127,7 +126,10 @@ function MealPlanPage() {
         throw new Error(data.error || 'Failed to generate meals')
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong')
+      const message = err instanceof Error ? err.message : 'Something went wrong'
+      toast.error(message, {
+        action: { label: 'Retry', onClick: () => void handleGenerate() },
+      })
     } finally {
       setIsGenerating(false)
     }
@@ -136,7 +138,6 @@ function MealPlanPage() {
   const handleRegenerate = async () => {
     if (!mealPlanId) return
     setIsRegenerating(true)
-    setError(null)
 
     try {
       const response = await fetch('/api/ai/regenerate-meals', {
@@ -151,7 +152,10 @@ function MealPlanPage() {
         throw new Error(data.error || 'Failed to regenerate meals')
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong')
+      const message = err instanceof Error ? err.message : 'Something went wrong'
+      toast.error(message, {
+        action: { label: 'Retry', onClick: () => void handleRegenerate() },
+      })
     } finally {
       setIsRegenerating(false)
     }
@@ -160,7 +164,6 @@ function MealPlanPage() {
   const handleGeneratePrep = async () => {
     if (!mealPlanId) return
     setIsGeneratingPrep(true)
-    setError(null)
 
     try {
       const response = await fetch('/api/ai/generate-prep', {
@@ -175,7 +178,10 @@ function MealPlanPage() {
         throw new Error(data.error || 'Failed to generate prep guide')
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong')
+      const message = err instanceof Error ? err.message : 'Something went wrong'
+      toast.error(message, {
+        action: { label: 'Retry', onClick: () => void handleGeneratePrep() },
+      })
     } finally {
       setIsGeneratingPrep(false)
     }
@@ -183,8 +189,12 @@ function MealPlanPage() {
 
   const handleArchive = async () => {
     if (!mealPlanId) return
-    await updatePlanStatus({ id: mealPlanId, status: 'archived' })
-    navigate({ to: '/' })
+    try {
+      await updatePlanStatus({ id: mealPlanId, status: 'archived' })
+      navigate({ to: '/' })
+    } catch {
+      toast.error('Failed to archive plan')
+    }
   }
 
   if (!loaderData) {
@@ -411,15 +421,7 @@ function MealPlanPage() {
           >
             Generate Meals
           </Button>
-          {error && (
-            <p className="mt-4 text-sm text-destructive">{error}</p>
-          )}
         </section>
-      )}
-
-      {/* Error with existing plan */}
-      {plan && error && (
-        <p className="mb-6 text-sm text-destructive">{error}</p>
       )}
 
       {/* Meals grid — real meals + skeleton placeholders during generation */}

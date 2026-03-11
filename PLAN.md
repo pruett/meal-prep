@@ -180,8 +180,8 @@
 
 ### Error Handling
 - [x] Create reusable error boundary component with "Try again" button (invoke `frontend-design` and `shadcn` skills)
-- [ ] Extract shared retry logic into `src/lib/ai/generate.ts` utility, apply consistently across all 3 AI server routes
-- [ ] Add client-side error states: toast/alert on fetch failures, "Retry" buttons (invoke `frontend-design` and `shadcn` skills)
+- [x] Extract shared retry logic into `src/lib/ai/generate.ts` utility, apply consistently across all 3 AI server routes
+- [x] Add client-side error states: toast/alert on fetch failures, "Retry" buttons (invoke `frontend-design` and `shadcn` skills)
 
 ### Mobile + Loading States
 - [ ] Audit all components for mobile layout (stacking, full-width steps, responsive grids) (invoke `frontend-design` skill)

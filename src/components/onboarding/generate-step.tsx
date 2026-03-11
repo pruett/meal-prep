@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
+import { toast } from 'sonner'
 import { useWizard } from './wizard-shell'
 import { ConvexHttpClient } from 'convex/browser'
 import { api } from '../../../convex/_generated/api'
@@ -27,11 +28,9 @@ export function GenerateStep({ userId, preferences }: GenerateStepProps) {
   const { setOnSave } = useWizard()
   const navigate = useNavigate()
   const [isGenerating, setIsGenerating] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
   const generate = useCallback(async () => {
     setIsGenerating(true)
-    setError(null)
     try {
       const res = await fetch('/api/ai/generate-meals', { method: 'POST' })
       const data = await res.json()
@@ -44,7 +43,10 @@ export function GenerateStep({ userId, preferences }: GenerateStepProps) {
 
       void navigate({ to: '/' })
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Generation failed')
+      const message = err instanceof Error ? err.message : 'Generation failed'
+      toast.error(message, {
+        action: { label: 'Retry', onClick: () => void generate() },
+      })
       setIsGenerating(false)
     }
   }, [userId, navigate])
@@ -145,11 +147,6 @@ export function GenerateStep({ userId, preferences }: GenerateStepProps) {
         </div>
       )}
 
-      {error && (
-        <div className="mt-6 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-          {error}
-        </div>
-      )}
     </div>
   )
 }

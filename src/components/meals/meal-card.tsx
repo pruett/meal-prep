@@ -1,4 +1,5 @@
 import { useMutation } from 'convex/react'
+import { toast } from 'sonner'
 import type { Doc } from '../../../convex/_generated/dataModel'
 import { api } from '../../../convex/_generated/api'
 import { Badge } from '~/components/ui/badge'
@@ -23,18 +24,26 @@ export function MealCard({ meal, showActions = false }: MealCardProps) {
   const isAccepted = meal.status === 'accepted'
   const isRejected = meal.status === 'rejected'
 
-  const handleAccept = () => {
-    updateStatus({
-      id: meal._id,
-      status: isAccepted ? 'pending' : 'accepted',
-    })
+  const handleAccept = async () => {
+    try {
+      await updateStatus({
+        id: meal._id,
+        status: isAccepted ? 'pending' : 'accepted',
+      })
+    } catch {
+      toast.error('Failed to update meal status')
+    }
   }
 
-  const handleReject = () => {
-    updateStatus({
-      id: meal._id,
-      status: isRejected ? 'pending' : 'rejected',
-    })
+  const handleReject = async () => {
+    try {
+      await updateStatus({
+        id: meal._id,
+        status: isRejected ? 'pending' : 'rejected',
+      })
+    } catch {
+      toast.error('Failed to update meal status')
+    }
   }
 
   return (

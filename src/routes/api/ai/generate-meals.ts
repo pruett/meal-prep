@@ -1,43 +1,18 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { Output, streamText } from 'ai'
 import { openai } from '@ai-sdk/openai'
-import { ConvexHttpClient } from 'convex/browser'
 import { api } from '../../../../convex/_generated/api'
 import { mealSuggestionSchema } from '~/lib/ai/schemas'
 import { buildMealSuggestionsPrompt } from '~/lib/ai/prompts'
-import { getToken } from '~/lib/auth-server'
-
-const MAX_RETRIES = 2
+import { authenticateRequest, jsonResponse, withRetry } from '~/lib/ai/generate'
 
 export const Route = createFileRoute('/api/ai/generate-meals')({
   server: {
     handlers: {
       POST: async () => {
-        const token = await getToken()
-        if (!token) {
-          return new Response(
-            JSON.stringify({ error: 'Unauthorized' }),
-            { status: 401, headers: { 'Content-Type': 'application/json' } },
-          )
-        }
-
-        const convex = new ConvexHttpClient(process.env.VITE_CONVEX_URL!)
-        convex.setAuth(token)
-
-        const user = await convex.query(api.users.getAuthenticated, {})
-        if (!user) {
-          return new Response(
-            JSON.stringify({ error: 'User not found' }),
-            { status: 401, headers: { 'Content-Type': 'application/json' } },
-          )
-        }
-
-        if (user.generationsRemaining <= 0) {
-          return new Response(
-            JSON.stringify({ error: 'No credits remaining' }),
-            { status: 403, headers: { 'Content-Type': 'application/json' } },
-          )
-        }
+        const auth = await authenticateRequest()
+        if (auth instanceof Response) return auth
+        const { convex, user } = auth
 
         const preferences = await convex.query(api.preferences.getByUser, {
           userId: user._id,
@@ -56,10 +31,9 @@ export const Route = createFileRoute('/api/ai/generate-meals')({
           totalMealsRequested: totalMeals,
         })
 
-        let lastError: unknown
-        for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-          try {
-            const result = streamText({
+        const result = await withRetry({
+          fn: async () => {
+            const stream = streamText({
               model: openai('gpt-4o-mini'),
               prompt: buildMealSuggestionsPrompt(totalMeals, preferences),
               output: Output.array({
@@ -68,7 +42,7 @@ export const Route = createFileRoute('/api/ai/generate-meals')({
             })
 
             let sortOrder = 0
-            for await (const meal of result.elementStream) {
+            for await (const meal of stream.elementStream) {
               await convex.mutation(api.meals.create, {
                 mealPlanId,
                 userId: user._id,
@@ -84,50 +58,17 @@ export const Route = createFileRoute('/api/ai/generate-meals')({
               id: mealPlanId,
               status: 'reviewing',
             })
-
-            await convex.mutation(api.users.decrementCredits, {
-              id: user._id,
-            })
-
-            await convex.mutation(api.generationLogs.create, {
-              userId: user._id,
-              type: 'meal-suggestions',
-              provider: 'openai',
-              creditsUsed: 1,
-              status: 'success',
-            })
-
-            return new Response(
-              JSON.stringify({ mealPlanId }),
-              {
-                status: 200,
-                headers: { 'Content-Type': 'application/json' },
-              },
-            )
-          } catch (error) {
-            lastError = error
-            if (attempt < MAX_RETRIES) {
-              await new Promise((resolve) =>
-                setTimeout(resolve, 1000 * (attempt + 1)),
-              )
-            }
-          }
-        }
-
-        console.error('Meal generation failed after retries:', lastError)
-
-        await convex.mutation(api.generationLogs.create, {
+          },
+          convex,
           userId: user._id,
           type: 'meal-suggestions',
-          provider: 'openai',
-          creditsUsed: 0,
-          status: 'failed',
+          label: 'Meal generation',
         })
 
-        return new Response(
-          JSON.stringify({ error: 'Meal generation failed', mealPlanId }),
-          { status: 500, headers: { 'Content-Type': 'application/json' } },
-        )
+        if ('error' in result) {
+          return jsonResponse({ error: result.error, mealPlanId }, 500)
+        }
+        return jsonResponse({ mealPlanId })
       },
     },
   },

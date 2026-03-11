@@ -4,6 +4,7 @@ import { createServerFn } from '@tanstack/react-start'
 import { useQuery } from '@tanstack/react-query'
 import { convexQuery } from '@convex-dev/react-query'
 import { ConvexHttpClient } from 'convex/browser'
+import { toast } from 'sonner'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 import { Button } from '~/components/ui/button'
@@ -171,6 +172,7 @@ function SaveButton({
       setTimeout(() => setState('idle'), 2000)
     } catch {
       setState('idle')
+      toast.error('Failed to save preferences')
     }
   }
 

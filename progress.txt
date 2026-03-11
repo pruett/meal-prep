@@ -1421,3 +1421,67 @@
 - Uses the app's design system: `island-shell` card, `display-title` Fraunces serif heading, `rise-in` entrance animation, `--sea-ink`/`--sea-ink-soft`/`--destructive` color variables
 - `useRouter()` is wrapped in try/catch since `ErrorFallback` may render outside a router context (e.g., in the root error boundary before the router is initialized)
 - All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)
+
+## 2026-03-11: Phase 6 — Extract Shared Retry Logic
+
+### What was done
+- Created `src/lib/ai/generate.ts` with three shared utilities extracted from the AI server routes:
+  - `jsonResponse(body, status)` — creates consistent JSON Response objects, eliminating repeated `new Response(JSON.stringify(...), { headers })` boilerplate
+  - `authenticateRequest()` — handles the full auth+credit check flow (getToken, create ConvexHttpClient, authenticate user, check credits); returns `{ convex, user }` on success or a Response on error
+  - `withRetry(opts)` — wraps an async operation with 2-retry exponential backoff, handles credit decrement + generation logging on success, and failure logging + optional `onFailure` callback on exhausted retries
+- Refactored all 3 AI server routes to use the shared utilities:
+  - `src/routes/api/ai/generate-meals.ts` — removed 20-line auth boilerplate, 15-line retry/logging code; replaced with `authenticateRequest()` + `withRetry()`
+  - `src/routes/api/ai/regenerate-meals.ts` — same refactor; uses `onFailure` callback to reset plan status to "reviewing" on failure
+  - `src/routes/api/ai/generate-prep.ts` — same refactor; no `onFailure` needed (plan stays in current state on failure)
+- Removed `MAX_RETRIES` constant and `getToken` import from all 3 route files (now centralized in generate.ts)
+- Removed `ConvexHttpClient` import from all 3 route files (now created inside `authenticateRequest`)
+
+### Files added
+- src/lib/ai/generate.ts (authenticateRequest, withRetry, jsonResponse)
+
+### Files changed
+- src/routes/api/ai/generate-meals.ts (refactored to use shared utilities — 134 lines → 75 lines)
+- src/routes/api/ai/regenerate-meals.ts (refactored to use shared utilities — 177 lines → 110 lines)
+- src/routes/api/ai/generate-prep.ts (refactored to use shared utilities — 165 lines → 101 lines)
+- PLAN.md (marked task complete)
+
+### Notes
+- `authenticateRequest()` returns a discriminated union: `{ convex, user }` on success or `Response` on error — routes check `auth instanceof Response` for clean early returns
+- `withRetry` returns `{ data: T }` on success or `{ error: string }` on failure — routes check `'error' in result` to decide response
+- The `onFailure` callback in `withRetry` runs before the failure log is written, allowing routes to clean up state (e.g., resetting plan status) before the error response
+- Total lines removed across 3 routes: ~90 lines of duplicated auth, retry, and logging boilerplate
+- All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)
+
+## 2026-03-11: Phase 6 — Client-Side Error States (Toast Notifications)
+
+### What was done
+- Installed `sonner` via `bunx --bun shadcn@latest add sonner` — created `src/components/ui/sonner.tsx` styled Toaster wrapper with hugeicons
+- Fixed generated sonner component: removed `next-themes` dependency (project uses custom theme system), hardcoded `theme="system"`
+- Added `<Toaster position="bottom-center" />` to `src/routes/__root.tsx` so toasts render globally
+- Replaced all inline `error` state + `<p className="text-destructive">` patterns with `toast.error()` calls:
+  - `src/routes/plan/$weekStart/index.tsx` — generate, regenerate, and generate-prep handlers now show toast with "Retry" action button; archive handler wrapped in try/catch with toast on failure; removed `error` state variable and both inline error displays
+  - `src/routes/index.tsx` — generate handler shows toast with "Retry" action; removed `error` state and inline error display
+  - `src/components/onboarding/generate-step.tsx` — generate handler shows toast with "Retry" action; removed `error` state and inline error div
+- Added error handling where none existed:
+  - `src/components/meals/meal-card.tsx` — accept/reject handlers wrapped in try/catch with `toast.error()` on mutation failure
+  - `src/routes/preferences.tsx` — SaveButton catch block now shows `toast.error('Failed to save preferences')` instead of silently failing
+
+### Files added
+- src/components/ui/sonner.tsx (shadcn Toaster wrapper with hugeicons, system theme)
+
+### Files changed
+- src/routes/__root.tsx (added Toaster import and component)
+- src/routes/plan/$weekStart/index.tsx (replaced error state with toast.error + retry actions across 4 handlers)
+- src/routes/index.tsx (replaced error state with toast.error + retry action)
+- src/components/onboarding/generate-step.tsx (replaced error state with toast.error + retry action)
+- src/components/meals/meal-card.tsx (added try/catch + toast.error to accept/reject mutations)
+- src/routes/preferences.tsx (added toast.error to SaveButton catch block)
+- package.json (added sonner dependency)
+- bun.lock (updated)
+- PLAN.md (marked task complete)
+
+### Notes
+- All toast errors for AI generation endpoints include a "Retry" action button that re-invokes the original handler
+- Convex mutation failures (meal accept/reject, archive, save preferences) show simple error toasts without retry since the mutation can be re-triggered naturally via the UI
+- The `next-themes` package was pulled in as a dependency by shadcn's sonner template but is unused — the Toaster component was simplified to not depend on it
+- All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)

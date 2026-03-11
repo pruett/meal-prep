@@ -4,6 +4,7 @@ import { createServerFn } from '@tanstack/react-start'
 import { useQuery } from '@tanstack/react-query'
 import { convexQuery } from '@convex-dev/react-query'
 import { ConvexHttpClient } from 'convex/browser'
+import { toast } from 'sonner'
 import { api } from '../../convex/_generated/api'
 import { PastPlansList } from '~/components/plan/past-plans-list'
 import { PlanSummary } from '~/components/plan/plan-summary'
@@ -117,12 +118,10 @@ function HomePage() {
   }, [plans, weekStart, ssrCountMap])
 
   const [isGenerating, setIsGenerating] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const outOfCredits = user?.generationsRemaining === 0
 
   const handleGenerate = async () => {
     setIsGenerating(true)
-    setError(null)
 
     try {
       const response = await fetch('/api/ai/generate-meals', {
@@ -141,7 +140,10 @@ function HomePage() {
         params: { weekStart },
       })
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong')
+      const message = err instanceof Error ? err.message : 'Something went wrong'
+      toast.error(message, {
+        action: { label: 'Retry', onClick: () => void handleGenerate() },
+      })
     } finally {
       setIsGenerating(false)
     }
@@ -246,9 +248,6 @@ function HomePage() {
                 'Generate Meals'
               )}
             </Button>
-            {error && (
-              <p className="mt-3 text-sm text-destructive">{error}</p>
-            )}
           </div>
         )}
       </section>

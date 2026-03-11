@@ -12,6 +12,7 @@ import { ConvexBetterAuthProvider } from '@convex-dev/better-auth/react'
 import Footer from '../components/Footer'
 import Header from '../components/layout/header'
 import AppShell from '../components/layout/app-shell'
+import { Toaster } from '~/components/ui/sonner'
 
 import TanStackQueryProvider, {
   convexQueryClient,
@@ -94,6 +95,7 @@ function RootComponent() {
           <Footer />
         </>
       )}
+      <Toaster position="bottom-center" />
       <TanStackDevtools
         config={{
           position: 'bottom-right',

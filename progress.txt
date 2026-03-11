@@ -1352,3 +1352,27 @@
 - Save uses `ConvexHttpClient` on the client (same pattern as onboarding steps) rather than `useMutation` from `convex/react` for consistency with how preferences.update expects a userId argument
 - Summaries in collapsed state provide at-a-glance view: "Vegetarian, Keto", "7 meals/week · 2 people", "45 min max · 3 items", etc.
 - All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)
+
+## 2026-03-11: Phase 5 — Account Page
+
+### What was done
+- Replaced `src/routes/account.tsx` stub with full account page:
+  - SSR loader (`fetchAccountData`) using `createServerFn` to fetch authenticated user info and generation history server-side via `ConvexHttpClient`
+  - Auth guard via `beforeLoad: requireAuth`
+  - Reactive Convex subscriptions: `convexQuery(api.users.getAuthenticated)` with `initialData` for live credits updates, `convexQuery(api.generationLogs.getByUser)` with `initialData` for live generation history
+  - **Profile card**: user avatar (gradient initials), name, and email
+  - **Credits section**: large credit count with color-coded states (normal lagoon-deep, low amber ≤5, empty red 0), progress bar showing usage (X of 25), credits used counter
+  - **Generation history**: chronological list of generation events with status dot (green success, red failed), type label (Meal Plan, Regeneration, Prep Guide), provider name, credit cost, and relative timestamp
+  - **Sign out button**: calls `authClient.signOut()` then navigates to `/auth/login`
+  - Empty state for generation history when no logs exist
+  - Error state when user data can't be loaded
+
+### Files changed
+- src/routes/account.tsx (complete rewrite from stub to full account page)
+- PLAN.md (marked task complete)
+
+### Notes
+- Follows the same SSR + reactive subscription pattern as Home and Preferences pages: `createServerFn` for SSR, `convexQuery` with `initialData` for client hydration
+- `formatRelativeDate()` helper shows "Just now", "Xm ago", "Xh ago", "Xd ago", or "Mon DD" for older dates
+- Credits progress bar assumes 25 initial credits (matching `users.createFromAuth` default)
+- All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)

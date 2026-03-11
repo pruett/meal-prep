@@ -1,53 +1,69 @@
-import { useState } from 'react'
-import { createFileRoute } from '@tanstack/react-router'
+import { useState, useMemo } from 'react'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
 import { useQuery } from '@tanstack/react-query'
 import { convexQuery } from '@convex-dev/react-query'
 import { ConvexHttpClient } from 'convex/browser'
 import { api } from '../../convex/_generated/api'
-import type { Id } from '../../convex/_generated/dataModel'
-import { MealGrid } from '~/components/meals/meal-grid'
-import { MealSkeleton } from '~/components/meals/meal-skeleton'
+import { PastPlansList } from '~/components/plan/past-plans-list'
+import { PlanSummary } from '~/components/plan/plan-summary'
 import { Button } from '~/components/ui/button'
 import { requireAuth } from '~/lib/auth-guard'
 import { getToken } from '~/lib/auth-server'
 import { authClient } from '~/lib/auth-client'
 
-const fetchLatestMealPlan = createServerFn({ method: 'GET' }).handler(
-  async () => {
-    try {
-      const token = await getToken()
-      if (!token) return null
+function getCurrentWeekStart(): string {
+  const now = new Date()
+  const day = now.getDay()
+  const diff = now.getDate() - day + (day === 0 ? -6 : 1)
+  const monday = new Date(now.getFullYear(), now.getMonth(), diff)
+  return monday.toISOString().split('T')[0]!
+}
 
-      const convex = new ConvexHttpClient(process.env.VITE_CONVEX_URL!)
-      convex.setAuth(token)
+const fetchHomeData = createServerFn({ method: 'GET' }).handler(async () => {
+  try {
+    const token = await getToken()
+    if (!token) return null
 
-      const user = await convex.query(api.users.getAuthenticated, {})
-      if (!user) return null
+    const convex = new ConvexHttpClient(process.env.VITE_CONVEX_URL!)
+    convex.setAuth(token)
 
-      const plans = await convex.query(api.mealPlans.getByUser, {
-        userId: user._id,
-      })
-      if (plans.length === 0) return null
-      const plan = plans[0]!
-      const meals = await convex.query(api.meals.getByMealPlan, {
-        mealPlanId: plan._id,
-      })
-      return { plan, meals }
-    } catch {
-      return null
-    }
-  },
-)
+    const user = await convex.query(api.users.getAuthenticated, {})
+    if (!user) return null
+
+    const plans = await convex.query(api.mealPlans.getByUser, {
+      userId: user._id,
+    })
+
+    // Fetch meal counts for each plan
+    const mealCounts = await Promise.all(
+      plans.map(async (plan) => {
+        const meals = await convex.query(api.meals.getByMealPlan, {
+          mealPlanId: plan._id,
+        })
+        return { planId: plan._id, count: meals.length }
+      }),
+    )
+
+    const countMap = Object.fromEntries(
+      mealCounts.map((mc) => [mc.planId, mc.count]),
+    )
+
+    return { userId: user._id, plans, mealCountMap: countMap }
+  } catch {
+    return null
+  }
+})
 
 export const Route = createFileRoute('/')({
   beforeLoad: requireAuth,
-  loader: () => fetchLatestMealPlan(),
-  component: TracerPage,
+  loader: () => fetchHomeData(),
+  component: HomePage,
 })
 
-function TracerPage() {
+function HomePage() {
   const loaderData = Route.useLoaderData()
+  const navigate = useNavigate()
   const { data: session } = authClient.useSession()
   const isAuthenticated = !!session?.user
 
@@ -55,20 +71,53 @@ function TracerPage() {
     ...convexQuery(api.users.getAuthenticated, isAuthenticated ? {} : 'skip'),
   })
 
-  const [mealPlanId, setMealPlanId] = useState<Id<'mealPlans'> | null>(
-    loaderData?.plan._id ?? null,
-  )
-  const [isGenerating, setIsGenerating] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const userId = loaderData?.userId ?? null
 
-  const { data: meals } = useQuery({
+  // Reactive subscription for plans
+  const { data: reactivePlans } = useQuery({
     ...convexQuery(
-      api.meals.getByMealPlan,
-      mealPlanId ? { mealPlanId } : 'skip',
+      api.mealPlans.getByUser,
+      userId ? { userId } : 'skip',
     ),
-    initialData: loaderData?.meals,
+    initialData: loaderData?.plans,
   })
 
+  const weekStart = getCurrentWeekStart()
+  const ssrCountMap = loaderData?.mealCountMap
+
+  const plans = useMemo(
+    () => reactivePlans ?? loaderData?.plans ?? [],
+    [reactivePlans, loaderData?.plans],
+  )
+
+  const currentWeekPlan = useMemo(
+    () => plans.find((p) => p.weekStartDate === weekStart) ?? null,
+    [plans, weekStart],
+  )
+
+  // Reactive subscription for current week's meals
+  const { data: currentWeekMeals } = useQuery({
+    ...convexQuery(
+      api.meals.getByMealPlan,
+      currentWeekPlan ? { mealPlanId: currentWeekPlan._id } : 'skip',
+    ),
+  })
+
+  const pastPlans = useMemo(() => {
+    const countMap = ssrCountMap ?? {}
+    return plans
+      .filter((p) => p.weekStartDate !== weekStart)
+      .map((p) => ({
+        _id: p._id,
+        weekStartDate: p.weekStartDate,
+        status: p.status,
+        totalMealsRequested: p.totalMealsRequested,
+        mealCount: (countMap[p._id as string] as number) ?? p.totalMealsRequested,
+      }))
+  }, [plans, weekStart, ssrCountMap])
+
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const outOfCredits = user?.generationsRemaining === 0
 
   const handleGenerate = async () => {
@@ -87,7 +136,10 @@ function TracerPage() {
         throw new Error(data.error || 'Failed to generate meals')
       }
 
-      setMealPlanId(data.mealPlanId as Id<'mealPlans'>)
+      navigate({
+        to: '/plan/$weekStart',
+        params: { weekStart },
+      })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong')
     } finally {
@@ -95,42 +147,119 @@ function TracerPage() {
     }
   }
 
+  const currentMealCount = currentWeekMeals?.length ?? 0
+
   return (
-    <main className="page-wrap px-4 pb-8 pt-14">
+    <main className="page-wrap rise-in px-4 pb-8 pt-14">
+      {/* Header */}
       <section className="mb-8">
-        <h1 className="display-title mb-2 text-3xl font-bold tracking-tight text-[var(--sea-ink)] sm:text-4xl">
+        <p className="island-kicker mb-2">Home</p>
+        <h1 className="display-title mb-1 text-3xl font-bold tracking-tight text-[var(--sea-ink)] sm:text-4xl">
           MealPrep
         </h1>
-        <p className="text-[var(--sea-ink-soft)]">
+        <p className="text-sm text-[var(--sea-ink-soft)]">
           AI-powered weekly meal planning
         </p>
       </section>
 
-      <section className="mb-8 flex items-center gap-4">
-        <Button
-          onClick={handleGenerate}
-          disabled={isGenerating || outOfCredits}
-          size="lg"
-        >
-          {isGenerating ? 'Generating...' : 'Generate Meals'}
-        </Button>
-        {error && <p className="text-sm text-destructive">{error}</p>}
-        {outOfCredits && (
-          <p className="text-sm font-medium text-destructive">
-            You've used all your generation credits.
-          </p>
+      {/* This Week */}
+      <section className="mb-10">
+        <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-[var(--sea-ink-soft)]">
+          This Week
+        </h2>
+
+        {currentWeekPlan ? (
+          <div className="flex flex-col gap-3">
+            <PlanSummary
+              weekStartDate={currentWeekPlan.weekStartDate}
+              status={currentWeekPlan.status}
+              mealCount={currentMealCount}
+              totalMealsRequested={currentWeekPlan.totalMealsRequested}
+            />
+
+            {/* Quick actions for current plan */}
+            {currentWeekPlan.status === 'finalized' && (
+              <Link
+                to="/plan/$weekStart/prep"
+                params={{ weekStart }}
+                className="flex items-center gap-2.5 rounded-xl border border-[var(--palm)]/20 bg-[var(--palm)]/[0.06] px-4 py-3 text-sm font-medium text-[var(--palm)] no-underline transition hover:bg-[var(--palm)]/[0.1]"
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                  <line x1="16" y1="13" x2="8" y2="13" />
+                  <line x1="16" y1="17" x2="8" y2="17" />
+                </svg>
+                View Prep Guide
+              </Link>
+            )}
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6 text-center">
+            <p className="mb-1 text-base font-semibold text-[var(--sea-ink)]">
+              No plan for this week
+            </p>
+            <p className="mb-5 text-sm text-[var(--sea-ink-soft)]">
+              {outOfCredits
+                ? "You've used all your generation credits."
+                : 'Generate an AI-powered meal plan to get started.'}
+            </p>
+            <Button
+              onClick={handleGenerate}
+              disabled={isGenerating || outOfCredits}
+              size="lg"
+            >
+              {isGenerating ? (
+                <>
+                  <svg
+                    className="mr-1.5 h-4 w-4 animate-spin"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                  >
+                    <circle
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeOpacity="0.2"
+                    />
+                    <path
+                      d="M12 2a10 10 0 0 1 10 10"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                  Generating…
+                </>
+              ) : (
+                'Generate Meals'
+              )}
+            </Button>
+            {error && (
+              <p className="mt-3 text-sm text-destructive">{error}</p>
+            )}
+          </div>
         )}
       </section>
 
-      {isGenerating && !meals?.length && (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 7 }, (_, i) => (
-            <MealSkeleton key={i} />
-          ))}
-        </div>
-      )}
-
-      {meals && meals.length > 0 && <MealGrid meals={meals} />}
+      {/* Past Plans */}
+      <section>
+        <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-[var(--sea-ink-soft)]">
+          Past Plans
+        </h2>
+        <PastPlansList plans={pastPlans} />
+      </section>
     </main>
   )
 }

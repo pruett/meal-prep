@@ -164,9 +164,9 @@
 - [x] Update `src/routes/__root.tsx` — wrap authenticated routes with `AppShell`
 
 ### Home Screen
-- [ ] Update `src/routes/index.tsx` — `loader` uses `createServerFn` to fetch user's meal plans server-side for SSR; current week plan card (or generate CTA), quick action buttons, past plans list; `convexQuery()` for reactive updates post-hydration (invoke `frontend-design` and `shadcn` skills)
-- [ ] Create `src/components/plan/plan-summary.tsx` — compact card (week range, meal count, status badge, link) (invoke `frontend-design` and `shadcn` skills)
-- [ ] Create `src/components/plan/past-plans-list.tsx` — scrollable list of past plans via `api.mealPlans.getByUser` (invoke `frontend-design` and `shadcn` skills)
+- [x] Update `src/routes/index.tsx` — `loader` uses `createServerFn` to fetch user's meal plans server-side for SSR; current week plan card (or generate CTA), quick action buttons, past plans list; `convexQuery()` for reactive updates post-hydration (invoke `frontend-design` and `shadcn` skills)
+- [x] Create `src/components/plan/plan-summary.tsx` — compact card (week range, meal count, status badge, link) (invoke `frontend-design` and `shadcn` skills)
+- [x] Create `src/components/plan/past-plans-list.tsx` — scrollable list of past plans via `api.mealPlans.getByUser` (invoke `frontend-design` and `shadcn` skills)
 
 ### Preferences + Account Pages
 - [ ] Create `src/routes/preferences.tsx` — `loader` uses `createServerFn` to fetch current preferences server-side for SSR; single-page edit view reusing onboarding form components in collapsible sections (invoke `frontend-design` and `shadcn` skills)

@@ -1286,3 +1286,40 @@
 - Footer is preserved for non-AppShell routes (auth pages, onboarding, unauthenticated users); AppShell routes use sidebar/bottom nav instead
 - Onboarding routes excluded because they have their own `WizardShell` layout
 - All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)
+
+## 2026-03-11: Phase 5 — Home Screen
+
+### What was done
+- Rewrote `src/routes/index.tsx` from the tracer-bullet page into a proper home screen:
+  - SSR loader (`fetchHomeData`) fetches authenticated user, all meal plans via `api.mealPlans.getByUser`, and meal counts for each plan in parallel via `Promise.all`
+  - Reactive subscription: `convexQuery(api.mealPlans.getByUser)` with `initialData` from SSR for live plan status updates
+  - Current week meal subscription: `convexQuery(api.meals.getByMealPlan)` for accurate meal count during active generation
+  - "This Week" section: shows `PlanSummary` card if a plan exists for current week, or a generate CTA card if not
+  - Quick action: "View Prep Guide" link appears when current week plan is finalized
+  - "Past Plans" section: scrollable list of non-current-week plans via `PastPlansList` component
+  - Generation flow: "Generate Meals" button POSTs to `/api/ai/generate-meals`, then navigates to `/plan/$weekStart` for real-time generation tracking
+  - Out-of-credits handling: disabled generate button with contextual message
+- Created `src/components/plan/plan-summary.tsx` — compact plan card:
+  - Clickable `Link` to `/plan/$weekStart` with hover effects
+  - Week range display (e.g. "Mar 9 – 15") using `formatWeekRange()` helper
+  - Meal count display (e.g. "5 of 7 meals")
+  - Status badge with dot indicator: generating (pulse animation), reviewing, finalized, archived — each with distinct color coding
+  - Chevron indicator with hover animation
+- Created `src/components/plan/past-plans-list.tsx` — scrollable past plans list:
+  - Renders `PlanSummary` for each past plan
+  - Empty state: "No past plans yet. Your plan history will appear here."
+
+### Files added
+- src/components/plan/plan-summary.tsx (PlanSummary component + formatWeekRange + STATUS_CONFIG)
+- src/components/plan/past-plans-list.tsx (PastPlansList component)
+
+### Files changed
+- src/routes/index.tsx (complete rewrite from tracer page to home screen)
+- PLAN.md (marked 3 tasks complete)
+
+### Notes
+- `plans` is memoized via `useMemo` to avoid exhaustive-deps lint errors from the `??` fallback array
+- SSR meal counts are cached in a `mealCountMap` keyed by plan ID; for plans without SSR data (new plans from reactive updates), falls back to `totalMealsRequested`
+- Current week calculation mirrors the same Monday-based logic used in `generate-meals.ts`
+- `formatWeekRange` is duplicated between `plan-summary.tsx` and `plan/$weekStart/index.tsx` — could be extracted to a shared util later
+- All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)

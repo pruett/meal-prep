@@ -61,10 +61,10 @@
 - [x] Create `convex/auth.ts` — `betterAuth()` instance with email/password enabled, Convex adapter, `convex({ authConfig })` plugin; export `createAuth` and `getCurrentUser`
 
 ### Better Auth HTTP + Client
-- [ ] Create `convex/http.ts` — HTTP router registering auth routes via `authComponent.registerRoutes()`
-- [ ] Create `src/lib/auth-client.ts` — `createAuthClient()` with `convexClient()` plugin
-- [ ] Create `src/lib/auth-server.ts` — `convexBetterAuthReactStart()` exporting `handler`, `getToken`, `fetchAuthQuery`, `fetchAuthMutation`
-- [ ] Create `src/routes/api/auth/$.ts` — catch-all server route delegating to `handler`
+- [x] Create `convex/http.ts` — HTTP router registering auth routes via `authComponent.registerRoutes()`
+- [x] Create `src/lib/auth-client.ts` — `createAuthClient()` with `convexClient()` plugin
+- [x] Create `src/lib/auth-server.ts` — `convexBetterAuthReactStart()` exporting `handler`, `getToken`, `fetchAuthQuery`, `fetchAuthMutation`
+- [x] Create `src/routes/api/auth/$.ts` — catch-all server route delegating to `handler`
 
 ### Auth Provider + Route Guards
 - [ ] Update `src/routes/__root.tsx` — `getAuth` server function via `createServerFn`, `beforeLoad` setting token on `convexQueryClient` for SSR-compatible auth context, wrap children in `ConvexBetterAuthProvider`; ensure the auth token is available to all downstream `loader` functions for authenticated server-side data fetching

@@ -264,3 +264,35 @@
 - The `components.betterAuth` type uses `ComponentApi` from `@convex-dev/better-auth/_generated/component.js` — full type safety for adapter operations
 - Existing scaffold demo auth files (`src/lib/auth-client.ts`, `src/routes/api/auth/$.ts`, demo pages) still work but will be replaced in "Better Auth HTTP + Client" task
 - All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)
+
+## 2026-03-11: Phase 1 — Better Auth HTTP + Client
+
+### What was done
+- Created `convex/http.ts` — HTTP router using `httpRouter()` from `convex/server`, registers auth routes via `authComponent.registerRoutes(http, createAuth)` which sets up GET/POST handlers on `/api/auth/*` and a `.well-known/openid-configuration` redirect
+- Updated `src/lib/auth-client.ts` — added `convexClient()` plugin from `@convex-dev/better-auth/client/plugins` to the `createAuthClient()` config, enabling Convex JWT token management on the client side
+- Created `src/lib/auth-server.ts` — exports `handler`, `getToken`, `fetchAuthQuery`, `fetchAuthMutation` from `convexBetterAuthReactStart()`, configured with `VITE_CONVEX_URL` and `CONVEX_SITE_URL` env vars; provides SSR-compatible auth utilities for TanStack Start server functions
+- Updated `src/routes/api/auth/$.ts` — replaced scaffold's non-Convex `auth.handler` with the Convex-proxying `handler` from `~/lib/auth-server`; auth requests are now forwarded to Convex HTTP Actions
+- Deleted `src/lib/auth.ts` — unused scaffold demo auth (non-Convex betterAuth instance)
+- Added `CONVEX_SITE_URL` to `.env.local` template
+
+### Files added
+- convex/http.ts (HTTP router with auth route registration)
+- src/lib/auth-server.ts (convexBetterAuthReactStart exports)
+
+### Files changed
+- src/lib/auth-client.ts (added convexClient plugin)
+- src/routes/api/auth/$.ts (switched to Convex-proxying handler)
+- .env.local (added CONVEX_SITE_URL)
+- PLAN.md (marked 4 tasks complete)
+
+### Files deleted
+- src/lib/auth.ts (unused scaffold non-Convex auth)
+
+### Notes
+- The `convexClient` plugin import path is `@convex-dev/better-auth/client/plugins` (per package.json exports map), NOT `@convex-dev/better-auth/plugins/convex/client` (internal path)
+- `convexBetterAuthReactStart` handler proxies auth requests to Convex HTTP Actions by rewriting the URL to `CONVEX_SITE_URL + pathname + search`
+- `getToken()` reads the JWT from request cookies via `@tanstack/react-start/server`'s `getRequestHeaders()` — uses React 19 `cache()` for per-request deduplication
+- `fetchAuthQuery`/`fetchAuthMutation` create a `ConvexHttpClient`, set the auth token, and call the Convex function — useful in `createServerFn` SSR loaders
+- User must set `CONVEX_SITE_URL` in `.env.local` (for local dev, this is the Convex HTTP Actions URL from the dashboard, ending in `.convex.site`)
+- Existing demo pages (`/demo/better-auth`, header user component) continue working since they import from `#/lib/auth-client` which still exports `authClient`
+- All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)

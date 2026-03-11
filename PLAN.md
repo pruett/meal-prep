@@ -161,7 +161,7 @@
 ### App Shell + Navigation
 - [x] Create `src/components/layout/app-shell.tsx` — mobile bottom nav + desktop sidebar layout (invoke `frontend-design` and `shadcn` skills)
 - [x] Create `src/components/layout/nav.tsx` — route links (Home, Preferences, Account), active state, inline credits (invoke `frontend-design` and `shadcn` skills)
-- [ ] Update `src/routes/__root.tsx` — wrap authenticated routes with `AppShell`
+- [x] Update `src/routes/__root.tsx` — wrap authenticated routes with `AppShell`
 
 ### Home Screen
 - [ ] Update `src/routes/index.tsx` — `loader` uses `createServerFn` to fetch user's meal plans server-side for SSR; current week plan card (or generate CTA), quick action buttons, past plans list; `convexQuery()` for reactive updates post-hydration (invoke `frontend-design` and `shadcn` skills)

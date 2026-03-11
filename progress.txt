@@ -1267,3 +1267,22 @@
 - Credits are shown inline in the desktop sidebar (at the bottom, separated by a border) but not in the mobile bottom nav (space-constrained — credits remain visible in the header's CreditsBadge on mobile)
 - `InlineCredits` shares the same `convexQuery` subscription as the header's CreditsBadge — Convex deduplicates reactive subscriptions so there's no double-fetching
 - All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)
+
+## 2026-03-11: Phase 5 — Root Route AppShell Integration
+
+### What was done
+- Updated `src/routes/__root.tsx` to conditionally wrap authenticated routes with `AppShell`
+- Logic: shows `AppShell` (desktop sidebar + mobile bottom nav) when user has an auth token AND is NOT on `/auth/*` or `/onboarding/*` routes
+- Auth pages and onboarding pages render without the app shell (just Header + Outlet + Footer)
+- Imported `AppShell` from `~/components/layout/app-shell` and `useRouterState` from `@tanstack/react-router`
+- Consolidated `useRouterState` import into the main `@tanstack/react-router` import block
+
+### Files changed
+- src/routes/__root.tsx (added AppShell conditional rendering, useRouterState for pathname detection)
+- PLAN.md (marked task complete)
+
+### Notes
+- Uses `useRouterState({ select: (s) => s.location.pathname })` for efficient re-renders (only subscribes to pathname changes)
+- Footer is preserved for non-AppShell routes (auth pages, onboarding, unauthenticated users); AppShell routes use sidebar/bottom nav instead
+- Onboarding routes excluded because they have their own `WizardShell` layout
+- All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)

@@ -3,6 +3,7 @@ import {
   Outlet,
   Scripts,
   createRootRouteWithContext,
+  useRouterState,
 } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
@@ -10,6 +11,7 @@ import { TanStackDevtools } from '@tanstack/react-devtools'
 import { ConvexBetterAuthProvider } from '@convex-dev/better-auth/react'
 import Footer from '../components/Footer'
 import Header from '../components/layout/header'
+import AppShell from '../components/layout/app-shell'
 
 import TanStackQueryProvider, {
   convexQueryClient,
@@ -69,6 +71,11 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 
 function RootComponent() {
   const { token } = Route.useRouteContext()
+  const pathname = useRouterState({ select: (s) => s.location.pathname })
+
+  const isAuthRoute = pathname.startsWith('/auth/')
+  const isOnboardingRoute = pathname.startsWith('/onboarding/')
+  const showAppShell = !!token && !isAuthRoute && !isOnboardingRoute
 
   return (
     <ConvexBetterAuthProvider
@@ -77,8 +84,16 @@ function RootComponent() {
       initialToken={token}
     >
       <Header />
-      <Outlet />
-      <Footer />
+      {showAppShell ? (
+        <AppShell>
+          <Outlet />
+        </AppShell>
+      ) : (
+        <>
+          <Outlet />
+          <Footer />
+        </>
+      )}
       <TanStackDevtools
         config={{
           position: 'bottom-right',

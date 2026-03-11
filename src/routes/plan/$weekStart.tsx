@@ -80,6 +80,7 @@ function MealPlanPage() {
   })
 
   const [isGenerating, setIsGenerating] = useState(false)
+  const [isRegenerating, setIsRegenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const userId = loaderData?.userId ?? null
@@ -127,6 +128,30 @@ function MealPlanPage() {
     }
   }
 
+  const handleRegenerate = async () => {
+    if (!mealPlanId) return
+    setIsRegenerating(true)
+    setError(null)
+
+    try {
+      const response = await fetch('/api/ai/regenerate-meals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mealPlanId }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to regenerate meals')
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong')
+    } finally {
+      setIsRegenerating(false)
+    }
+  }
+
   if (!loaderData) {
     return (
       <main className="page-wrap px-4 pb-8 pt-14">
@@ -138,7 +163,8 @@ function MealPlanPage() {
   }
 
   const planStatus = plan?.status
-  const isActivelyGenerating = isGenerating || planStatus === 'generating'
+  const isActivelyGenerating =
+    isGenerating || isRegenerating || planStatus === 'generating'
   const totalRequested = plan?.totalMealsRequested ?? 7
   const mealsCount = meals?.length ?? 0
   const acceptedCount =
@@ -166,6 +192,65 @@ function MealPlanPage() {
             acceptedCount={acceptedCount}
             rejectedCount={rejectedCount}
           />
+        </div>
+      )}
+
+      {/* Regenerate rejected meals */}
+      {planStatus === 'reviewing' && rejectedCount > 0 && (
+        <div className="mb-6 flex items-center gap-3">
+          <Button
+            onClick={handleRegenerate}
+            disabled={outOfCredits || isRegenerating}
+            variant="outline"
+            size="sm"
+          >
+            {isRegenerating ? (
+              <>
+                <svg
+                  className="mr-1.5 h-3.5 w-3.5 animate-spin"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                >
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeOpacity="0.2"
+                  />
+                  <path
+                    d="M12 2a10 10 0 0 1 10 10"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                  />
+                </svg>
+                Regenerating…
+              </>
+            ) : (
+              <>
+                <svg
+                  className="mr-1.5 h-3.5 w-3.5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <polyline points="1 4 1 10 7 10" />
+                  <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+                </svg>
+                Regenerate {rejectedCount} Rejected
+              </>
+            )}
+          </Button>
+          {outOfCredits && (
+            <span className="text-xs text-[var(--sea-ink-soft)]">
+              No credits remaining
+            </span>
+          )}
         </div>
       )}
 

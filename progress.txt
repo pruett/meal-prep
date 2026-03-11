@@ -949,3 +949,23 @@
 - `sortOrder` for new meals starts after the current max to maintain ordering
 - `routeTree.gen.ts` manually updated; TanStack router plugin will regenerate on `vite dev`/`vite build`
 - All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)
+
+## 2026-03-11: Phase 3 — Regenerate Rejected Button on Plan Page
+
+### What was done
+- Added "Regenerate Rejected" button to `src/routes/plan/$weekStart.tsx` that appears when the plan is in `reviewing` status and rejected meals exist
+- Button shows rejected count (e.g. "Regenerate 3 Rejected") with a refresh icon
+- POSTs to `/api/ai/regenerate-meals` with the current `mealPlanId`
+- Loading state: spinner icon + "Regenerating…" text, button disabled during regeneration
+- Disabled when out of credits with "No credits remaining" helper text
+- `isActivelyGenerating` state updated to include `isRegenerating` so skeleton placeholders show during regeneration
+- Uses `variant="outline"` and `size="sm"` for subtle secondary action styling
+
+### Files changed
+- src/routes/plan/$weekStart.tsx (added handleRegenerate, isRegenerating state, Regenerate Rejected button UI)
+- PLAN.md (marked task complete)
+
+### Notes
+- Button positioned between the status banner and the meals grid for natural flow
+- Follows the same fetch + error handling pattern as the existing handleGenerate function
+- All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)

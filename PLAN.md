@@ -126,7 +126,7 @@
 ### Regenerate Rejected Meals
 - [x] Create `src/routes/api/ai/regenerate-meals.ts` — POST route: queries accepted meals for context, generates replacements for rejected meals, writes to Convex, decrements credits
 - [x] Add `deleteByMealPlanAndStatus` and `batchCreate` mutations to `convex/meals.ts`
-- [ ] Add "Regenerate Rejected" button to plan page, visible when rejected meals exist (invoke `frontend-design` and `shadcn` skills)
+- [x] Add "Regenerate Rejected" button to plan page, visible when rejected meals exist (invoke `frontend-design` and `shadcn` skills)
 
 ### Real Preferences in AI Prompts
 - [ ] Update `src/lib/ai/prompts.ts` — replace hardcoded preferences with dynamic `buildMealSuggestionsPrompt(preferences, acceptedMeals?)` using all preference fields

@@ -52,11 +52,12 @@ function SignupPage() {
         const convex = new ConvexHttpClient(
           import.meta.env.VITE_CONVEX_URL as string,
         )
-        await convex.mutation(api.users.createFromAuth, {
+        const userId = await convex.mutation(api.users.createFromAuth, {
           betterAuthId: result.data.user.id,
           email,
           name,
         })
+        await convex.mutation(api.preferences.create, { userId })
         void router.navigate({ to: '/onboarding/diet' })
       }
     } catch {

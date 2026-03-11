@@ -495,3 +495,27 @@
 - `getToken()` should work in TanStack Start server handlers since they run in the Vinxi request context
 - The POST handler no longer accepts any body parameters — weekStartDate and totalMeals are computed server-side
 - All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)
+
+## 2026-03-11: Phase 2 — Preferences Data Layer
+
+### What was done
+- Created `convex/preferences.ts` with three exported functions:
+  - `create` mutation — creates default preferences for a user (empty dietary restrictions, empty cuisine preferences, 7 meals/week, household size 2, 45min max prep, empty equipment, empty foods to avoid); idempotent (returns existing preferences if already exist)
+  - `getByUser` query — looks up preferences by userId using the `by_user` index
+  - `update` mutation — accepts partial updates (all preference fields are optional), looks up existing preferences by userId, patches only the provided fields
+- Updated `src/routes/auth/signup.tsx` to seed default preferences immediately after user creation by calling `api.preferences.create` with the new userId
+- Updated `convex/_generated/api.d.ts` to include `preferences` module reference
+
+### Files added
+- convex/preferences.ts (3 exported functions: create, getByUser, update)
+
+### Files changed
+- src/routes/auth/signup.tsx (added preferences.create call after user creation)
+- convex/_generated/api.d.ts (added preferences module reference)
+- PLAN.md (marked 2 tasks complete)
+
+### Notes
+- `create` mutation is idempotent — checks for existing preferences before inserting, matching the pattern used in `users.createFromAuth`
+- `update` mutation uses `Object.fromEntries` + `filter` to build a clean patch object from only the provided (non-undefined) optional args
+- Default values match the tracer bullet hardcoded preferences: 7 meals/week, household 2, 45min max prep
+- All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)

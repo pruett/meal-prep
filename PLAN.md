@@ -85,8 +85,8 @@
 > Six-step wizard collecting user preferences, all steps skippable with sensible defaults.
 
 ### Preferences Data Layer
-- [ ] Create `convex/preferences.ts` — `create` mutation (with defaults), `getByUser` query, `update` mutation (partial updates)
-- [ ] Seed default preferences on signup alongside user creation
+- [x] Create `convex/preferences.ts` — `create` mutation (with defaults), `getByUser` query, `update` mutation (partial updates)
+- [x] Seed default preferences on signup alongside user creation
 
 ### Wizard Shell + Steps 1-3
 - [ ] Create `src/routes/onboarding/route.tsx` — layout route with auth guard and onboarding-completed redirect

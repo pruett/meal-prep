@@ -26,12 +26,14 @@ import type { ComponentApi } from '@convex-dev/better-auth/_generated/component.
 import type * as auth from '../auth.ts'
 import type * as mealPlans from '../mealPlans.ts'
 import type * as meals from '../meals.ts'
+import type * as preferences from '../preferences.ts'
 import type * as users from '../users.ts'
 
 declare const fullApi: ApiFromModules<{
   auth: typeof auth
   mealPlans: typeof mealPlans
   meals: typeof meals
+  preferences: typeof preferences
   users: typeof users
 }>
 export declare const api: FilterApi<

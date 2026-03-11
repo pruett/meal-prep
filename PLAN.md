@@ -43,7 +43,7 @@
 - [ ] Add `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` to `.env.local`
 
 ### Tracer: Reactive Meal UI
-- [ ] Create `src/components/meals/meal-card.tsx` — shadcn Card displaying name, description, keyIngredients (badges), estimatedPrepMinutes (invoke `frontend-design` and `shadcn` skills)
+- [x] Create `src/components/meals/meal-card.tsx` — shadcn Card displaying name, description, keyIngredients (badges), estimatedPrepMinutes (invoke `frontend-design` and `shadcn` skills)
 - [ ] Create `src/components/meals/meal-grid.tsx` — responsive grid rendering `MealCard` components (invoke `frontend-design` and `shadcn` skills)
 - [ ] Create `src/components/meals/meal-skeleton.tsx` — skeleton loading state mimicking meal card layout (invoke `frontend-design` and `shadcn` skills)
 - [ ] Wire up `src/routes/index.tsx` as tracer page: add a `loader` using `createServerFn` to fetch existing meal plans server-side for SSR initial render; "Generate Meals" button POSTing to `/api/ai/generate-meals`; reactive `convexQuery(api.meals.getByMealPlan)` for live updates as meals stream in (invoke `frontend-design` and `shadcn` skills)

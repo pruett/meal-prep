@@ -159,3 +159,21 @@
 - `mealPlans.getByUser` orders descending so most recent plans appear first
 - Schema uses `v.union(v.literal(...))` pattern for enums (status fields, provider, type)
 - `meals.fullRecipe` is `v.union(v.object(...), v.null())` — null until prep guide generation populates it
+
+## 2026-03-11: Phase 0 — Tracer: Reactive Meal UI (meal-card)
+
+### What was done
+- Installed shadcn Card and Badge components via `bunx --bun shadcn@latest add card badge`
+- Created `src/components/meals/meal-card.tsx` — displays meal name, description, key ingredients as badges, and estimated prep time
+- Uses `Doc<'meals'>` type from Convex generated data model for type-safe props
+
+### Files added
+- src/components/meals/meal-card.tsx (MealCard component)
+- src/components/ui/card.tsx (shadcn Card, auto-generated)
+- src/components/ui/badge.tsx (shadcn Badge, auto-generated)
+
+### Notes
+- Card uses `size="sm"` variant for compact display
+- Badge uses `variant="secondary"` for ingredient chips — subtle, doesn't compete with card content
+- Prep time shown as muted footer text
+- Accept/reject visual states will be added in Phase 3

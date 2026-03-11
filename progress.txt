@@ -1675,3 +1675,29 @@
 - `import.meta.glob` must be passed explicitly; the default auto-discovery via `import.meta.glob` inside `convex-test/dist/index.js` fails because Vite doesn't transform `import.meta.glob` in node_modules
 - `users.getAuthenticated` was not tested because it depends on `authComponent.getAuthUser(ctx)` which requires the full Better Auth component registration — the mock only stubs the import to prevent module-level crashes
 - All checks pass: TypeScript, Oxlint, Vitest (169 tests — 3 sanity + 48 schema + 54 prompt + 64 convex)
+
+## 2026-03-11: Phase 6 — Integration Tests for Core Flows
+
+### What was done
+- Created `convex/__tests__/integration.test.ts` — 19 integration tests across 9 describe blocks covering all core application flows:
+  - **Generate meals flow** (3 tests): full lifecycle (create plan → stream meals → reviewing → credit decrement → log), sort order correctness, plan visibility in user queries
+  - **Accept/reject + regenerate flow** (3 tests): full regeneration (accept some → reject some → delete rejected → create replacements → back to reviewing), failure rollback (plan reverts to reviewing, no credit charged, only accepted meals remain), accept/reject toggle behavior
+  - **Prep guide flow** (2 tests): full flow (accept all → add recipes → create prep guide → finalize → credit decrement), empty state before finalization
+  - **Credit enforcement** (4 tests): initial 25 credits with per-generation cost, zero-credit rejection, failed generation no-charge, multi-type credit accounting
+  - **User onboarding flow** (2 tests): complete wizard (signup → preferences through all steps → complete onboarding), skip-all with defaults
+  - **Full meal plan lifecycle** (1 test): end-to-end: generate → review → regenerate → accept all → prep guide → finalize → archive — verifies credit accounting (25 → 22) and generation log history (3 entries in desc order)
+  - **Multi-user isolation** (1 test): two users with full setup, verifies plans/meals/preferences/credits are isolated
+  - **Batch create in regeneration context** (1 test): batchCreate replacements have correct plan association and sort ordering
+  - **Generation log history** (2 tests): mixed log types appear in correct desc order, both providers tracked
+
+### Files added
+- convex/__tests__/integration.test.ts (19 tests across 9 describe blocks)
+
+### Files changed
+- PLAN.md (marked task complete)
+
+### Notes
+- Tests simulate the exact sequence of Convex mutations that the AI server routes orchestrate, without mocking the AI SDK — this validates the Convex state machine transitions end-to-end
+- Shared helpers: `createTestUser`, `createUserWithPreferences`, `createUserPlanAndMeals` for DRY test setup
+- The full lifecycle test exercises every status transition: generating → reviewing → generating → reviewing → finalized → archived
+- All checks pass: TypeScript, Oxlint, Vitest (188 tests — 3 sanity + 48 schema + 54 prompt + 64 convex + 19 integration)

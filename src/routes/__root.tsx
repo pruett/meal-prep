@@ -9,7 +9,7 @@ import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 import { ConvexBetterAuthProvider } from '@convex-dev/better-auth/react'
 import Footer from '../components/Footer'
-import Header from '../components/Header'
+import Header from '../components/layout/header'
 
 import TanStackQueryProvider, {
   convexQueryClient,

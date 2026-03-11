@@ -116,7 +116,7 @@
 - [x] Create `src/routes/plan/$weekStart.tsx` — `loader` uses `createServerFn` to fetch the meal plan and its meals server-side for SSR initial render; client hydrates with `convexQuery(api.mealPlans.getByUserAndWeek)` and `convexQuery(api.meals.getByMealPlan)` for reactive updates during generation; prompt to generate if no plan exists (invoke `frontend-design` and `shadcn` skills)
 - [x] Update `src/components/meals/meal-card.tsx` — add accept/reject buttons with visual states (green border accepted, dimmed rejected) (invoke `frontend-design` and `shadcn` skills)
 - [x] Create `src/components/meals/generation-status.tsx` — status banner (generating/reviewing/finalized) with accepted count (invoke `frontend-design` and `shadcn` skills)
-- [ ] Create `src/components/layout/header.tsx` — app name + credits remaining badge (reactive) (invoke `frontend-design` and `shadcn` skills)
+- [x] Create `src/components/layout/header.tsx` — app name + credits remaining badge (reactive) (invoke `frontend-design` and `shadcn` skills)
 
 ### Credits + Generation Logging
 - [ ] Create `convex/generationLogs.ts` — `create` mutation, `getByUser` query

@@ -819,3 +819,29 @@
 - Progress bar width uses inline style with percentage calculation for smooth animation during generation
 - The reviewing state shows a contextual breakdown: accepted (green), rejected (red), and remaining to review
 - All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)
+
+## 2026-03-11: Phase 3 — App Header with Credits Badge
+
+### What was done
+- Created `src/components/layout/header.tsx` — app header replacing scaffold demo header with:
+  - "MealPrep" branding with gradient dot (lagoon→palm) matching the design system
+  - Reactive credits badge via `convexQuery(api.users.getAuthenticated)` — shows `generationsRemaining` count with color states: normal (lagoon-deep), low (amber, ≤5 credits), empty (red, 0 credits)
+  - User menu: avatar initial with gradient background + sign out button when authenticated, sign in link when not
+  - ThemeToggle preserved from original header
+  - Credits badge uses sparkle/sun icon, `tabular-nums` for stable digit width
+- Updated `src/routes/__root.tsx` to import new header from `~/components/layout/header` instead of old scaffold `../components/Header`
+- Old scaffold header (`src/components/Header.tsx`) is no longer imported from root; kept in tree for now (can be cleaned up later)
+
+### Files added
+- src/components/layout/header.tsx (Header component with CreditsBadge + UserMenu)
+
+### Files changed
+- src/routes/__root.tsx (updated Header import path)
+- PLAN.md (marked task complete)
+
+### Notes
+- `convexQuery` with `'skip'` disables the user query when not authenticated — avoids unnecessary Convex calls
+- Credits badge uses inline `style` for dynamic color states (normal/low/empty) since these colors are conditional, not design-system tokens
+- `authClient.useSession()` is called in both `UserMenu` (for auth state display) and `Header` (to gate the credits query) — Better Auth client deduplicates these
+- Uses the same sticky header pattern (z-50, backdrop-blur, header-bg) as the original scaffold header
+- All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)

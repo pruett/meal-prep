@@ -647,3 +647,27 @@
 - `foodsToAvoid` is a single `v.string()` field in the schema — simplest approach, free-text stored as-is (trimmed on save)
 - Follows the same patterns as diet-step and cuisines-step: ConvexHttpClient on client for save, useWizard hook for save registration, createServerFn for SSR prefetch
 - All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)
+
+## 2026-03-11: Phase 2 — Onboarding Meals Step
+
+### What was done
+- Installed shadcn Slider component via `bunx --bun shadcn@latest add slider`
+- Created `src/components/onboarding/meals-step.tsx` — two controls for meal planning preferences:
+  - Meals-per-week slider (3-14) using shadcn Slider with large numeric readout
+  - Household size stepper (1-10) with +/- circular buttons and contextual label ("Just me" vs "X people")
+- Registers async save callback via `useWizard().setOnSave` — saves `mealsPerWeek` and `householdSize` to Convex via `api.preferences.update` on "Next" click; skip bypasses save (defaults preserved)
+- Updated `src/routes/onboarding/meals.tsx` with `createServerFn` SSR loader (`fetchPreferences`) that fetches the authenticated user's current `mealsPerWeek` and `householdSize` server-side for instant hydration
+- Error state displayed if preferences can't be loaded
+
+### Files added
+- src/components/onboarding/meals-step.tsx (MealsStep component with slider + stepper + save logic)
+- src/components/ui/slider.tsx (shadcn Slider, auto-generated)
+
+### Files changed
+- src/routes/onboarding/meals.tsx (replaced stub with full route + SSR loader + MealsStep)
+- PLAN.md (marked task complete)
+
+### Notes
+- Base UI Slider's `onValueChange` callback receives `number | readonly number[]` (not just `number[]`) — need to handle both cases
+- Follows the same patterns as previous onboarding steps: ConvexHttpClient on client for save, useWizard hook for save registration, createServerFn for SSR prefetch
+- All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)

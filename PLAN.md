@@ -101,7 +101,7 @@
 ### Steps 4-6
 - [x] Create `src/routes/onboarding/meals.tsx` + `src/components/onboarding/meals-step.tsx` — meals-per-week slider (3-14), household size input (1-10) (invoke `frontend-design` and `shadcn` skills)
   - Route `loader` uses `createServerFn` to prefetch current preferences server-side for instant render
-- [ ] Create `src/routes/onboarding/cooking.tsx` + `src/components/onboarding/cooking-step.tsx` — max prep time slider (15-120 min), equipment checkbox grid (invoke `frontend-design` and `shadcn` skills)
+- [x] Create `src/routes/onboarding/cooking.tsx` + `src/components/onboarding/cooking-step.tsx` — max prep time slider (15-120 min), equipment checkbox grid (invoke `frontend-design` and `shadcn` skills)
   - Route `loader` uses `createServerFn` to prefetch current preferences server-side for instant render
 - [ ] Create `src/routes/onboarding/generate.tsx` + `src/components/onboarding/generate-step.tsx` — review summary, "Generate My First Meal Plan" button triggering generation, calls `completeOnboarding`, redirects to `/plan/:weekStart` (invoke `frontend-design` and `shadcn` skills)
   - Route `loader` uses `createServerFn` to prefetch current preferences server-side for instant render

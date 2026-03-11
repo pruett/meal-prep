@@ -671,3 +671,28 @@
 - Base UI Slider's `onValueChange` callback receives `number | readonly number[]` (not just `number[]`) — need to handle both cases
 - Follows the same patterns as previous onboarding steps: ConvexHttpClient on client for save, useWizard hook for save registration, createServerFn for SSR prefetch
 - All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)
+
+## 2026-03-11: Phase 2 — Onboarding Cooking Step
+
+### What was done
+- Created `src/components/onboarding/cooking-step.tsx` — two controls for cooking preferences:
+  - Max prep time slider (15-120 min, step 5) using shadcn Slider with formatted time readout (e.g. "45 min", "1 hr 30 min", "2 hrs")
+  - Kitchen equipment checkbox grid of 12 items (Oven, Stovetop, Microwave, Slow Cooker, Instant Pot, Air Fryer, Blender, Food Processor, Grill, Wok, Cast Iron, Sheet Pan)
+- Equipment toggles reuse the same visual pattern as diet-step: emoji + label, lagoon border/bg when selected, checkmark indicator
+- Responsive grid: 2 columns on mobile, 3 columns at `sm` breakpoint
+- Registers async save callback via `useWizard().setOnSave` — saves `maxPrepTimeMinutes` and `kitchenEquipment` to Convex via `api.preferences.update` on "Next" click; skip bypasses save (defaults preserved)
+- Updated `src/routes/onboarding/cooking.tsx` with `createServerFn` SSR loader (`fetchPreferences`) that fetches the authenticated user's current `maxPrepTimeMinutes` and `kitchenEquipment` server-side for instant hydration
+- Error state displayed if preferences can't be loaded
+
+### Files added
+- src/components/onboarding/cooking-step.tsx (CookingStep component with slider + equipment grid + save logic)
+
+### Files changed
+- src/routes/onboarding/cooking.tsx (replaced stub with full route + SSR loader + CookingStep)
+- PLAN.md (marked task complete)
+
+### Notes
+- Follows the same patterns as all previous onboarding steps: ConvexHttpClient on client for save, useWizard hook for save registration, createServerFn for SSR prefetch
+- Slider step is 5 minutes (15, 20, 25, ..., 120) for practical granularity
+- Default maxPrepTimeMinutes is 45 (from preferences.create defaults)
+- All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)

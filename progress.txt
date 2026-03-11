@@ -1041,3 +1041,25 @@
 - `mealName` field in the prompt matches `fullRecipeSchema`'s `mealName` field — used by the server route to map recipes to meal docs
 - Household size drives serving count in recipe scaling instructions
 - All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)
+
+## 2026-03-11: Phase 4 — Prep Guide Convex Data Layer
+
+### What was done
+- Created `convex/prepGuides.ts` with two exported functions:
+  - `create` mutation — inserts a prep guide doc with mealPlanId, userId, shoppingList, batchPrepSteps, totalEstimatedMinutes, and auto-timestamps with `createdAt`
+  - `getByMealPlan` query — fetches a prep guide by mealPlanId using `.filter()` + `.unique()` (one prep guide per meal plan)
+- Added `updateFullRecipe` mutation to `convex/meals.ts` — patches a meal's `fullRecipe` field with a complete recipe object (ingredients, instructions, nutritionEstimate)
+- Updated `convex/_generated/api.d.ts` to include the `prepGuides` module reference
+
+### Files added
+- convex/prepGuides.ts (2 exported functions: create, getByMealPlan)
+
+### Files changed
+- convex/meals.ts (added updateFullRecipe mutation)
+- convex/_generated/api.d.ts (added prepGuides module reference)
+- PLAN.md (marked task complete)
+
+### Notes
+- `getByMealPlan` uses `.filter()` instead of an index since the schema doesn't define a `by_mealPlan` index on `prepGuides` — there's only one prep guide per plan so performance is fine
+- `updateFullRecipe` accepts the full recipe object matching the Convex schema's `meals.fullRecipe` shape (excluding the null variant — only sets actual recipes)
+- All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)

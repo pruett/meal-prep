@@ -75,6 +75,34 @@ export const deleteByMealPlanAndStatus = mutation({
   },
 })
 
+export const updateFullRecipe = mutation({
+  args: {
+    id: v.id('meals'),
+    fullRecipe: v.object({
+      ingredients: v.array(
+        v.object({
+          name: v.string(),
+          quantity: v.string(),
+          unit: v.string(),
+        }),
+      ),
+      instructions: v.array(v.string()),
+      nutritionEstimate: v.union(
+        v.object({
+          calories: v.number(),
+          protein: v.number(),
+          carbs: v.number(),
+          fat: v.number(),
+        }),
+        v.null(),
+      ),
+    }),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.id, { fullRecipe: args.fullRecipe })
+  },
+})
+
 export const batchCreate = mutation({
   args: {
     meals: v.array(

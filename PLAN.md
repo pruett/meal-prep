@@ -141,7 +141,7 @@
 - [x] Add prep guide Zod schemas to `src/lib/ai/schemas.ts` — `fullRecipeSchema`, `shoppingListItemSchema`, `batchPrepStepSchema`, `prepGuideOutputSchema`
 - [x] Add `buildPrepGuidePrompt(acceptedMeals, householdSize)` to `src/lib/ai/prompts.ts`
 - [ ] Create `src/routes/api/ai/generate-prep.ts` — POST route: queries accepted meals, calls `streamText` with `Output.object`, updates each meal's `fullRecipe`, creates `prepGuides` doc, finalizes plan, decrements credits
-- [ ] Create `convex/prepGuides.ts` — `create` mutation, `getByMealPlan` query; add `updateFullRecipe` mutation to `convex/meals.ts`
+- [x] Create `convex/prepGuides.ts` — `create` mutation, `getByMealPlan` query; add `updateFullRecipe` mutation to `convex/meals.ts`
 
 ### Prep Guide UI
 - [ ] Create `src/routes/plan/$weekStart/prep.tsx` — `loader` uses `createServerFn` to fetch prep guide, accepted meals, and full recipes server-side for SSR; prep guide view with three tabbed sections (Recipes, Shopping List, Prep Steps) (invoke `frontend-design` and `shadcn` skills)

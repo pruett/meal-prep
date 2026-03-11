@@ -336,3 +336,23 @@
 - `expectAuth` is a `ConvexReactClientOptions` property inherited by `ConvexQueryClientOptions` — defaults to `false`
 - The plan references `src/router.tsx` but the actual `ConvexQueryClient` instantiation lives in `src/integrations/tanstack-query/root-provider.tsx`
 - All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)
+
+## 2026-03-11: Phase 1 — Auth Provider + Route Guards (reusable auth guard)
+
+### What was done
+- Created `src/lib/auth-guard.ts` — exports `requireAuth` function that checks `context.token` (set by root route's `beforeLoad`) and throws a TanStack Router `redirect` to `/auth/login` if the user is unauthenticated
+- Created `src/routes/auth/login.tsx` — minimal stub route at `/auth/login` so the redirect target exists in the route tree and TypeScript compiles; placeholder component will be replaced with the actual login form in the "Auth Pages" task
+- Route tree (`src/routeTree.gen.ts`) auto-regenerated to include the new `/auth/login` route
+
+### Files added
+- src/lib/auth-guard.ts (requireAuth beforeLoad guard)
+- src/routes/auth/login.tsx (placeholder login route)
+
+### Files changed
+- src/routeTree.gen.ts (auto-regenerated — added /auth/login route)
+- PLAN.md (marked task complete)
+
+### Notes
+- `requireAuth` can be used directly as `beforeLoad: requireAuth` or composed: `beforeLoad: ({ context }) => { requireAuth({ context }); /* extra logic */ }`
+- TanStack Router's `redirect()` with `to` is strictly typed against registered routes — the login stub route was necessary to satisfy the type system
+- All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)

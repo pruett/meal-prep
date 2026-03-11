@@ -1128,3 +1128,25 @@
 - Relative import paths for Convex api/dataModel use `../../../../convex/` (one level deeper due to directory restructuring)
 - `routeTree.gen.ts` manually updated; TanStack router plugin will regenerate on `vite dev`/`vite build`
 - All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)
+
+## 2026-03-11: Phase 4 — Prep Guide UI (recipe-card.tsx component extraction)
+
+### What was done
+- Extracted `RecipeCard` and `NutritionPill` inline components from `src/routes/plan/$weekStart/prep.tsx` into `src/components/prep/recipe-card.tsx`
+- `RecipeCard` displays: meal name, description, prep time badge, nutrition summary pills (calories, protein, carbs, fat), ingredients grid (2-column on sm+), and numbered step-by-step instructions with lagoon-deep step circles
+- `NutritionPill` is a private helper component rendering individual nutrition values in bordered pill shapes
+- Updated `prep.tsx` to import `RecipeCard` from the new component file
+- Removed unused `Card`/`CardContent`/`CardHeader`/`CardTitle` imports from `prep.tsx` (now only used in the extracted component)
+- Created `src/components/prep/` directory for prep guide components
+
+### Files added
+- src/components/prep/recipe-card.tsx (RecipeCard + NutritionPill components)
+
+### Files changed
+- src/routes/plan/$weekStart/prep.tsx (removed inline RecipeCard/NutritionPill, added import from ~/components/prep/recipe-card, removed unused Card imports)
+- PLAN.md (marked task complete)
+
+### Notes
+- Component interface uses `Doc<'meals'>` from Convex dataModel for type-safe props, same as the inline version
+- NutritionPill kept as a private (non-exported) component within recipe-card.tsx since it's only used by RecipeCard
+- All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)

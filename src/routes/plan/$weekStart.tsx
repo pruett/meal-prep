@@ -5,12 +5,13 @@ import { useQuery } from '@tanstack/react-query'
 import { convexQuery } from '@convex-dev/react-query'
 import { ConvexHttpClient } from 'convex/browser'
 import { api } from '../../../convex/_generated/api'
+import { GenerationStatus } from '~/components/meals/generation-status'
 import { MealCard } from '~/components/meals/meal-card'
 import { MealSkeleton } from '~/components/meals/meal-skeleton'
 import { Button } from '~/components/ui/button'
 import { requireAuth } from '~/lib/auth-guard'
 import { getToken } from '~/lib/auth-server'
-import { cn } from '~/lib/utils'
+import type { Doc } from '../../../convex/_generated/dataModel'
 
 function formatWeekRange(weekStart: string): string {
   const start = new Date(weekStart + 'T00:00:00')
@@ -132,6 +133,10 @@ function MealPlanPage() {
   const isActivelyGenerating = isGenerating || planStatus === 'generating'
   const totalRequested = plan?.totalMealsRequested ?? 7
   const mealsCount = meals?.length ?? 0
+  const acceptedCount =
+    meals?.filter((m: Doc<'meals'>) => m.status === 'accepted').length ?? 0
+  const rejectedCount =
+    meals?.filter((m: Doc<'meals'>) => m.status === 'rejected').length ?? 0
 
   return (
     <main className="page-wrap rise-in px-4 pb-8 pt-14">
@@ -141,17 +146,20 @@ function MealPlanPage() {
         <h1 className="display-title mb-1 text-3xl font-bold tracking-tight text-[var(--sea-ink)] sm:text-4xl">
           {formatWeekRange(weekStart)}
         </h1>
-        {planStatus && (
-          <div className="mt-3 flex items-center gap-2">
-            <StatusBadge status={planStatus} />
-            {(planStatus === 'reviewing' || planStatus === 'generating') && (
-              <span className="text-sm text-[var(--sea-ink-soft)]">
-                {mealsCount} of {totalRequested} meals
-              </span>
-            )}
-          </div>
-        )}
       </section>
+
+      {/* Status banner */}
+      {planStatus && (
+        <div className="mb-6">
+          <GenerationStatus
+            status={planStatus}
+            totalMeals={totalRequested}
+            mealsCount={mealsCount}
+            acceptedCount={acceptedCount}
+            rejectedCount={rejectedCount}
+          />
+        </div>
+      )}
 
       {/* No plan — generate CTA */}
       {!plan && !isGenerating && (
@@ -204,49 +212,3 @@ function MealPlanPage() {
   )
 }
 
-function StatusBadge({ status }: { status: string }) {
-  const styles: Record<
-    string,
-    { label: string; bg: string; text: string; pulse?: boolean }
-  > = {
-    generating: {
-      label: 'Generating',
-      bg: 'rgba(79, 184, 178, 0.15)',
-      text: 'var(--lagoon-deep)',
-      pulse: true,
-    },
-    reviewing: {
-      label: 'Reviewing',
-      bg: 'rgba(79, 184, 178, 0.15)',
-      text: 'var(--lagoon-deep)',
-    },
-    finalized: {
-      label: 'Finalized',
-      bg: 'rgba(47, 106, 74, 0.12)',
-      text: 'var(--palm)',
-    },
-    archived: {
-      label: 'Archived',
-      bg: 'rgba(65, 97, 102, 0.12)',
-      text: 'var(--sea-ink-soft)',
-    },
-  }
-
-  const config = styles[status] ?? {
-    label: status,
-    bg: 'transparent',
-    text: 'inherit',
-  }
-
-  return (
-    <span
-      className={cn(
-        'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold',
-        config.pulse && 'animate-pulse',
-      )}
-      style={{ backgroundColor: config.bg, color: config.text }}
-    >
-      {config.label}
-    </span>
-  )
-}

@@ -793,3 +793,29 @@
 - Visual states are always shown regardless of `showActions` (e.g., returning to a page with already-reviewed meals shows accepted/rejected states even without buttons)
 - Buttons toggle their state: clicking Accept on an accepted meal returns it to pending, same for Reject
 - All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)
+
+## 2026-03-11: Phase 3 — Generation Status Banner
+
+### What was done
+- Created `src/components/meals/generation-status.tsx` — status banner component with four visual states:
+  - Generating: spinner icon, progress bar, "X of Y meals ready" count
+  - Reviewing: edit icon, accepted/rejected/pending counts with color-coded text
+  - Finalized: checkmark icon, "X meals ready for prep" message
+  - Archived: archive icon, muted summary of meals and accepted count
+- Each status has a distinct color scheme (lagoon for generating/reviewing, palm green for finalized, muted for archived) with matching icon backgrounds
+- Integrated into `src/routes/plan/$weekStart.tsx` — replaced inline `StatusBadge` component with the new `GenerationStatus` banner
+- Added `acceptedCount` and `rejectedCount` computed values from the reactive meals subscription
+- Removed unused `cn` import from `$weekStart.tsx` (replaced with `Doc` type import for meal filtering)
+
+### Files added
+- src/components/meals/generation-status.tsx (GenerationStatus component + 4 icon components)
+
+### Files changed
+- src/routes/plan/$weekStart.tsx (replaced inline StatusBadge with GenerationStatus, added accepted/rejected counting)
+- PLAN.md (marked task complete)
+
+### Notes
+- Uses `Doc<'meals'>` type annotation in filter callbacks for type safety
+- Progress bar width uses inline style with percentage calculation for smooth animation during generation
+- The reviewing state shows a contextual breakdown: accepted (green), rejected (red), and remaining to review
+- All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)

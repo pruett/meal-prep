@@ -444,3 +444,24 @@
 - Google OAuth callbackURL set to `/onboarding/diet` (for new signups); user doc creation for Google OAuth will need to be handled separately (e.g., via a webhook or callback) when Google OAuth is configured in a later task
 - The onboarding/diet stub follows the same pattern used for the login/signup stubs — will be replaced when the onboarding wizard is implemented in Phase 2
 - All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)
+
+## 2026-03-11: Phase 1 — Auth Pages (google-button.tsx)
+
+### What was done
+- Created `src/components/auth/google-button.tsx` — shared Google OAuth button component with official Google logo SVG
+- Accepts `callbackURL` prop (login uses `/`, signup uses `/onboarding/diet`) and `onError` callback
+- Refactored `src/routes/auth/login.tsx` to use `GoogleButton` instead of inline implementation, removed `handleGoogleSignIn` function
+- Refactored `src/routes/auth/signup.tsx` to use `GoogleButton` instead of inline implementation, removed `handleGoogleSignIn` function
+
+### Files added
+- src/components/auth/google-button.tsx (GoogleButton component)
+
+### Files changed
+- src/routes/auth/login.tsx (replaced inline Google button with GoogleButton component)
+- src/routes/auth/signup.tsx (replaced inline Google button with GoogleButton component)
+- PLAN.md (marked task complete)
+
+### Notes
+- Component handles the `authClient.signIn.social()` call internally — pages just pass config props
+- Google OAuth won't function until env vars and `socialProviders.google` are configured (next task)
+- All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)

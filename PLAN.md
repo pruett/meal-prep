@@ -124,7 +124,7 @@
 - [x] Add "out of credits" UI: disable generate buttons, show message when `generationsRemaining === 0` (invoke `frontend-design` and `shadcn` skills)
 
 ### Regenerate Rejected Meals
-- [ ] Create `src/routes/api/ai/regenerate-meals.ts` — POST route: queries accepted meals for context, generates replacements for rejected meals, writes to Convex, decrements credits
+- [x] Create `src/routes/api/ai/regenerate-meals.ts` — POST route: queries accepted meals for context, generates replacements for rejected meals, writes to Convex, decrements credits
 - [x] Add `deleteByMealPlanAndStatus` and `batchCreate` mutations to `convex/meals.ts`
 - [ ] Add "Regenerate Rejected" button to plan page, visible when rejected meals exist (invoke `frontend-design` and `shadcn` skills)
 

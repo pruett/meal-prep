@@ -916,3 +916,36 @@
 - `deleteByMealPlanAndStatus` queries by index then filters in-memory by status — Convex doesn't support compound filtering on non-indexed fields, but meal count per plan is small (3-14)
 - `batchCreate` uses a loop with individual `ctx.db.insert` calls — Convex mutations are transactional, so all inserts succeed or fail atomically
 - All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)
+
+## 2026-03-11: Phase 3 — Regenerate Rejected Meals (Server Route)
+
+### What was done
+- Created `src/routes/api/ai/regenerate-meals.ts` — POST server route for regenerating rejected meals:
+  - Auth: calls `getToken()` from `~/lib/auth-server`, returns 401 if unauthenticated
+  - Credit enforcement: returns 403 if `generationsRemaining <= 0`
+  - Accepts `mealPlanId` in request body, validates it exists
+  - Queries existing meals for the plan, counts rejected meals and collects accepted meals for context
+  - Returns 400 if no rejected meals exist
+  - Deletes rejected meals via `api.meals.deleteByMealPlanAndStatus`
+  - Sets plan status to `"generating"` during AI call
+  - Builds a context-aware prompt listing accepted meals so AI avoids suggesting duplicates
+  - Streams AI response via `streamText()` + `Output.array()` + `elementStream`, writes each replacement meal to Convex individually with `sortOrder` continuing from the max existing sort order
+  - On success: sets plan back to `"reviewing"`, decrements credits, logs with `type: "meal-regeneration"` and `status: "success"`
+  - On failure (all retries exhausted): sets plan back to `"reviewing"`, logs with `status: "failed"` and `creditsUsed: 0`
+  - Includes 2-retry with exponential backoff (same pattern as generate-meals)
+- Updated `src/routeTree.gen.ts` to register `/api/ai/regenerate-meals` route in all type interfaces, route children, and declare module block
+
+### Files added
+- src/routes/api/ai/regenerate-meals.ts (POST server route for meal regeneration)
+
+### Files changed
+- src/routeTree.gen.ts (added /api/ai/regenerate-meals route)
+- PLAN.md (marked task complete)
+
+### Notes
+- Follows the same architecture as `generate-meals.ts`: per-request `ConvexHttpClient` with auth, `streamText()` + `elementStream` for streaming, individual meal writes for reactive UI updates
+- Plan status transitions to `"generating"` during the AI call so the UI can show generation state, then back to `"reviewing"` on completion (success or failure)
+- The prompt includes accepted meal names/descriptions as context to avoid generating duplicates
+- `sortOrder` for new meals starts after the current max to maintain ordering
+- `routeTree.gen.ts` manually updated; TanStack router plugin will regenerate on `vite dev`/`vite build`
+- All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)

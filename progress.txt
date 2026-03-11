@@ -320,3 +320,19 @@
 - The `token` returned from `beforeLoad` is automatically merged into the route context — child routes access it via `context.token` in their `beforeLoad`/`loader` functions
 - The old `ConvexProvider` wrapper (`src/integrations/convex/provider.tsx`) is no longer imported from `__root.tsx`; file kept for now as it may be referenced elsewhere
 - All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)
+
+## 2026-03-11: Phase 1 — Auth Provider + Route Guards (expectAuth)
+
+### What was done
+- Set `expectAuth: true` on `ConvexQueryClient` constructor in `src/integrations/tanstack-query/root-provider.tsx`
+- This tells the Convex client to wait for an auth token before executing queries, preventing queries from running in an unauthenticated state and then re-running after auth resolves
+- Works well for pages that should only be viewed by authenticated clients
+
+### Files changed
+- src/integrations/tanstack-query/root-provider.tsx (added `{ expectAuth: true }` to ConvexQueryClient constructor)
+- PLAN.md (marked task complete)
+
+### Notes
+- `expectAuth` is a `ConvexReactClientOptions` property inherited by `ConvexQueryClientOptions` — defaults to `false`
+- The plan references `src/router.tsx` but the actual `ConvexQueryClient` instantiation lives in `src/integrations/tanstack-query/root-provider.tsx`
+- All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)

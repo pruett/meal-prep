@@ -68,7 +68,7 @@
 
 ### Auth Provider + Route Guards
 - [x] Update `src/routes/__root.tsx` — `getAuth` server function via `createServerFn`, `beforeLoad` setting token on `convexQueryClient` for SSR-compatible auth context, wrap children in `ConvexBetterAuthProvider`; ensure the auth token is available to all downstream `loader` functions for authenticated server-side data fetching
-- [ ] Update `src/router.tsx` — set `expectAuth: true` on `ConvexQueryClient`
+- [x] Update `src/router.tsx` — set `expectAuth: true` on `ConvexQueryClient`
 - [ ] Create reusable `beforeLoad` auth guard redirecting to `/auth/login` for protected routes
 
 ### Auth Pages + User Sync

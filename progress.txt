@@ -1094,3 +1094,37 @@
 - Recipe-to-meal matching relies on exact `mealName` match — the prompt instructs the AI to use exact meal names
 - Follows the same architecture as `generate-meals.ts` and `regenerate-meals.ts`: per-request `ConvexHttpClient` with auth, credit enforcement, generation logging, retry with backoff
 - All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)
+
+## 2026-03-11: Phase 4 — Prep Guide UI (prep.tsx route)
+
+### What was done
+- Created `src/routes/plan/$weekStart/prep.tsx` — full prep guide page with three tabbed sections:
+  - **Recipes tab**: Full recipe cards for each accepted meal showing ingredients (quantity/unit/name), numbered step-by-step instructions with lagoon-deep step circles, and per-serving nutrition pills (calories, protein, carbs, fat)
+  - **Shopping List tab**: Items grouped by grocery aisle category (alphabetically sorted), each item is a toggleable checkbox with checkmark animation, strikethrough on checked, and quantity/unit display
+  - **Prep Steps tab**: Numbered batch prep steps with time estimates (clock icon) and related meal badges
+- Restructured route directory: moved `src/routes/plan/$weekStart.tsx` → `src/routes/plan/$weekStart/index.tsx` to support the nested `/prep` child route
+- SSR loader (`fetchPrepGuideData`) using `createServerFn` with `.inputValidator()` to accept the `weekStart` route param, fetches authenticated user's meal plan, meals, and prep guide server-side via `ConvexHttpClient`
+- Auth guard via `beforeLoad: requireAuth`
+- Reactive Convex subscriptions: `convexQuery(api.prepGuides.getByMealPlan)` tracks prep guide data, `convexQuery(api.meals.getByMealPlan)` tracks meals with full recipes — both seeded with `initialData` from SSR loader
+- Page header: back navigation arrow link to meal plan page, `island-kicker` "Prep Guide" label, `display-title` week range heading, summary stats (total time, recipe count, shopping item count)
+- Empty/missing state: message with link back to meal plan when no prep guide exists
+- Installed shadcn Tabs component (`@base-ui/react` Tabs primitive with CVA variants)
+- Updated `src/routeTree.gen.ts` to register both `/plan/$weekStart` (index) and `/plan/$weekStart/prep` routes
+
+### Files added
+- src/routes/plan/$weekStart/prep.tsx (PrepGuidePage component + fetchPrepGuideData serverFn + RecipeCard + NutritionPill + ShoppingCategory + PrepStep inline components)
+- src/components/ui/tabs.tsx (shadcn Tabs, auto-generated)
+
+### Files changed
+- src/routes/plan/$weekStart.tsx → src/routes/plan/$weekStart/index.tsx (moved to directory, updated relative imports to ../../../../convex/)
+- src/routeTree.gen.ts (restructured PlanWeekStart → PlanWeekStartIndex + PlanWeekStartPrep, updated all type interfaces)
+- PLAN.md (marked task complete)
+
+### Notes
+- Route restructuring: converting `$weekStart.tsx` to `$weekStart/index.tsx` preserves the same URL path `/plan/:weekStart`; the route id changes to `/plan/$weekStart/` (trailing slash) in `FileRoutesById` but the `FileRoutesByPath` key stays `/plan/$weekStart`
+- `createFileRoute('/plan/$weekStart')` (no trailing slash) must match the `FileRoutesByPath` key — TanStack Router validates against this at compile time
+- Recipe, shopping list, and prep steps are implemented as inline components within prep.tsx; the plan has separate tasks to extract these into `src/components/prep/recipe-card.tsx`, `shopping-list.tsx`, and `prep-steps.tsx`
+- Shopping list uses client-side `useState<Set<number>>` for checkbox state — no persistence needed (ephemeral during shopping trip)
+- Relative import paths for Convex api/dataModel use `../../../../convex/` (one level deeper due to directory restructuring)
+- `routeTree.gen.ts` manually updated; TanStack router plugin will regenerate on `vite dev`/`vite build`
+- All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)

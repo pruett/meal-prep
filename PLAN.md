@@ -144,7 +144,7 @@
 - [x] Create `convex/prepGuides.ts` — `create` mutation, `getByMealPlan` query; add `updateFullRecipe` mutation to `convex/meals.ts`
 
 ### Prep Guide UI
-- [ ] Create `src/routes/plan/$weekStart/prep.tsx` — `loader` uses `createServerFn` to fetch prep guide, accepted meals, and full recipes server-side for SSR; prep guide view with three tabbed sections (Recipes, Shopping List, Prep Steps) (invoke `frontend-design` and `shadcn` skills)
+- [x] Create `src/routes/plan/$weekStart/prep.tsx` — `loader` uses `createServerFn` to fetch prep guide, accepted meals, and full recipes server-side for SSR; prep guide view with three tabbed sections (Recipes, Shopping List, Prep Steps) (invoke `frontend-design` and `shadcn` skills)
 - [ ] Create `src/components/prep/recipe-card.tsx` — full recipe display (ingredients, instructions, nutrition) (invoke `frontend-design` and `shadcn` skills)
 - [ ] Create `src/components/prep/shopping-list.tsx` — categorized checklist (invoke `frontend-design` and `shadcn` skills)
 - [ ] Create `src/components/prep/prep-steps.tsx` — numbered batch prep steps with related meal badges (invoke `frontend-design` and `shadcn` skills)

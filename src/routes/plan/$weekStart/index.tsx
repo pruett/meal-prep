@@ -4,7 +4,7 @@ import { createServerFn } from '@tanstack/react-start'
 import { useQuery } from '@tanstack/react-query'
 import { convexQuery } from '@convex-dev/react-query'
 import { ConvexHttpClient } from 'convex/browser'
-import { api } from '../../../convex/_generated/api'
+import { api } from '../../../../convex/_generated/api'
 import { GenerationStatus } from '~/components/meals/generation-status'
 import { MealCard } from '~/components/meals/meal-card'
 import { MealSkeleton } from '~/components/meals/meal-skeleton'
@@ -12,7 +12,7 @@ import { Button } from '~/components/ui/button'
 import { requireAuth } from '~/lib/auth-guard'
 import { getToken } from '~/lib/auth-server'
 import { authClient } from '~/lib/auth-client'
-import type { Doc } from '../../../convex/_generated/dataModel'
+import type { Doc } from '../../../../convex/_generated/dataModel'
 
 function formatWeekRange(weekStart: string): string {
   const start = new Date(weekStart + 'T00:00:00')

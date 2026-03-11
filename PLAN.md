@@ -150,8 +150,8 @@
 - [x] Create `src/components/prep/prep-steps.tsx` — numbered batch prep steps with related meal badges (invoke `frontend-design` and `shadcn` skills)
 
 ### Finalization Flow
-- [ ] Add "Generate Prep Guide" button to plan page (visible when all meals accepted) (invoke `frontend-design` and `shadcn` skills)
-- [ ] Add "View Prep Guide" navigation after finalization (invoke `frontend-design` and `shadcn` skills)
+- [x] Add "Generate Prep Guide" button to plan page (visible when all meals accepted) (invoke `frontend-design` and `shadcn` skills)
+- [x] Add "View Prep Guide" navigation after finalization (invoke `frontend-design` and `shadcn` skills)
 
 ---
 

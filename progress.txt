@@ -1193,3 +1193,27 @@
 - `PrepSteps` encapsulates sorting logic (by stepNumber) and empty state, so the parent just passes the raw steps array
 - Follows the same extraction pattern as recipe-card.tsx and shopping-list.tsx
 - All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)
+
+## 2026-03-11: Phase 4 — Finalization Flow (Generate Prep Guide button + View Prep Guide navigation)
+
+### What was done
+- Added "Generate Prep Guide" button to `src/routes/plan/$weekStart/index.tsx` — visible when plan is in `reviewing` status and all meals are accepted (`acceptedCount === mealsCount && mealsCount > 0`)
+  - `island-shell` card with description text and action button
+  - POSTs to `/api/ai/generate-prep` with the current `mealPlanId`
+  - Loading state: spinner + "Generating…" text, button disabled during generation
+  - Disabled when out of credits with contextual helper text
+- Added "View Prep Guide" link — visible when plan status is `finalized`
+  - `island-shell` card linking to `/plan/$weekStart/prep` with document icon, description, and chevron indicator
+  - Hover shadow effect for interactivity feedback
+  - Uses TanStack Router `Link` component for type-safe navigation with `params={{ weekStart }}`
+- Added `isGeneratingPrep` state and `handleGeneratePrep` async handler following the same fetch + error handling pattern as `handleGenerate` and `handleRegenerate`
+
+### Files changed
+- src/routes/plan/$weekStart/index.tsx (added Link import, isGeneratingPrep state, handleGeneratePrep handler, Generate Prep Guide button UI, View Prep Guide link UI)
+- PLAN.md (marked 2 tasks complete)
+
+### Notes
+- The "Generate Prep Guide" button appears between the regenerate section and the generate CTA, placed contextually after the status banner area
+- After prep guide generation succeeds, the plan status transitions to `finalized` via the server route, which triggers the reactive `convexQuery` subscription to update the UI — the generate button disappears and the "View Prep Guide" link appears automatically
+- Credit enforcement is handled both client-side (disabled button) and server-side (403 response)
+- All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)

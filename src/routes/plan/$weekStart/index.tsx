@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
 import { useQuery } from '@tanstack/react-query'
 import { convexQuery } from '@convex-dev/react-query'
@@ -81,6 +81,7 @@ function MealPlanPage() {
 
   const [isGenerating, setIsGenerating] = useState(false)
   const [isRegenerating, setIsRegenerating] = useState(false)
+  const [isGeneratingPrep, setIsGeneratingPrep] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const userId = loaderData?.userId ?? null
@@ -149,6 +150,30 @@ function MealPlanPage() {
       setError(err instanceof Error ? err.message : 'Something went wrong')
     } finally {
       setIsRegenerating(false)
+    }
+  }
+
+  const handleGeneratePrep = async () => {
+    if (!mealPlanId) return
+    setIsGeneratingPrep(true)
+    setError(null)
+
+    try {
+      const response = await fetch('/api/ai/generate-prep', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mealPlanId }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to generate prep guide')
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong')
+    } finally {
+      setIsGeneratingPrep(false)
     }
   }
 
@@ -251,6 +276,110 @@ function MealPlanPage() {
               No credits remaining
             </span>
           )}
+        </div>
+      )}
+
+      {/* Generate Prep Guide — visible when all meals accepted */}
+      {planStatus === 'reviewing' &&
+        mealsCount > 0 &&
+        acceptedCount === mealsCount && (
+          <div className="mb-6">
+            <div className="island-shell flex items-center justify-between rounded-xl p-4">
+              <div>
+                <p className="text-sm font-semibold text-[var(--sea-ink)]">
+                  All meals accepted
+                </p>
+                <p className="text-xs text-[var(--sea-ink-soft)]">
+                  {outOfCredits
+                    ? 'No credits remaining to generate a prep guide.'
+                    : 'Generate full recipes, a shopping list, and batch prep steps.'}
+                </p>
+              </div>
+              <Button
+                onClick={handleGeneratePrep}
+                disabled={outOfCredits || isGeneratingPrep}
+                size="sm"
+              >
+                {isGeneratingPrep ? (
+                  <>
+                    <svg
+                      className="mr-1.5 h-3.5 w-3.5 animate-spin"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                    >
+                      <circle
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="2.5"
+                        strokeOpacity="0.2"
+                      />
+                      <path
+                        d="M12 2a10 10 0 0 1 10 10"
+                        stroke="currentColor"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                    Generating…
+                  </>
+                ) : (
+                  'Generate Prep Guide'
+                )}
+              </Button>
+            </div>
+          </div>
+        )}
+
+      {/* View Prep Guide — visible after finalization */}
+      {planStatus === 'finalized' && (
+        <div className="mb-6">
+          <Link
+            to="/plan/$weekStart/prep"
+            params={{ weekStart }}
+            className="island-shell flex items-center justify-between rounded-xl p-4 transition-shadow hover:shadow-md"
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--palm)]/15">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="var(--palm)"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                  <line x1="16" y1="13" x2="8" y2="13" />
+                  <line x1="16" y1="17" x2="8" y2="17" />
+                  <polyline points="10 9 9 9 8 9" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-[var(--sea-ink)]">
+                  View Prep Guide
+                </p>
+                <p className="text-xs text-[var(--sea-ink-soft)]">
+                  Recipes, shopping list, and batch prep steps
+                </p>
+              </div>
+            </div>
+            <svg
+              className="h-4 w-4 text-[var(--sea-ink-soft)]"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </Link>
         </div>
       )}
 

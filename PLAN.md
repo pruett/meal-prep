@@ -93,7 +93,7 @@
 - [x] Create `src/components/onboarding/wizard-shell.tsx` — step indicator (6 steps), Back/Next/Skip navigation (invoke `frontend-design` and `shadcn` skills)
 - [x] Create `src/routes/onboarding/diet.tsx` + `src/components/onboarding/diet-step.tsx` — checkbox grid of 12 dietary restrictions, saves via `api.preferences.update` (invoke `frontend-design` and `shadcn` skills)
   - Route `loader` uses `createServerFn` to prefetch current preferences server-side for instant render
-- [ ] Create `src/routes/onboarding/cuisines.tsx` + `src/components/onboarding/cuisines-step.tsx` — cuisine list with like/neutral/dislike toggles (invoke `frontend-design` and `shadcn` skills)
+- [x] Create `src/routes/onboarding/cuisines.tsx` + `src/components/onboarding/cuisines-step.tsx` — cuisine list with like/neutral/dislike toggles (invoke `frontend-design` and `shadcn` skills)
   - Route `loader` uses `createServerFn` to prefetch current preferences server-side for instant render
 - [ ] Create `src/routes/onboarding/avoid.tsx` + `src/components/onboarding/avoid-step.tsx` — free-text textarea for foods to avoid (invoke `frontend-design` and `shadcn` skills)
   - Route `loader` uses `createServerFn` to prefetch current preferences server-side for instant render

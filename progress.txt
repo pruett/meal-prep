@@ -601,3 +601,28 @@
 - `useCallback` wraps `save` with `[userId, selected]` deps so the registered callback always captures current selections
 - Helper text "No restrictions? Just skip this step" guides users who don't need this step
 - All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)
+
+## 2026-03-11: Phase 2 — Onboarding Cuisines Step
+
+### What was done
+- Created `src/components/onboarding/cuisines-step.tsx` — cuisine list with like/neutral/dislike toggles for 16 cuisines (Italian, Mexican, Chinese, Japanese, Indian, Thai, Mediterranean, Korean, French, American, Greek, Middle Eastern, Vietnamese, Spanish, Ethiopian, Caribbean)
+- Each cuisine row has: emoji + label (clickable to cycle through states) and a 2-button toggle group (thumbs up/thumbs down) on the right
+- Three visual states: like (lagoon border/bg with filled toggle), neutral (subtle border, default), dislike (rose border/bg with filled toggle)
+- Legend at top showing the 3 state colors for discoverability
+- Scrollable list with `max-h-[52vh]` for long cuisine lists on smaller screens
+- Registers async save callback via `useWizard().setOnSave` — saves cuisine preferences to Convex via `api.preferences.update` on "Next" click; skip bypasses save (defaults preserved)
+- Only non-neutral preferences are stored (neutral = absence from the map)
+- Updated `src/routes/onboarding/cuisines.tsx` with `createServerFn` SSR loader (`fetchPreferences`) that fetches the authenticated user's current cuisine preferences server-side for instant hydration
+
+### Files added
+- src/components/onboarding/cuisines-step.tsx (CuisinesStep component with 3-state toggles + save logic)
+
+### Files changed
+- src/routes/onboarding/cuisines.tsx (replaced stub with full route + SSR loader + CuisinesStep)
+- PLAN.md (marked task complete)
+
+### Notes
+- Follows the same patterns as diet-step: ConvexHttpClient on client for save, useWizard hook for save registration, createServerFn for SSR prefetch
+- `cyclePreference` cycles neutral → like → dislike → neutral on tap; individual like/dislike buttons toggle their state directly
+- Only stores non-neutral preferences in the Map — entries are deleted when cycling back to neutral, keeping the saved array minimal
+- All checks pass: TypeScript, Oxlint, Vitest (3/3 tests)

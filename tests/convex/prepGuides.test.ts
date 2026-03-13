@@ -1,29 +1,12 @@
 import { convexTest } from 'convex-test'
 import { describe, expect, it, vi } from 'vitest'
-import { api } from '../_generated/api'
-import schema from '../schema'
+import { api, schema, modules, createTestUserAndPlan } from './test_helpers'
 
 vi.mock('../auth', () => ({
   authComponent: {
     getAuthUser: vi.fn().mockResolvedValue(null),
   },
 }))
-
-const modules = import.meta.glob('../**/*.ts')
-
-async function createTestUserAndPlan(t: ReturnType<typeof convexTest>) {
-  const userId = await t.mutation(api.users.createFromAuth, {
-    betterAuthId: `auth-${Math.random().toString(36).slice(2)}`,
-    email: `user-${Math.random().toString(36).slice(2)}@example.com`,
-    name: 'Test User',
-  })
-  const planId = await t.mutation(api.mealPlans.create, {
-    userId,
-    weekStartDate: '2026-03-09',
-    totalMealsRequested: 7,
-  })
-  return { userId, planId }
-}
 
 const sampleShoppingList = [
   { item: 'Chicken breast', quantity: '2', unit: 'lbs', category: 'Meat' },

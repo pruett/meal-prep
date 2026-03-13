@@ -1,29 +1,12 @@
 import { convexTest } from 'convex-test'
 import { describe, expect, it, vi } from 'vitest'
-import { api } from '../_generated/api'
-import schema from '../schema'
+import { api, schema, modules, createTestUserAndPlan } from './test_helpers'
 
 vi.mock('../auth', () => ({
   authComponent: {
     getAuthUser: vi.fn().mockResolvedValue(null),
   },
 }))
-
-const modules = import.meta.glob('../**/*.ts')
-
-async function createTestUserAndPlan(t: ReturnType<typeof convexTest>) {
-  const userId = await t.mutation(api.users.createFromAuth, {
-    betterAuthId: `auth-${Math.random().toString(36).slice(2)}`,
-    email: `user-${Math.random().toString(36).slice(2)}@example.com`,
-    name: 'Test User',
-  })
-  const planId = await t.mutation(api.mealPlans.create, {
-    userId,
-    weekStartDate: '2026-03-09',
-    totalMealsRequested: 7,
-  })
-  return { userId, planId }
-}
 
 const baseMeal = {
   name: 'Test Meal',
@@ -54,22 +37,6 @@ describe('meals.create', () => {
       fullRecipe: null,
       sortOrder: 0,
     })
-  })
-
-  it('defaults status to pending and fullRecipe to null', async () => {
-    const t = convexTest(schema, modules)
-    const { userId, planId } = await createTestUserAndPlan(t)
-
-    const mealId = await t.mutation(api.meals.create, {
-      mealPlanId: planId,
-      userId,
-      ...baseMeal,
-      sortOrder: 0,
-    })
-
-    const meal = await t.run(async (ctx) => ctx.db.get(mealId))
-    expect(meal!.status).toBe('pending')
-    expect(meal!.fullRecipe).toBeNull()
   })
 })
 

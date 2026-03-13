@@ -16,37 +16,42 @@ import { Toaster } from '~/components/ui/sonner'
 import { ErrorFallback } from '~/components/error-boundary'
 import { Skeleton } from '~/components/ui/skeleton'
 
-import TanStackQueryProvider, {
-  convexQueryClient,
-} from '../integrations/tanstack-query/root-provider'
+import TanStackQueryProvider from '../integrations/tanstack-query/root-provider'
 
 import TanStackQueryDevtools from '../integrations/tanstack-query/devtools'
 
-import { getToken } from '~/lib/auth-server'
+import { api } from '../../convex/_generated/api'
+import { getToken, fetchAuthQuery } from '~/lib/auth-server'
 import { authClient } from '~/lib/auth-client'
 
 import appCss from '../styles.css?url'
 
 import type { QueryClient } from '@tanstack/react-query'
+import type { ConvexQueryClient } from '@convex-dev/react-query'
 
 interface MyRouterContext {
   queryClient: QueryClient
+  convexQueryClient: ConvexQueryClient
 }
 
 const getAuth = createServerFn({ method: 'GET' }).handler(async () => {
   const token = await getToken()
-  return token ?? null
+  if (!token) return { token: null, onboardingCompleted: undefined as boolean | undefined }
+
+  const user = await fetchAuthQuery(api.users.getAuthenticated, {})
+
+  return { token, onboardingCompleted: user?.onboardingCompleted }
 })
 
 const THEME_INIT_SCRIPT = `(function(){try{var stored=window.localStorage.getItem('theme');var mode=(stored==='light'||stored==='dark'||stored==='auto')?stored:'auto';var prefersDark=window.matchMedia('(prefers-color-scheme: dark)').matches;var resolved=mode==='auto'?(prefersDark?'dark':'light'):mode;var root=document.documentElement;root.classList.remove('light','dark');root.classList.add(resolved);if(mode==='auto'){root.removeAttribute('data-theme')}else{root.setAttribute('data-theme',mode)}root.style.colorScheme=resolved;}catch(e){}})();`
 
 export const Route = createRootRouteWithContext<MyRouterContext>()({
-  beforeLoad: async () => {
-    const token = await getAuth()
+  beforeLoad: async (ctx) => {
+    const { token, onboardingCompleted } = await getAuth()
     if (token) {
-      convexQueryClient.serverHttpClient?.setAuth(token)
+      ctx.context.convexQueryClient.serverHttpClient?.setAuth(token)
     }
-    return { token }
+    return { token, onboardingCompleted }
   },
   head: () => ({
     meta: [
@@ -90,7 +95,7 @@ function DefaultPendingFallback() {
 }
 
 function RootComponent() {
-  const { token } = Route.useRouteContext()
+  const { token, convexQueryClient } = Route.useRouteContext()
   const pathname = useRouterState({ select: (s) => s.location.pathname })
 
   const isAuthRoute = pathname.startsWith('/auth/')

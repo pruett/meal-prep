@@ -551,7 +551,7 @@ describe('buildPrepGuidePrompt', () => {
     it('generates prompt for a single meal', () => {
       const meals = [sampleMeals[0]]
       const prompt = buildPrepGuidePrompt(meals)
-      expect(prompt).toContain('1 meals')
+      expect(prompt).toContain('1 meal')
       expect(prompt).toContain('Chicken Stir Fry')
       expect(prompt).not.toContain('Pasta Primavera')
     })

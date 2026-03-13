@@ -1,60 +1,19 @@
 import { convexTest } from 'convex-test'
 import { describe, expect, it, vi } from 'vitest'
-import { api } from '../_generated/api'
-import schema from '../schema'
+import {
+  api,
+  schema,
+  modules,
+  createTestUser,
+  createUserWithPreferences,
+  createUserPlanAndMeals,
+} from './test_helpers'
 
 vi.mock('../auth', () => ({
   authComponent: {
     getAuthUser: vi.fn().mockResolvedValue(null),
   },
 }))
-
-const modules = import.meta.glob('../**/*.ts')
-
-// ---------------------------------------------------------------------------
-// Shared test helpers
-// ---------------------------------------------------------------------------
-
-async function createTestUser(t: ReturnType<typeof convexTest>) {
-  return t.mutation(api.users.createFromAuth, {
-    betterAuthId: `auth-${Math.random().toString(36).slice(2)}`,
-    email: `user-${Math.random().toString(36).slice(2)}@example.com`,
-    name: 'Test User',
-  })
-}
-
-async function createUserWithPreferences(t: ReturnType<typeof convexTest>) {
-  const userId = await createTestUser(t)
-  await t.mutation(api.preferences.create, { userId })
-  return userId
-}
-
-async function createUserPlanAndMeals(
-  t: ReturnType<typeof convexTest>,
-  opts: { mealCount?: number; weekStart?: string } = {},
-) {
-  const { mealCount = 5, weekStart = '2026-03-09' } = opts
-  const userId = await createUserWithPreferences(t)
-  const planId = await t.mutation(api.mealPlans.create, {
-    userId,
-    weekStartDate: weekStart,
-    totalMealsRequested: mealCount,
-  })
-  const mealIds: Awaited<ReturnType<typeof t.mutation>>[] = []
-  for (let i = 0; i < mealCount; i++) {
-    const id = await t.mutation(api.meals.create, {
-      mealPlanId: planId,
-      userId,
-      name: `Meal ${i + 1}`,
-      description: `Description for meal ${i + 1}`,
-      keyIngredients: ['ingredient-a', 'ingredient-b'],
-      estimatedPrepMinutes: 25 + i * 5,
-      sortOrder: i,
-    })
-    mealIds.push(id)
-  }
-  return { userId, planId, mealIds }
-}
 
 // ---------------------------------------------------------------------------
 // 1. Generate Meals Flow

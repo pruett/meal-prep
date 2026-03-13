@@ -1,82 +1,93 @@
-import { createContext, useCallback, useContext, useRef, useState } from 'react'
-import { useLocation, useNavigate } from '@tanstack/react-router'
-import { Button } from '~/components/ui/button'
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useRef,
+  useState,
+} from "react";
+import { useLocation, useNavigate } from "@tanstack/react-router";
+import { Button } from "~/components/ui/button";
 
 const STEPS = [
-  { path: '/onboarding/diet', label: 'Diet' },
-  { path: '/onboarding/cuisines', label: 'Cuisines' },
-  { path: '/onboarding/avoid', label: 'Avoid' },
-  { path: '/onboarding/meals', label: 'Meals' },
-  { path: '/onboarding/cooking', label: 'Cooking' },
-  { path: '/onboarding/generate', label: 'Generate' },
-] as const
+  { path: "/onboarding/diet", label: "Diet" },
+  { path: "/onboarding/cuisines", label: "Cuisines" },
+  { path: "/onboarding/avoid", label: "Avoid" },
+  { path: "/onboarding/meals", label: "Meals" },
+  { path: "/onboarding/cooking", label: "Cooking" },
+  { path: "/onboarding/generate", label: "Generate" },
+] as const;
 
-type StepPath = (typeof STEPS)[number]['path']
+type StepPath = (typeof STEPS)[number]["path"];
 
 interface WizardContextValue {
-  currentStep: number
-  totalSteps: number
-  setOnSave: (fn: (() => Promise<void>) | null) => void
+  currentStep: number;
+  totalSteps: number;
+  setOnSave: (fn: (() => Promise<void>) | null) => void;
 }
 
-const WizardContext = createContext<WizardContextValue | null>(null)
+const WizardContext = createContext<WizardContextValue | null>(null);
 
 export function useWizard() {
-  const ctx = useContext(WizardContext)
-  if (!ctx) throw new Error('useWizard must be used within WizardShell')
-  return ctx
+  const ctx = useContext(WizardContext);
+  if (!ctx) throw new Error("useWizard must be used within WizardShell");
+  return ctx;
 }
 
 interface WizardShellProps {
-  children: React.ReactNode
+  children: React.ReactNode;
 }
 
 export function WizardShell({ children }: WizardShellProps) {
-  const location = useLocation()
-  const navigate = useNavigate()
-  const onSaveRef = useRef<(() => Promise<void>) | null>(null)
-  const [isSaving, setIsSaving] = useState(false)
+  const location = useLocation();
+  const navigate = useNavigate();
+  const onSaveRef = useRef<(() => Promise<void>) | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
-  const currentIndex = STEPS.findIndex((s) => location.pathname === s.path)
-  const currentStep = currentIndex >= 0 ? currentIndex : 0
-  const isFirstStep = currentStep === 0
-  const isLastStep = currentStep === STEPS.length - 1
-  const progress = ((currentStep + 1) / STEPS.length) * 100
+  const currentIndex = STEPS.findIndex((s) => location.pathname === s.path);
+  const currentStep = currentIndex >= 0 ? currentIndex : 0;
+  const isFirstStep = currentStep === 0;
+  const isLastStep = currentStep === STEPS.length - 1;
+  const progress = ((currentStep + 1) / STEPS.length) * 100;
 
   const setOnSave = useCallback((fn: (() => Promise<void>) | null) => {
-    onSaveRef.current = fn
-  }, [])
+    onSaveRef.current = fn;
+  }, []);
 
   const goTo = (path: StepPath) => {
-    void navigate({ to: path })
-  }
+    void navigate({ to: path });
+  };
 
   const handleBack = () => {
-    const prevStep = STEPS[currentStep - 1]
-    if (prevStep) goTo(prevStep.path)
-  }
+    const prevStep = STEPS[currentStep - 1];
+    if (prevStep) goTo(prevStep.path);
+  };
 
   const handleNext = async () => {
     if (onSaveRef.current) {
-      setIsSaving(true)
+      setIsSaving(true);
       try {
-        await onSaveRef.current()
+        await onSaveRef.current();
       } finally {
-        setIsSaving(false)
+        setIsSaving(false);
       }
     }
-    const nextStep = STEPS[currentStep + 1]
-    if (nextStep) goTo(nextStep.path)
-  }
+    const nextStep = STEPS[currentStep + 1];
+    if (nextStep) goTo(nextStep.path);
+  };
 
   const handleSkip = () => {
-    const nextStep = STEPS[currentStep + 1]
-    if (nextStep) goTo(nextStep.path)
-  }
+    const nextStep = STEPS[currentStep + 1];
+    console.log({ nextStep });
+    if (nextStep) goTo(nextStep.path);
+  };
 
   return (
     <WizardContext.Provider
-      value={{ currentStep: currentStep + 1, totalSteps: STEPS.length, setOnSave }}
+      value={{
+        currentStep: currentStep + 1,
+        totalSteps: STEPS.length,
+        setOnSave,
+      }}
     >
       <div className="flex min-h-[80vh] items-center justify-center px-4 py-8">
         <div className="rise-in w-full max-w-lg">
@@ -106,12 +117,13 @@ export function WizardShell({ children }: WizardShellProps) {
                   <div
                     key={step.path}
                     className={[
-                      'h-2.5 w-2.5 rounded-full border-2 transition-all duration-300',
+                      "h-2.5 w-2.5 rounded-full border-2 transition-all duration-300",
                       i < currentStep + 1
-                        ? 'border-[var(--lagoon)] bg-[var(--lagoon)]'
-                        : 'border-[var(--line)] bg-[var(--foam)]',
-                      i === currentStep && 'h-3 w-3 ring-4 ring-[var(--lagoon)]/15',
-                    ].join(' ')}
+                        ? "border-[var(--lagoon)] bg-[var(--lagoon)]"
+                        : "border-[var(--line)] bg-[var(--foam)]",
+                      i === currentStep &&
+                        "h-3 w-3 ring-4 ring-[var(--lagoon)]/15",
+                    ].join(" ")}
                   />
                 ))}
               </div>
@@ -146,12 +158,12 @@ export function WizardShell({ children }: WizardShellProps) {
                 {isSaving ? (
                   <span className="flex items-center gap-2">
                     <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground/40 border-t-primary-foreground" />
-                    {isLastStep ? 'Generating…' : 'Saving…'}
+                    {isLastStep ? "Generating…" : "Saving…"}
                   </span>
                 ) : isLastStep ? (
-                  'Generate Plan'
+                  "Generate Plan"
                 ) : (
-                  'Next'
+                  "Next"
                 )}
               </Button>
             </div>
@@ -159,5 +171,5 @@ export function WizardShell({ children }: WizardShellProps) {
         </div>
       </div>
     </WizardContext.Provider>
-  )
+  );
 }

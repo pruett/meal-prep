@@ -14,6 +14,7 @@ const convexQueryClient = new ConvexQueryClient(CONVEX_URL, {
 let context:
   | {
       queryClient: QueryClient
+      convexQueryClient: ConvexQueryClient
     }
   | undefined
 
@@ -34,12 +35,11 @@ export function getContext() {
 
   context = {
     queryClient,
+    convexQueryClient,
   }
 
   return context
 }
-
-export { convexQueryClient }
 
 export default function TanStackQueryProvider({
   children,

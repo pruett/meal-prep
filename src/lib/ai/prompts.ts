@@ -71,7 +71,7 @@ export function buildPrepGuidePrompt(
   const sections: string[] = []
 
   sections.push(
-    `You are a meal prep assistant. Generate a complete prep guide for the following ${acceptedMeals.length} meals, serving ${householdSize} ${householdSize === 1 ? 'person' : 'people'}.`,
+    `You are a meal prep assistant. Generate a complete prep guide for the following ${acceptedMeals.length} ${acceptedMeals.length === 1 ? 'meal' : 'meals'}, serving ${householdSize} ${householdSize === 1 ? 'person' : 'people'}.`,
   )
 
   // List accepted meals with their details

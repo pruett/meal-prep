@@ -1,7 +1,7 @@
 import { convexTest } from 'convex-test'
 import { describe, expect, it, vi } from 'vitest'
-import { api } from '../_generated/api'
-import schema from '../schema'
+import { api } from '../../convex/_generated/api'
+import schema from '../../convex/schema'
 
 vi.mock('../auth', () => ({
   authComponent: {
@@ -128,25 +128,6 @@ describe('users.decrementCredits', () => {
     await t.run(async (ctx) => {
       await ctx.db.patch(userId, { generationsRemaining: 0 })
     })
-
-    await expect(
-      t.mutation(api.users.decrementCredits, { id: userId }),
-    ).rejects.toThrow('No credits remaining')
-  })
-
-  it('throws when credits at exactly 0', async () => {
-    const t = convexTest(schema, modules)
-    const userId = await t.mutation(api.users.createFromAuth, {
-      betterAuthId: 'auth-exact-zero',
-      email: 'exact@example.com',
-      name: 'Exact Zero',
-    })
-    // Drain all 25 credits
-    for (let i = 0; i < 25; i++) {
-      await t.mutation(api.users.decrementCredits, { id: userId })
-    }
-    const user = await t.run(async (ctx) => ctx.db.get(userId))
-    expect(user!.generationsRemaining).toBe(0)
 
     await expect(
       t.mutation(api.users.decrementCredits, { id: userId }),

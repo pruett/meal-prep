@@ -5,6 +5,7 @@ import { api } from '../../../../convex/_generated/api'
 import { mealSuggestionSchema } from '~/lib/ai/schemas'
 import { buildMealSuggestionsPrompt } from '~/lib/ai/prompts'
 import { authenticateRequest, jsonResponse, withRetry } from '~/lib/ai/generate'
+import { fetchAuthQuery, fetchAuthMutation } from '~/lib/auth-server'
 
 export const Route = createFileRoute('/api/ai/regenerate-meals')({
   server: {
@@ -12,7 +13,7 @@ export const Route = createFileRoute('/api/ai/regenerate-meals')({
       POST: async ({ request }) => {
         const auth = await authenticateRequest()
         if (auth instanceof Response) return auth
-        const { convex, user } = auth
+        const { user } = auth
 
         const body = await request.json()
         const { mealPlanId } = body
@@ -20,7 +21,7 @@ export const Route = createFileRoute('/api/ai/regenerate-meals')({
           return jsonResponse({ error: 'mealPlanId is required' }, 400)
         }
 
-        const existingMeals = await convex.query(api.meals.getByMealPlan, {
+        const existingMeals = await fetchAuthQuery(api.meals.getByMealPlan, {
           mealPlanId,
         })
 
@@ -35,16 +36,16 @@ export const Route = createFileRoute('/api/ai/regenerate-meals')({
           return jsonResponse({ error: 'No rejected meals to regenerate' }, 400)
         }
 
-        const preferences = await convex.query(api.preferences.getByUser, {
+        const preferences = await fetchAuthQuery(api.preferences.getByUser, {
           userId: user._id,
         })
 
-        await convex.mutation(api.meals.deleteByMealPlanAndStatus, {
+        await fetchAuthMutation(api.meals.deleteByMealPlanAndStatus, {
           mealPlanId,
           status: 'rejected',
         })
 
-        await convex.mutation(api.mealPlans.updateStatus, {
+        await fetchAuthMutation(api.mealPlans.updateStatus, {
           id: mealPlanId,
           status: 'generating',
         })
@@ -75,7 +76,7 @@ export const Route = createFileRoute('/api/ai/regenerate-meals')({
 
             let sortOrder = nextSortOrder
             for await (const meal of stream.elementStream) {
-              await convex.mutation(api.meals.create, {
+              await fetchAuthMutation(api.meals.create, {
                 mealPlanId,
                 userId: user._id,
                 name: meal.name,
@@ -86,17 +87,16 @@ export const Route = createFileRoute('/api/ai/regenerate-meals')({
               })
             }
 
-            await convex.mutation(api.mealPlans.updateStatus, {
+            await fetchAuthMutation(api.mealPlans.updateStatus, {
               id: mealPlanId,
               status: 'reviewing',
             })
           },
-          convex,
           userId: user._id,
           type: 'meal-regeneration',
           label: 'Meal regeneration',
           onFailure: async () => {
-            await convex.mutation(api.mealPlans.updateStatus, {
+            await fetchAuthMutation(api.mealPlans.updateStatus, {
               id: mealPlanId,
               status: 'reviewing',
             })

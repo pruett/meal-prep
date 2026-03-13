@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
+import { useMutation } from 'convex/react'
 import { useWizard } from './wizard-shell'
-import { ConvexHttpClient } from 'convex/browser'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 
@@ -26,6 +26,7 @@ interface DietStepProps {
 
 export function DietStep({ userId, initialRestrictions }: DietStepProps) {
   const { setOnSave } = useWizard()
+  const updatePreferences = useMutation(api.preferences.update)
   const [selected, setSelected] = useState<Set<string>>(
     () => new Set(initialRestrictions),
   )
@@ -43,14 +44,11 @@ export function DietStep({ userId, initialRestrictions }: DietStepProps) {
   }
 
   const save = useCallback(async () => {
-    const convex = new ConvexHttpClient(
-      import.meta.env.VITE_CONVEX_URL as string,
-    )
-    await convex.mutation(api.preferences.update, {
+    await updatePreferences({
       userId,
       dietaryRestrictions: Array.from(selected),
     })
-  }, [userId, selected])
+  }, [userId, selected, updatePreferences])
 
   useEffect(() => {
     setOnSave(() => save())

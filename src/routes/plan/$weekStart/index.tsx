@@ -3,7 +3,6 @@ import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
 import { useQuery } from '@tanstack/react-query'
 import { convexQuery } from '@convex-dev/react-query'
-import { ConvexHttpClient } from 'convex/browser'
 import { useMutation } from 'convex/react'
 import { toast } from 'sonner'
 import { api } from '../../../../convex/_generated/api'
@@ -14,7 +13,7 @@ import { Button } from '~/components/ui/button'
 import { ErrorFallback } from '~/components/error-boundary'
 import { MealPlanSkeleton } from '~/components/route-skeletons'
 import { requireAuth } from '~/lib/auth-guard'
-import { getToken } from '~/lib/auth-server'
+import { fetchAuthQuery } from '~/lib/auth-server'
 import { authClient } from '~/lib/auth-client'
 import type { Doc } from '../../../../convex/_generated/dataModel'
 
@@ -41,22 +40,16 @@ const fetchMealPlanData = createServerFn({ method: 'GET' })
   .inputValidator((d: string) => d)
   .handler(async ({ data: weekStart }) => {
     try {
-      const token = await getToken()
-      if (!token) return null
-
-      const convex = new ConvexHttpClient(process.env.VITE_CONVEX_URL!)
-      convex.setAuth(token)
-
-      const user = await convex.query(api.users.getAuthenticated, {})
+      const user = await fetchAuthQuery(api.users.getAuthenticated, {})
       if (!user) return null
 
-      const plan = await convex.query(api.mealPlans.getByUserAndWeek, {
+      const plan = await fetchAuthQuery(api.mealPlans.getByUserAndWeek, {
         userId: user._id,
         weekStartDate: weekStart,
       })
 
       const meals = plan
-        ? await convex.query(api.meals.getByMealPlan, {
+        ? await fetchAuthQuery(api.meals.getByMealPlan, {
             mealPlanId: plan._id,
           })
         : []
@@ -67,7 +60,7 @@ const fetchMealPlanData = createServerFn({ method: 'GET' })
     }
   })
 
-export const Route = createFileRoute('/plan/$weekStart')({
+export const Route = createFileRoute('/plan/$weekStart/')({
   beforeLoad: requireAuth,
   loader: ({ params }) => fetchMealPlanData({ data: params.weekStart }),
   component: MealPlanPage,

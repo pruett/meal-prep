@@ -2,30 +2,23 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
 import { useQuery } from '@tanstack/react-query'
 import { convexQuery } from '@convex-dev/react-query'
-import { ConvexHttpClient } from 'convex/browser'
 import { api } from '../../convex/_generated/api'
 import { Button } from '~/components/ui/button'
 import { EmptyState } from '~/components/empty-state'
 import { ErrorFallback } from '~/components/error-boundary'
 import { AccountSkeleton } from '~/components/route-skeletons'
 import { requireAuth } from '~/lib/auth-guard'
-import { getToken } from '~/lib/auth-server'
+import { fetchAuthQuery } from '~/lib/auth-server'
 import { authClient } from '~/lib/auth-client'
 
 // ─── SSR Loader ────────────────────────────────────────────────────────────────
 
 const fetchAccountData = createServerFn({ method: 'GET' }).handler(async () => {
   try {
-    const token = await getToken()
-    if (!token) return null
-
-    const convex = new ConvexHttpClient(process.env.VITE_CONVEX_URL!)
-    convex.setAuth(token)
-
-    const user = await convex.query(api.users.getAuthenticated, {})
+    const user = await fetchAuthQuery(api.users.getAuthenticated, {})
     if (!user) return null
 
-    const logs = await convex.query(api.generationLogs.getByUser, {
+    const logs = await fetchAuthQuery(api.generationLogs.getByUser, {
       userId: user._id,
     })
 

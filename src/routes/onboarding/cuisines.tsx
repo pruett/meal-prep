@@ -1,21 +1,14 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
-import { ConvexHttpClient } from 'convex/browser'
 import { api } from '../../../convex/_generated/api'
-import { getToken } from '~/lib/auth-server'
+import { fetchAuthQuery } from '~/lib/auth-server'
 import { CuisinesStep } from '~/components/onboarding/cuisines-step'
 
 const fetchPreferences = createServerFn({ method: 'GET' }).handler(async () => {
-  const token = await getToken()
-  if (!token) return null
-
-  const convex = new ConvexHttpClient(process.env.VITE_CONVEX_URL!)
-  convex.setAuth(token)
-
-  const user = await convex.query(api.users.getAuthenticated, {})
+  const user = await fetchAuthQuery(api.users.getAuthenticated, {})
   if (!user) return null
 
-  const prefs = await convex.query(api.preferences.getByUser, {
+  const prefs = await fetchAuthQuery(api.preferences.getByUser, {
     userId: user._id,
   })
 

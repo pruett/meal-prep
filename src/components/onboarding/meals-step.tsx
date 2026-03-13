@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
+import { useMutation } from 'convex/react'
 import { useWizard } from './wizard-shell'
-import { ConvexHttpClient } from 'convex/browser'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { Slider } from '~/components/ui/slider'
@@ -20,16 +20,15 @@ export function MealsStep({
   const [mealsPerWeek, setMealsPerWeek] = useState(initialMealsPerWeek)
   const [householdSize, setHouseholdSize] = useState(initialHouseholdSize)
 
+  const updatePreferences = useMutation(api.preferences.update)
+
   const save = useCallback(async () => {
-    const convex = new ConvexHttpClient(
-      import.meta.env.VITE_CONVEX_URL as string,
-    )
-    await convex.mutation(api.preferences.update, {
+    await updatePreferences({
       userId,
       mealsPerWeek,
       householdSize,
     })
-  }, [userId, mealsPerWeek, householdSize])
+  }, [userId, mealsPerWeek, householdSize, updatePreferences])
 
   useEffect(() => {
     setOnSave(() => save())

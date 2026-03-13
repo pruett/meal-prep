@@ -1,7 +1,6 @@
-import { ConvexHttpClient } from 'convex/browser'
 import { api } from '../../../convex/_generated/api'
 import type { Doc, Id } from '../../../convex/_generated/dataModel'
-import { getToken } from '~/lib/auth-server'
+import { fetchAuthQuery, fetchAuthMutation } from '~/lib/auth-server'
 
 const MAX_RETRIES = 2
 
@@ -14,28 +13,20 @@ export function jsonResponse(body: Record<string, unknown>, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: JSON_HEADERS })
 }
 
-/** Authenticate request and check credits. Returns convex client + user, or an error Response. */
+/** Authenticate request and check credits. Returns user, or an error Response. */
 export async function authenticateRequest(): Promise<
-  { convex: ConvexHttpClient; user: Doc<'users'> } | Response
+  { user: Doc<'users'> } | Response
 > {
-  const token = await getToken()
-  if (!token) {
-    return jsonResponse({ error: 'Unauthorized' }, 401)
-  }
-
-  const convex = new ConvexHttpClient(process.env.VITE_CONVEX_URL!)
-  convex.setAuth(token)
-
-  const user = await convex.query(api.users.getAuthenticated, {})
+  const user = await fetchAuthQuery(api.users.getAuthenticated, {})
   if (!user) {
-    return jsonResponse({ error: 'User not found' }, 401)
+    return jsonResponse({ error: 'Unauthorized' }, 401)
   }
 
   if (user.generationsRemaining <= 0) {
     return jsonResponse({ error: 'No credits remaining' }, 403)
   }
 
-  return { convex, user }
+  return { user }
 }
 
 /**
@@ -44,21 +35,20 @@ export async function authenticateRequest(): Promise<
  */
 export async function withRetry<T>(opts: {
   fn: () => Promise<T>
-  convex: ConvexHttpClient
   userId: Id<'users'>
   type: GenerationType
   label: string
   onFailure?: () => Promise<void>
 }): Promise<{ data: T } | { error: string }> {
-  const { fn, convex, userId, type, label, onFailure } = opts
+  const { fn, userId, type, label, onFailure } = opts
 
   let lastError: unknown
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     try {
       const data = await fn()
 
-      await convex.mutation(api.users.decrementCredits, { id: userId })
-      await convex.mutation(api.generationLogs.create, {
+      await fetchAuthMutation(api.users.decrementCredits, { id: userId })
+      await fetchAuthMutation(api.generationLogs.create, {
         userId,
         type,
         provider: 'openai',
@@ -83,7 +73,7 @@ export async function withRetry<T>(opts: {
     await onFailure()
   }
 
-  await convex.mutation(api.generationLogs.create, {
+  await fetchAuthMutation(api.generationLogs.create, {
     userId,
     type,
     provider: 'openai',

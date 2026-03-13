@@ -5,6 +5,7 @@ import { api } from '../../../../convex/_generated/api'
 import { prepGuideOutputSchema } from '~/lib/ai/schemas'
 import { buildPrepGuidePrompt } from '~/lib/ai/prompts'
 import { authenticateRequest, jsonResponse, withRetry } from '~/lib/ai/generate'
+import { fetchAuthQuery, fetchAuthMutation } from '~/lib/auth-server'
 
 export const Route = createFileRoute('/api/ai/generate-prep')({
   server: {
@@ -12,7 +13,7 @@ export const Route = createFileRoute('/api/ai/generate-prep')({
       POST: async ({ request }) => {
         const auth = await authenticateRequest()
         if (auth instanceof Response) return auth
-        const { convex, user } = auth
+        const { user } = auth
 
         const body = await request.json()
         const { mealPlanId } = body
@@ -20,7 +21,7 @@ export const Route = createFileRoute('/api/ai/generate-prep')({
           return jsonResponse({ error: 'mealPlanId is required' }, 400)
         }
 
-        const meals = await convex.query(api.meals.getByMealPlan, {
+        const meals = await fetchAuthQuery(api.meals.getByMealPlan, {
           mealPlanId,
         })
         const acceptedMeals = meals.filter((m) => m.status === 'accepted')
@@ -32,7 +33,7 @@ export const Route = createFileRoute('/api/ai/generate-prep')({
           )
         }
 
-        const preferences = await convex.query(api.preferences.getByUser, {
+        const preferences = await fetchAuthQuery(api.preferences.getByUser, {
           userId: user._id,
         })
         const householdSize = preferences?.householdSize ?? 2
@@ -61,7 +62,7 @@ export const Route = createFileRoute('/api/ai/generate-prep')({
                 (m) => m.name === recipe.mealName,
               )
               if (matchingMeal) {
-                await convex.mutation(api.meals.updateFullRecipe, {
+                await fetchAuthMutation(api.meals.updateFullRecipe, {
                   id: matchingMeal._id,
                   fullRecipe: {
                     ingredients: recipe.ingredients,
@@ -73,7 +74,7 @@ export const Route = createFileRoute('/api/ai/generate-prep')({
             }
 
             // Create prep guide doc
-            await convex.mutation(api.prepGuides.create, {
+            await fetchAuthMutation(api.prepGuides.create, {
               mealPlanId,
               userId: user._id,
               shoppingList: prepGuide.shoppingList,
@@ -82,12 +83,11 @@ export const Route = createFileRoute('/api/ai/generate-prep')({
             })
 
             // Finalize the plan
-            await convex.mutation(api.mealPlans.updateStatus, {
+            await fetchAuthMutation(api.mealPlans.updateStatus, {
               id: mealPlanId,
               status: 'finalized',
             })
           },
-          convex,
           userId: user._id,
           type: 'prep-guide',
           label: 'Prep guide generation',

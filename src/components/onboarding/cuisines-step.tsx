@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
+import { useMutation } from 'convex/react'
 import { useWizard } from './wizard-shell'
-import { ConvexHttpClient } from 'convex/browser'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 
@@ -37,6 +37,7 @@ interface CuisinesStepProps {
 
 export function CuisinesStep({ userId, initialPreferences }: CuisinesStepProps) {
   const { setOnSave } = useWizard()
+  const updatePreferences = useMutation(api.preferences.update)
   const [preferences, setPreferences] = useState<Map<string, Preference>>(() => {
     const map = new Map<string, Preference>()
     for (const pref of initialPreferences) {
@@ -76,18 +77,15 @@ export function CuisinesStep({ userId, initialPreferences }: CuisinesStepProps) 
   }
 
   const save = useCallback(async () => {
-    const convex = new ConvexHttpClient(
-      import.meta.env.VITE_CONVEX_URL as string,
-    )
     const cuisinePreferences: CuisineState[] = []
     for (const [cuisine, preference] of preferences) {
       cuisinePreferences.push({ cuisine, preference })
     }
-    await convex.mutation(api.preferences.update, {
+    await updatePreferences({
       userId,
       cuisinePreferences,
     })
-  }, [userId, preferences])
+  }, [userId, preferences, updatePreferences])
 
   useEffect(() => {
     setOnSave(() => save())

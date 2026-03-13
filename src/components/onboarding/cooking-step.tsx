@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
+import { useMutation } from 'convex/react'
 import { useWizard } from './wizard-shell'
-import { ConvexHttpClient } from 'convex/browser'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { Slider } from '~/components/ui/slider'
@@ -49,16 +49,15 @@ export function CookingStep({
     })
   }
 
+  const updatePreferences = useMutation(api.preferences.update)
+
   const save = useCallback(async () => {
-    const convex = new ConvexHttpClient(
-      import.meta.env.VITE_CONVEX_URL as string,
-    )
-    await convex.mutation(api.preferences.update, {
+    await updatePreferences({
       userId,
       maxPrepTimeMinutes: maxPrepTime,
       kitchenEquipment: Array.from(selected),
     })
-  }, [userId, maxPrepTime, selected])
+  }, [userId, maxPrepTime, selected, updatePreferences])
 
   useEffect(() => {
     setOnSave(() => save())

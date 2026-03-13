@@ -3,7 +3,6 @@ import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
 import { useQuery } from '@tanstack/react-query'
 import { convexQuery } from '@convex-dev/react-query'
-import { ConvexHttpClient } from 'convex/browser'
 import { toast } from 'sonner'
 import { api } from '../../convex/_generated/api'
 import { PastPlansList } from '~/components/plan/past-plans-list'
@@ -13,7 +12,8 @@ import { EmptyState } from '~/components/empty-state'
 import { ErrorFallback } from '~/components/error-boundary'
 import { HomeSkeleton } from '~/components/route-skeletons'
 import { requireAuth } from '~/lib/auth-guard'
-import { getToken } from '~/lib/auth-server'
+import { requireOnboarding } from '~/lib/onboarding-guard'
+import { fetchAuthQuery } from '~/lib/auth-server'
 import { authClient } from '~/lib/auth-client'
 
 function getCurrentWeekStart(): string {
@@ -26,23 +26,17 @@ function getCurrentWeekStart(): string {
 
 const fetchHomeData = createServerFn({ method: 'GET' }).handler(async () => {
   try {
-    const token = await getToken()
-    if (!token) return null
-
-    const convex = new ConvexHttpClient(process.env.VITE_CONVEX_URL!)
-    convex.setAuth(token)
-
-    const user = await convex.query(api.users.getAuthenticated, {})
+    const user = await fetchAuthQuery(api.users.getAuthenticated, {})
     if (!user) return null
 
-    const plans = await convex.query(api.mealPlans.getByUser, {
+    const plans = await fetchAuthQuery(api.mealPlans.getByUser, {
       userId: user._id,
     })
 
     // Fetch meal counts for each plan
     const mealCounts = await Promise.all(
       plans.map(async (plan) => {
-        const meals = await convex.query(api.meals.getByMealPlan, {
+        const meals = await fetchAuthQuery(api.meals.getByMealPlan, {
           mealPlanId: plan._id,
         })
         return { planId: plan._id, count: meals.length }
@@ -60,7 +54,10 @@ const fetchHomeData = createServerFn({ method: 'GET' }).handler(async () => {
 })
 
 export const Route = createFileRoute('/')({
-  beforeLoad: requireAuth,
+  beforeLoad: ({ context }) => {
+    requireAuth({ context })
+    requireOnboarding({ context })
+  },
   loader: () => fetchHomeData(),
   component: HomePage,
   pendingComponent: HomeSkeleton,

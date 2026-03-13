@@ -5,6 +5,7 @@ import { api } from '../../../../convex/_generated/api'
 import { mealSuggestionSchema } from '~/lib/ai/schemas'
 import { buildMealSuggestionsPrompt } from '~/lib/ai/prompts'
 import { authenticateRequest, jsonResponse, withRetry } from '~/lib/ai/generate'
+import { fetchAuthQuery, fetchAuthMutation } from '~/lib/auth-server'
 
 export const Route = createFileRoute('/api/ai/generate-meals')({
   server: {
@@ -12,9 +13,9 @@ export const Route = createFileRoute('/api/ai/generate-meals')({
       POST: async () => {
         const auth = await authenticateRequest()
         if (auth instanceof Response) return auth
-        const { convex, user } = auth
+        const { user } = auth
 
-        const preferences = await convex.query(api.preferences.getByUser, {
+        const preferences = await fetchAuthQuery(api.preferences.getByUser, {
           userId: user._id,
         })
 
@@ -25,7 +26,7 @@ export const Route = createFileRoute('/api/ai/generate-meals')({
         const weekStartDate = monday.toISOString().split('T')[0]!
         const totalMeals = preferences?.mealsPerWeek ?? 7
 
-        const mealPlanId = await convex.mutation(api.mealPlans.create, {
+        const mealPlanId = await fetchAuthMutation(api.mealPlans.create, {
           userId: user._id,
           weekStartDate,
           totalMealsRequested: totalMeals,
@@ -43,7 +44,7 @@ export const Route = createFileRoute('/api/ai/generate-meals')({
 
             let sortOrder = 0
             for await (const meal of stream.elementStream) {
-              await convex.mutation(api.meals.create, {
+              await fetchAuthMutation(api.meals.create, {
                 mealPlanId,
                 userId: user._id,
                 name: meal.name,
@@ -54,12 +55,11 @@ export const Route = createFileRoute('/api/ai/generate-meals')({
               })
             }
 
-            await convex.mutation(api.mealPlans.updateStatus, {
+            await fetchAuthMutation(api.mealPlans.updateStatus, {
               id: mealPlanId,
               status: 'reviewing',
             })
           },
-          convex,
           userId: user._id,
           type: 'meal-suggestions',
           label: 'Meal generation',

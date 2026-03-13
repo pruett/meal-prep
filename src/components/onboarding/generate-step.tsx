@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
+import { useMutation } from 'convex/react'
 import { toast } from 'sonner'
 import { useWizard } from './wizard-shell'
-import { ConvexHttpClient } from 'convex/browser'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 
@@ -27,6 +27,7 @@ interface GenerateStepProps {
 export function GenerateStep({ userId, preferences }: GenerateStepProps) {
   const { setOnSave } = useWizard()
   const navigate = useNavigate()
+  const completeOnboarding = useMutation(api.users.completeOnboarding)
   const [isGenerating, setIsGenerating] = useState(false)
 
   const generate = useCallback(async () => {
@@ -36,10 +37,7 @@ export function GenerateStep({ userId, preferences }: GenerateStepProps) {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Generation failed')
 
-      const convex = new ConvexHttpClient(
-        import.meta.env.VITE_CONVEX_URL as string,
-      )
-      await convex.mutation(api.users.completeOnboarding, { id: userId })
+      await completeOnboarding({ id: userId })
 
       void navigate({ to: '/' })
     } catch (err) {
@@ -49,7 +47,7 @@ export function GenerateStep({ userId, preferences }: GenerateStepProps) {
       })
       setIsGenerating(false)
     }
-  }, [userId, navigate])
+  }, [userId, navigate, completeOnboarding])
 
   useEffect(() => {
     setOnSave(() => generate())

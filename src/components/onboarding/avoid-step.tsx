@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
+import { useMutation } from 'convex/react'
 import { useWizard } from './wizard-shell'
-import { ConvexHttpClient } from 'convex/browser'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 
@@ -11,17 +11,15 @@ interface AvoidStepProps {
 
 export function AvoidStep({ userId, initialFoodsToAvoid }: AvoidStepProps) {
   const { setOnSave } = useWizard()
+  const updatePreferences = useMutation(api.preferences.update)
   const [text, setText] = useState(initialFoodsToAvoid)
 
   const save = useCallback(async () => {
-    const convex = new ConvexHttpClient(
-      import.meta.env.VITE_CONVEX_URL as string,
-    )
-    await convex.mutation(api.preferences.update, {
+    await updatePreferences({
       userId,
       foodsToAvoid: text.trim(),
     })
-  }, [userId, text])
+  }, [userId, text, updatePreferences])
 
   useEffect(() => {
     setOnSave(() => save())

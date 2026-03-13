@@ -1,9 +1,9 @@
-import { useState, useCallback } from 'react'
+import { useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
 import { useQuery } from '@tanstack/react-query'
 import { convexQuery } from '@convex-dev/react-query'
-import { ConvexHttpClient } from 'convex/browser'
+import { useMutation } from 'convex/react'
 import { toast } from 'sonner'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
@@ -12,7 +12,7 @@ import { Slider } from '~/components/ui/slider'
 import { ErrorFallback } from '~/components/error-boundary'
 import { PreferencesSkeleton } from '~/components/route-skeletons'
 import { requireAuth } from '~/lib/auth-guard'
-import { getToken } from '~/lib/auth-server'
+import { fetchAuthQuery } from '~/lib/auth-server'
 import { authClient } from '~/lib/auth-client'
 
 // ─── Data Constants ────────────────────────────────────────────────────────────
@@ -72,16 +72,10 @@ type CuisinePreference = 'like' | 'neutral' | 'dislike'
 
 const fetchPreferences = createServerFn({ method: 'GET' }).handler(async () => {
   try {
-    const token = await getToken()
-    if (!token) return null
-
-    const convex = new ConvexHttpClient(process.env.VITE_CONVEX_URL!)
-    convex.setAuth(token)
-
-    const user = await convex.query(api.users.getAuthenticated, {})
+    const user = await fetchAuthQuery(api.users.getAuthenticated, {})
     if (!user) return null
 
-    const prefs = await convex.query(api.preferences.getByUser, {
+    const prefs = await fetchAuthQuery(api.preferences.getByUser, {
       userId: user._id,
     })
 
@@ -272,12 +266,7 @@ function PreferencesPage() {
 
   // ── Helpers ────────────────────────────────────────────────────────────────
 
-  const getConvex = useCallback(() => {
-    const convex = new ConvexHttpClient(
-      import.meta.env.VITE_CONVEX_URL as string,
-    )
-    return convex
-  }, [])
+  const updatePreferences = useMutation(api.preferences.update)
 
   const toggleDiet = (id: string) => {
     setDietSelected((prev) => {
@@ -374,15 +363,13 @@ function PreferencesPage() {
   }
 
   const saveDiet = async () => {
-    const convex = getConvex()
-    await convex.mutation(api.preferences.update, {
+    await updatePreferences({
       userId,
       dietaryRestrictions: Array.from(dietSelected),
     })
   }
 
   const saveCuisines = async () => {
-    const convex = getConvex()
     const cuisinePreferences: Array<{
       cuisine: string
       preference: CuisinePreference
@@ -390,23 +377,21 @@ function PreferencesPage() {
     for (const [cuisine, preference] of cuisinePrefs) {
       cuisinePreferences.push({ cuisine, preference })
     }
-    await convex.mutation(api.preferences.update, {
+    await updatePreferences({
       userId,
       cuisinePreferences,
     })
   }
 
   const saveAvoid = async () => {
-    const convex = getConvex()
-    await convex.mutation(api.preferences.update, {
+    await updatePreferences({
       userId,
       foodsToAvoid: foodsToAvoid.trim(),
     })
   }
 
   const saveMeals = async () => {
-    const convex = getConvex()
-    await convex.mutation(api.preferences.update, {
+    await updatePreferences({
       userId,
       mealsPerWeek,
       householdSize,
@@ -414,8 +399,7 @@ function PreferencesPage() {
   }
 
   const saveCooking = async () => {
-    const convex = getConvex()
-    await convex.mutation(api.preferences.update, {
+    await updatePreferences({
       userId,
       maxPrepTimeMinutes: maxPrepTime,
       kitchenEquipment: Array.from(equipment),

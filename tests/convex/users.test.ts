@@ -1,15 +1,12 @@
 import { convexTest } from 'convex-test'
 import { describe, expect, it, vi } from 'vitest'
-import { api } from '../../convex/_generated/api'
-import schema from '../../convex/schema'
+import { api, schema, modules } from './test_helpers'
 
 vi.mock('../auth', () => ({
   authComponent: {
     getAuthUser: vi.fn().mockResolvedValue(null),
   },
 }))
-
-const modules = import.meta.glob('../**/*.ts')
 
 describe('users.createFromAuth', () => {
   it('creates a new user with correct defaults', async () => {

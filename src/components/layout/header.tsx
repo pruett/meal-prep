@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { convexQuery } from '@convex-dev/react-query'
 import { api } from '../../../convex/_generated/api'
 import { authClient } from '~/lib/auth-client'
-import ThemeToggle from '../ThemeToggle'
+import { ModeToggle } from '~/components/mode-toggle'
 
 function CreditsBadge({ credits }: { credits: number }) {
   const isLow = credits <= 5
@@ -116,7 +116,7 @@ export default function Header() {
             <CreditsBadge credits={user.generationsRemaining} />
           )}
           <UserMenu />
-          <ThemeToggle />
+          <ModeToggle />
         </div>
       </nav>
     </header>

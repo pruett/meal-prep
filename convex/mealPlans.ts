@@ -48,6 +48,40 @@ export const getByUserAndWeek = query({
   },
 })
 
+export const deletePlan = mutation({
+  args: {
+    id: v.id('mealPlans'),
+  },
+  handler: async (ctx, args) => {
+    const plan = await ctx.db.get(args.id)
+    if (!plan) throw new Error('Plan not found')
+    if (plan.status !== 'archived') {
+      throw new Error('Only archived plans can be deleted')
+    }
+
+    // Delete associated meals
+    const meals = await ctx.db
+      .query('meals')
+      .withIndex('by_mealPlan', (q) => q.eq('mealPlanId', args.id))
+      .collect()
+    for (const meal of meals) {
+      await ctx.db.delete(meal._id)
+    }
+
+    // Delete associated prep guides
+    const prepGuides = await ctx.db
+      .query('prepGuides')
+      .filter((q) => q.eq(q.field('mealPlanId'), args.id))
+      .collect()
+    for (const guide of prepGuides) {
+      await ctx.db.delete(guide._id)
+    }
+
+    // Delete the plan itself
+    await ctx.db.delete(args.id)
+  },
+})
+
 export const getByUser = query({
   args: {
     userId: v.id('users'),

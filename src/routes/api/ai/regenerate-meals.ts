@@ -87,6 +87,11 @@ export const Route = createFileRoute('/api/ai/regenerate-meals')({
               })
             }
 
+            const finishReason = await stream.finishReason
+            if (finishReason === 'error') {
+              throw new Error('AI stream failed')
+            }
+
             await fetchAuthMutation(api.mealPlans.updateStatus, {
               id: mealPlanId,
               status: 'reviewing',

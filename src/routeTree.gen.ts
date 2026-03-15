@@ -10,6 +10,8 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as PreferencesRouteImport } from './routes/preferences'
+import { Route as OnboardingNewRouteImport } from './routes/onboarding-new'
+import { Route as DesignSystemRouteImport } from './routes/design-system'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as OnboardingRouteRouteImport } from './routes/onboarding/route'
@@ -34,6 +36,16 @@ import { Route as ApiAiGenerateMealsRouteImport } from './routes/api/ai/generate
 const PreferencesRoute = PreferencesRouteImport.update({
   id: '/preferences',
   path: '/preferences',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OnboardingNewRoute = OnboardingNewRouteImport.update({
+  id: '/onboarding-new',
+  path: '/onboarding-new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DesignSystemRoute = DesignSystemRouteImport.update({
+  id: '/design-system',
+  path: '/design-system',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AccountRoute = AccountRouteImport.update({
@@ -142,6 +154,8 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof OnboardingRouteRouteWithChildren
   '/about': typeof AboutRoute
   '/account': typeof AccountRoute
+  '/design-system': typeof DesignSystemRoute
+  '/onboarding-new': typeof OnboardingNewRoute
   '/preferences': typeof PreferencesRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
@@ -165,6 +179,8 @@ export interface FileRoutesByTo {
   '/onboarding': typeof OnboardingRouteRouteWithChildren
   '/about': typeof AboutRoute
   '/account': typeof AccountRoute
+  '/design-system': typeof DesignSystemRoute
+  '/onboarding-new': typeof OnboardingNewRoute
   '/preferences': typeof PreferencesRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
@@ -189,6 +205,8 @@ export interface FileRoutesById {
   '/onboarding': typeof OnboardingRouteRouteWithChildren
   '/about': typeof AboutRoute
   '/account': typeof AccountRoute
+  '/design-system': typeof DesignSystemRoute
+  '/onboarding-new': typeof OnboardingNewRoute
   '/preferences': typeof PreferencesRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
@@ -214,6 +232,8 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/about'
     | '/account'
+    | '/design-system'
+    | '/onboarding-new'
     | '/preferences'
     | '/auth/login'
     | '/auth/signup'
@@ -237,6 +257,8 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/about'
     | '/account'
+    | '/design-system'
+    | '/onboarding-new'
     | '/preferences'
     | '/auth/login'
     | '/auth/signup'
@@ -260,6 +282,8 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/about'
     | '/account'
+    | '/design-system'
+    | '/onboarding-new'
     | '/preferences'
     | '/auth/login'
     | '/auth/signup'
@@ -284,6 +308,8 @@ export interface RootRouteChildren {
   OnboardingRouteRoute: typeof OnboardingRouteRouteWithChildren
   AboutRoute: typeof AboutRoute
   AccountRoute: typeof AccountRoute
+  DesignSystemRoute: typeof DesignSystemRoute
+  OnboardingNewRoute: typeof OnboardingNewRoute
   PreferencesRoute: typeof PreferencesRoute
   AuthLoginRoute: typeof AuthLoginRoute
   AuthSignupRoute: typeof AuthSignupRoute
@@ -304,6 +330,20 @@ declare module '@tanstack/react-router' {
       path: '/preferences'
       fullPath: '/preferences'
       preLoaderRoute: typeof PreferencesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/onboarding-new': {
+      id: '/onboarding-new'
+      path: '/onboarding-new'
+      fullPath: '/onboarding-new'
+      preLoaderRoute: typeof OnboardingNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/design-system': {
+      id: '/design-system'
+      path: '/design-system'
+      fullPath: '/design-system'
+      preLoaderRoute: typeof DesignSystemRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/account': {
@@ -476,6 +516,8 @@ const rootRouteChildren: RootRouteChildren = {
   OnboardingRouteRoute: OnboardingRouteRouteWithChildren,
   AboutRoute: AboutRoute,
   AccountRoute: AccountRoute,
+  DesignSystemRoute: DesignSystemRoute,
+  OnboardingNewRoute: OnboardingNewRoute,
   PreferencesRoute: PreferencesRoute,
   AuthLoginRoute: AuthLoginRoute,
   AuthSignupRoute: AuthSignupRoute,

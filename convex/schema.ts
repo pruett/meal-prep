@@ -1,6 +1,15 @@
 import { defineSchema, defineTable } from 'convex/server'
 import { v } from 'convex/values'
 
+export const MEAL_PLAN_STATUSES = [
+  'generating',
+  'reviewing',
+  'finalized',
+  'archived',
+] as const
+
+export type MealPlanStatus = (typeof MEAL_PLAN_STATUSES)[number]
+
 export default defineSchema({
   users: defineTable({
     betterAuthId: v.string(),

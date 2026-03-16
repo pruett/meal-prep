@@ -75,6 +75,26 @@ export const deleteByMealPlanAndStatus = mutation({
   },
 })
 
+export const replaceContent = mutation({
+  args: {
+    id: v.id('meals'),
+    name: v.string(),
+    description: v.string(),
+    keyIngredients: v.array(v.string()),
+    estimatedPrepMinutes: v.number(),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.id, {
+      name: args.name,
+      description: args.description,
+      keyIngredients: args.keyIngredients,
+      estimatedPrepMinutes: args.estimatedPrepMinutes,
+      status: 'pending',
+      fullRecipe: null,
+    })
+  },
+})
+
 export const updateFullRecipe = mutation({
   args: {
     id: v.id('meals'),

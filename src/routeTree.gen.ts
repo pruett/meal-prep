@@ -10,18 +10,11 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as PreferencesRouteImport } from './routes/preferences'
-import { Route as OnboardingNewRouteImport } from './routes/onboarding-new'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as DesignSystemRouteImport } from './routes/design-system'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as AboutRouteImport } from './routes/about'
-import { Route as OnboardingRouteRouteImport } from './routes/onboarding/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as OnboardingMealsRouteImport } from './routes/onboarding/meals'
-import { Route as OnboardingGenerateRouteImport } from './routes/onboarding/generate'
-import { Route as OnboardingDietRouteImport } from './routes/onboarding/diet'
-import { Route as OnboardingCuisinesRouteImport } from './routes/onboarding/cuisines'
-import { Route as OnboardingCookingRouteImport } from './routes/onboarding/cooking'
-import { Route as OnboardingAvoidRouteImport } from './routes/onboarding/avoid'
 import { Route as DemoTanstackQueryRouteImport } from './routes/demo/tanstack-query'
 import { Route as DemoBetterAuthRouteImport } from './routes/demo/better-auth'
 import { Route as AuthSignupRouteImport } from './routes/auth/signup'
@@ -38,9 +31,9 @@ const PreferencesRoute = PreferencesRouteImport.update({
   path: '/preferences',
   getParentRoute: () => rootRouteImport,
 } as any)
-const OnboardingNewRoute = OnboardingNewRouteImport.update({
-  id: '/onboarding-new',
-  path: '/onboarding-new',
+const OnboardingRoute = OnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DesignSystemRoute = DesignSystemRouteImport.update({
@@ -58,45 +51,10 @@ const AboutRoute = AboutRouteImport.update({
   path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
-const OnboardingRouteRoute = OnboardingRouteRouteImport.update({
-  id: '/onboarding',
-  path: '/onboarding',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
-} as any)
-const OnboardingMealsRoute = OnboardingMealsRouteImport.update({
-  id: '/meals',
-  path: '/meals',
-  getParentRoute: () => OnboardingRouteRoute,
-} as any)
-const OnboardingGenerateRoute = OnboardingGenerateRouteImport.update({
-  id: '/generate',
-  path: '/generate',
-  getParentRoute: () => OnboardingRouteRoute,
-} as any)
-const OnboardingDietRoute = OnboardingDietRouteImport.update({
-  id: '/diet',
-  path: '/diet',
-  getParentRoute: () => OnboardingRouteRoute,
-} as any)
-const OnboardingCuisinesRoute = OnboardingCuisinesRouteImport.update({
-  id: '/cuisines',
-  path: '/cuisines',
-  getParentRoute: () => OnboardingRouteRoute,
-} as any)
-const OnboardingCookingRoute = OnboardingCookingRouteImport.update({
-  id: '/cooking',
-  path: '/cooking',
-  getParentRoute: () => OnboardingRouteRoute,
-} as any)
-const OnboardingAvoidRoute = OnboardingAvoidRouteImport.update({
-  id: '/avoid',
-  path: '/avoid',
-  getParentRoute: () => OnboardingRouteRoute,
 } as any)
 const DemoTanstackQueryRoute = DemoTanstackQueryRouteImport.update({
   id: '/demo/tanstack-query',
@@ -151,22 +109,15 @@ const ApiAiGenerateMealsRoute = ApiAiGenerateMealsRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/onboarding': typeof OnboardingRouteRouteWithChildren
   '/about': typeof AboutRoute
   '/account': typeof AccountRoute
   '/design-system': typeof DesignSystemRoute
-  '/onboarding-new': typeof OnboardingNewRoute
+  '/onboarding': typeof OnboardingRoute
   '/preferences': typeof PreferencesRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
   '/demo/better-auth': typeof DemoBetterAuthRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
-  '/onboarding/avoid': typeof OnboardingAvoidRoute
-  '/onboarding/cooking': typeof OnboardingCookingRoute
-  '/onboarding/cuisines': typeof OnboardingCuisinesRoute
-  '/onboarding/diet': typeof OnboardingDietRoute
-  '/onboarding/generate': typeof OnboardingGenerateRoute
-  '/onboarding/meals': typeof OnboardingMealsRoute
   '/api/ai/generate-meals': typeof ApiAiGenerateMealsRoute
   '/api/ai/generate-prep': typeof ApiAiGeneratePrepRoute
   '/api/ai/regenerate-meals': typeof ApiAiRegenerateMealsRoute
@@ -176,22 +127,15 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/onboarding': typeof OnboardingRouteRouteWithChildren
   '/about': typeof AboutRoute
   '/account': typeof AccountRoute
   '/design-system': typeof DesignSystemRoute
-  '/onboarding-new': typeof OnboardingNewRoute
+  '/onboarding': typeof OnboardingRoute
   '/preferences': typeof PreferencesRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
   '/demo/better-auth': typeof DemoBetterAuthRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
-  '/onboarding/avoid': typeof OnboardingAvoidRoute
-  '/onboarding/cooking': typeof OnboardingCookingRoute
-  '/onboarding/cuisines': typeof OnboardingCuisinesRoute
-  '/onboarding/diet': typeof OnboardingDietRoute
-  '/onboarding/generate': typeof OnboardingGenerateRoute
-  '/onboarding/meals': typeof OnboardingMealsRoute
   '/api/ai/generate-meals': typeof ApiAiGenerateMealsRoute
   '/api/ai/generate-prep': typeof ApiAiGeneratePrepRoute
   '/api/ai/regenerate-meals': typeof ApiAiRegenerateMealsRoute
@@ -202,22 +146,15 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/onboarding': typeof OnboardingRouteRouteWithChildren
   '/about': typeof AboutRoute
   '/account': typeof AccountRoute
   '/design-system': typeof DesignSystemRoute
-  '/onboarding-new': typeof OnboardingNewRoute
+  '/onboarding': typeof OnboardingRoute
   '/preferences': typeof PreferencesRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
   '/demo/better-auth': typeof DemoBetterAuthRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
-  '/onboarding/avoid': typeof OnboardingAvoidRoute
-  '/onboarding/cooking': typeof OnboardingCookingRoute
-  '/onboarding/cuisines': typeof OnboardingCuisinesRoute
-  '/onboarding/diet': typeof OnboardingDietRoute
-  '/onboarding/generate': typeof OnboardingGenerateRoute
-  '/onboarding/meals': typeof OnboardingMealsRoute
   '/api/ai/generate-meals': typeof ApiAiGenerateMealsRoute
   '/api/ai/generate-prep': typeof ApiAiGeneratePrepRoute
   '/api/ai/regenerate-meals': typeof ApiAiRegenerateMealsRoute
@@ -229,22 +166,15 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/onboarding'
     | '/about'
     | '/account'
     | '/design-system'
-    | '/onboarding-new'
+    | '/onboarding'
     | '/preferences'
     | '/auth/login'
     | '/auth/signup'
     | '/demo/better-auth'
     | '/demo/tanstack-query'
-    | '/onboarding/avoid'
-    | '/onboarding/cooking'
-    | '/onboarding/cuisines'
-    | '/onboarding/diet'
-    | '/onboarding/generate'
-    | '/onboarding/meals'
     | '/api/ai/generate-meals'
     | '/api/ai/generate-prep'
     | '/api/ai/regenerate-meals'
@@ -254,22 +184,15 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/onboarding'
     | '/about'
     | '/account'
     | '/design-system'
-    | '/onboarding-new'
+    | '/onboarding'
     | '/preferences'
     | '/auth/login'
     | '/auth/signup'
     | '/demo/better-auth'
     | '/demo/tanstack-query'
-    | '/onboarding/avoid'
-    | '/onboarding/cooking'
-    | '/onboarding/cuisines'
-    | '/onboarding/diet'
-    | '/onboarding/generate'
-    | '/onboarding/meals'
     | '/api/ai/generate-meals'
     | '/api/ai/generate-prep'
     | '/api/ai/regenerate-meals'
@@ -279,22 +202,15 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
-    | '/onboarding'
     | '/about'
     | '/account'
     | '/design-system'
-    | '/onboarding-new'
+    | '/onboarding'
     | '/preferences'
     | '/auth/login'
     | '/auth/signup'
     | '/demo/better-auth'
     | '/demo/tanstack-query'
-    | '/onboarding/avoid'
-    | '/onboarding/cooking'
-    | '/onboarding/cuisines'
-    | '/onboarding/diet'
-    | '/onboarding/generate'
-    | '/onboarding/meals'
     | '/api/ai/generate-meals'
     | '/api/ai/generate-prep'
     | '/api/ai/regenerate-meals'
@@ -305,11 +221,10 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  OnboardingRouteRoute: typeof OnboardingRouteRouteWithChildren
   AboutRoute: typeof AboutRoute
   AccountRoute: typeof AccountRoute
   DesignSystemRoute: typeof DesignSystemRoute
-  OnboardingNewRoute: typeof OnboardingNewRoute
+  OnboardingRoute: typeof OnboardingRoute
   PreferencesRoute: typeof PreferencesRoute
   AuthLoginRoute: typeof AuthLoginRoute
   AuthSignupRoute: typeof AuthSignupRoute
@@ -332,11 +247,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PreferencesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/onboarding-new': {
-      id: '/onboarding-new'
-      path: '/onboarding-new'
-      fullPath: '/onboarding-new'
-      preLoaderRoute: typeof OnboardingNewRouteImport
+    '/onboarding': {
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/design-system': {
@@ -360,61 +275,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/onboarding': {
-      id: '/onboarding'
-      path: '/onboarding'
-      fullPath: '/onboarding'
-      preLoaderRoute: typeof OnboardingRouteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/': {
       id: '/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
-    }
-    '/onboarding/meals': {
-      id: '/onboarding/meals'
-      path: '/meals'
-      fullPath: '/onboarding/meals'
-      preLoaderRoute: typeof OnboardingMealsRouteImport
-      parentRoute: typeof OnboardingRouteRoute
-    }
-    '/onboarding/generate': {
-      id: '/onboarding/generate'
-      path: '/generate'
-      fullPath: '/onboarding/generate'
-      preLoaderRoute: typeof OnboardingGenerateRouteImport
-      parentRoute: typeof OnboardingRouteRoute
-    }
-    '/onboarding/diet': {
-      id: '/onboarding/diet'
-      path: '/diet'
-      fullPath: '/onboarding/diet'
-      preLoaderRoute: typeof OnboardingDietRouteImport
-      parentRoute: typeof OnboardingRouteRoute
-    }
-    '/onboarding/cuisines': {
-      id: '/onboarding/cuisines'
-      path: '/cuisines'
-      fullPath: '/onboarding/cuisines'
-      preLoaderRoute: typeof OnboardingCuisinesRouteImport
-      parentRoute: typeof OnboardingRouteRoute
-    }
-    '/onboarding/cooking': {
-      id: '/onboarding/cooking'
-      path: '/cooking'
-      fullPath: '/onboarding/cooking'
-      preLoaderRoute: typeof OnboardingCookingRouteImport
-      parentRoute: typeof OnboardingRouteRoute
-    }
-    '/onboarding/avoid': {
-      id: '/onboarding/avoid'
-      path: '/avoid'
-      fullPath: '/onboarding/avoid'
-      preLoaderRoute: typeof OnboardingAvoidRouteImport
-      parentRoute: typeof OnboardingRouteRoute
     }
     '/demo/tanstack-query': {
       id: '/demo/tanstack-query'
@@ -489,35 +355,12 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface OnboardingRouteRouteChildren {
-  OnboardingAvoidRoute: typeof OnboardingAvoidRoute
-  OnboardingCookingRoute: typeof OnboardingCookingRoute
-  OnboardingCuisinesRoute: typeof OnboardingCuisinesRoute
-  OnboardingDietRoute: typeof OnboardingDietRoute
-  OnboardingGenerateRoute: typeof OnboardingGenerateRoute
-  OnboardingMealsRoute: typeof OnboardingMealsRoute
-}
-
-const OnboardingRouteRouteChildren: OnboardingRouteRouteChildren = {
-  OnboardingAvoidRoute: OnboardingAvoidRoute,
-  OnboardingCookingRoute: OnboardingCookingRoute,
-  OnboardingCuisinesRoute: OnboardingCuisinesRoute,
-  OnboardingDietRoute: OnboardingDietRoute,
-  OnboardingGenerateRoute: OnboardingGenerateRoute,
-  OnboardingMealsRoute: OnboardingMealsRoute,
-}
-
-const OnboardingRouteRouteWithChildren = OnboardingRouteRoute._addFileChildren(
-  OnboardingRouteRouteChildren,
-)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  OnboardingRouteRoute: OnboardingRouteRouteWithChildren,
   AboutRoute: AboutRoute,
   AccountRoute: AccountRoute,
   DesignSystemRoute: DesignSystemRoute,
-  OnboardingNewRoute: OnboardingNewRoute,
+  OnboardingRoute: OnboardingRoute,
   PreferencesRoute: PreferencesRoute,
   AuthLoginRoute: AuthLoginRoute,
   AuthSignupRoute: AuthSignupRoute,

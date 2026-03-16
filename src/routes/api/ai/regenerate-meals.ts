@@ -28,21 +28,21 @@ export const Route = createFileRoute('/api/ai/regenerate-meals')({
         const acceptedMeals = existingMeals.filter(
           (m) => m.status === 'accepted',
         )
-        const rejectedCount = existingMeals.filter(
+        const rejectedMeals = existingMeals.filter(
           (m) => m.status === 'rejected',
-        ).length
+        )
 
-        if (rejectedCount === 0) {
+        if (rejectedMeals.length === 0) {
           return jsonResponse({ error: 'No rejected meals to regenerate' }, 400)
         }
 
+        // Sort rejected meals by sortOrder so we replace them in order
+        const rejectedByOrder = [...rejectedMeals].sort(
+          (a, b) => a.sortOrder - b.sortOrder,
+        )
+
         const preferences = await fetchAuthQuery(api.preferences.getByUser, {
           userId: user._id,
-        })
-
-        await fetchAuthMutation(api.meals.deleteByMealPlanAndStatus, {
-          mealPlanId,
-          status: 'rejected',
         })
 
         await fetchAuthMutation(api.mealPlans.updateStatus, {
@@ -51,18 +51,13 @@ export const Route = createFileRoute('/api/ai/regenerate-meals')({
         })
 
         const prompt = buildMealSuggestionsPrompt(
-          rejectedCount,
+          rejectedMeals.length,
           preferences,
           acceptedMeals.map((m) => ({
             name: m.name,
             description: m.description,
           })),
         )
-
-        const nextSortOrder =
-          existingMeals.length > 0
-            ? Math.max(...existingMeals.map((m) => m.sortOrder)) + 1
-            : 0
 
         const result = await withRetry({
           fn: async () => {
@@ -74,17 +69,19 @@ export const Route = createFileRoute('/api/ai/regenerate-meals')({
               }),
             })
 
-            let sortOrder = nextSortOrder
+            let index = 0
             for await (const meal of stream.elementStream) {
-              await fetchAuthMutation(api.meals.create, {
-                mealPlanId,
-                userId: user._id,
+              if (index >= rejectedByOrder.length) break
+
+              // Update the rejected meal in place — preserves sortOrder and position
+              await fetchAuthMutation(api.meals.replaceContent, {
+                id: rejectedByOrder[index]._id,
                 name: meal.name,
                 description: meal.description,
                 keyIngredients: meal.keyIngredients,
                 estimatedPrepMinutes: meal.estimatedPrepMinutes,
-                sortOrder: sortOrder++,
               })
+              index++
             }
 
             const finishReason = await stream.finishReason

@@ -3,15 +3,12 @@ import {
   Outlet,
   Scripts,
   createRootRouteWithContext,
-  useRouterState,
 } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 import { ConvexBetterAuthProvider } from '@convex-dev/better-auth/react'
-import Footer from '../components/Footer'
 import Header from '../components/layout/header'
-import AppShell from '../components/layout/app-shell'
 import { ThemeProvider } from '~/components/theme-provider'
 import { Toaster } from '~/components/ui/sonner'
 import { ErrorFallback } from '~/components/error-boundary'
@@ -77,6 +74,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
   shellComponent: RootDocument,
   errorComponent: ErrorFallback,
   pendingComponent: DefaultPendingFallback,
+  notFoundComponent: DefaultNotFoundComponent,
 })
 
 function DefaultPendingFallback() {
@@ -94,13 +92,20 @@ function DefaultPendingFallback() {
   )
 }
 
+function DefaultNotFoundComponent() {
+  return (
+    <main className="page-wrap flex min-h-[60vh] flex-col items-center justify-center px-4">
+      <h1 className="text-4xl font-bold tracking-tight text-[var(--sea-ink)]">404</h1>
+      <p className="mt-2 text-[var(--sea-ink-soft)]">Page not found</p>
+      <a href="/" className="mt-6 text-sm font-medium text-[var(--lagoon)] hover:underline">
+        Go home
+      </a>
+    </main>
+  )
+}
+
 function RootComponent() {
   const { token, convexQueryClient } = Route.useRouteContext()
-  const pathname = useRouterState({ select: (s) => s.location.pathname })
-
-  const isAuthRoute = pathname.startsWith('/auth/')
-  const isOnboardingRoute = pathname.startsWith('/onboarding/')
-  const showAppShell = !!token && !isAuthRoute && !isOnboardingRoute
 
   return (
     <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
@@ -110,16 +115,7 @@ function RootComponent() {
         initialToken={token}
       >
         <Header />
-        {showAppShell ? (
-          <AppShell>
-            <Outlet />
-          </AppShell>
-        ) : (
-          <>
-            <Outlet />
-            <Footer />
-          </>
-        )}
+        <Outlet />
         <Toaster position="bottom-center" />
         <TanStackDevtools
           config={{

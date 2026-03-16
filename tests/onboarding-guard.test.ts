@@ -15,13 +15,13 @@ vi.mock('../convex/auth', () => ({
 // ---------------------------------------------------------------------------
 
 describe('requireOnboarding guard', () => {
-  it('throws redirect to /onboarding/diet when onboardingCompleted is false', () => {
+  it('throws redirect to /onboarding when onboardingCompleted is false', () => {
     try {
       requireOnboarding({ context: { onboardingCompleted: false } })
       expect.fail('Expected redirect to be thrown')
     } catch (e) {
       expect(isRedirect(e)).toBe(true)
-      expect((e as { options: { to: string } }).options.to).toBe('/onboarding/diet')
+      expect((e as { options: { to: string } }).options.to).toBe('/onboarding')
     }
   })
 
@@ -62,7 +62,7 @@ describe('onboarding guard: Convex data flow', () => {
       expect.fail('Expected redirect to be thrown')
     } catch (e) {
       expect(isRedirect(e)).toBe(true)
-      expect((e as { options: { to: string } }).options.to).toBe('/onboarding/diet')
+      expect((e as { options: { to: string } }).options.to).toBe('/onboarding')
     }
   })
 
@@ -97,7 +97,7 @@ describe('onboarding guard: Convex data flow', () => {
       expect.fail('Expected redirect to onboarding')
     } catch (e) {
       expect(isRedirect(e)).toBe(true)
-      expect((e as { options: { to: string } }).options.to).toBe('/onboarding/diet')
+      expect((e as { options: { to: string } }).options.to).toBe('/onboarding')
     }
 
     // Step 3: User completes onboarding wizard

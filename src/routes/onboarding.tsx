@@ -204,7 +204,7 @@ function OnboardingPage() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-64px)] px-4 pt-12 pb-28">
+    <div className="min-h-[calc(100vh-64px)] px-4 pt-12 [--action-drawer-height:7rem] pb-[calc(var(--action-drawer-height)+2rem)]">
       <div className="mx-auto w-full max-w-md">
         {/* Top bar */}
         <div className="mb-10 flex items-center justify-between">
@@ -328,8 +328,9 @@ function OnboardingPage() {
       </div>
 
       {/* Sticky bottom action */}
-      <div className="fixed inset-x-0 bottom-0 z-10 backdrop-blur-lg bg-background/80 border-t border-border/50">
-        <div className="mx-auto w-full max-w-md px-4 py-4">
+      <div className="fixed inset-x-0 bottom-0 z-10 bg-background">
+        <div className="pointer-events-none absolute inset-x-0 -top-10 h-10 bg-gradient-to-t from-background to-transparent" />
+        <div className="mx-auto flex w-full max-w-md flex-col items-center gap-3 px-4 py-6">
           {isLastStep ? (
             <Button
               className="w-full"
@@ -343,7 +344,10 @@ function OnboardingPage() {
                   Generating your plan...
                 </>
               ) : (
-                "Generate my meal plan"
+                <>
+                  Generate my meal plan
+                  <ArrowRight data-icon="inline-end" />
+                </>
               )}
             </Button>
           ) : (

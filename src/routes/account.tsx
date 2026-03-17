@@ -90,7 +90,7 @@ function AccountPage() {
 
   const handleSignOut = async () => {
     await authClient.signOut()
-    navigate({ to: '/auth/login' })
+    navigate({ to: '/login' })
   }
 
   if (!user) {

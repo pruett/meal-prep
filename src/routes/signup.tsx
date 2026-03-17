@@ -1,15 +1,22 @@
 import { createFileRoute, Link, useRouter } from '@tanstack/react-router'
 import { useState } from 'react'
 import { ConvexHttpClient } from 'convex/browser'
+import { CookingPot } from '@phosphor-icons/react'
 import { authClient } from '~/lib/auth-client'
-import { api } from '../../../convex/_generated/api'
+import { api } from '../../convex/_generated/api'
 import { GoogleButton } from '~/components/auth/google-button'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
-import { Label } from '~/components/ui/label'
-import { Separator } from '~/components/ui/separator'
+import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+  FieldSeparator,
+} from '~/components/ui/field'
 
-export const Route = createFileRoute('/auth/signup')({
+export const Route = createFileRoute('/signup')({
   component: SignupPage,
 })
 
@@ -70,30 +77,22 @@ function SignupPage() {
   return (
     <div className="flex min-h-[80vh] items-center justify-center px-4">
       <div className="rise-in w-full max-w-sm">
-        <div className="mb-8 text-center">
-          <p className="island-kicker mb-2">Get started</p>
-          <h1 className="display-title text-2xl font-semibold tracking-tight text-[var(--sea-ink)]">
-            Create your account
-          </h1>
-          <p className="mt-2 text-sm text-[var(--sea-ink-soft)]">
-            Meal planning, simplified.
-          </p>
-        </div>
-
-        <div className="island-shell rounded-xl p-6">
-          <GoogleButton callbackURL="/onboarding" onError={setError} />
-
-          <div className="my-5 flex items-center gap-3">
-            <Separator className="flex-1" />
-            <span className="text-xs font-medium uppercase tracking-widest text-[var(--sea-ink-soft)]">
-              or
-            </span>
-            <Separator className="flex-1" />
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="name">Name</Label>
+        <form onSubmit={handleSubmit}>
+          <FieldGroup>
+            <div className="flex flex-col items-center gap-2 text-center">
+              <div className="flex flex-col items-center gap-2 font-medium">
+                <div className="flex size-8 items-center justify-center rounded-md">
+                  <CookingPot className="size-6" weight="duotone" />
+                </div>
+              </div>
+              <h1 className="text-xl font-bold">Create your account</h1>
+              <FieldDescription>
+                Already have an account?{' '}
+                <Link to="/login">Sign in</Link>
+              </FieldDescription>
+            </div>
+            <Field>
+              <FieldLabel htmlFor="name">Name</FieldLabel>
               <Input
                 id="name"
                 type="text"
@@ -103,10 +102,9 @@ function SignupPage() {
                 required
                 autoComplete="name"
               />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="email">Email</Label>
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="email">Email</FieldLabel>
               <Input
                 id="email"
                 type="email"
@@ -116,10 +114,9 @@ function SignupPage() {
                 required
                 autoComplete="email"
               />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="password">Password</Label>
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="password">Password</FieldLabel>
               <Input
                 id="password"
                 type="password"
@@ -130,38 +127,28 @@ function SignupPage() {
                 minLength={8}
                 autoComplete="new-password"
               />
-            </div>
-
+            </Field>
             {error && (
-              <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 dark:border-red-800 dark:bg-red-900/20">
-                <p className="text-sm text-red-600 dark:text-red-400">
-                  {error}
-                </p>
-              </div>
+              <FieldError>{error}</FieldError>
             )}
-
-            <Button type="submit" disabled={loading} className="w-full">
-              {loading ? (
-                <span className="flex items-center gap-2">
-                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground/40 border-t-primary-foreground" />
-                  Creating account…
-                </span>
-              ) : (
-                'Create account'
-              )}
-            </Button>
-          </form>
-        </div>
-
-        <p className="mt-5 text-center text-sm text-[var(--sea-ink-soft)]">
-          Already have an account?{' '}
-          <Link
-            to="/auth/login"
-            className="font-medium text-[var(--lagoon-deep)] hover:text-[var(--lagoon)]"
-          >
-            Sign in
-          </Link>
-        </p>
+            <Field>
+              <Button type="submit" disabled={loading} className="w-full">
+                {loading ? (
+                  <span className="flex items-center gap-2">
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground/40 border-t-primary-foreground" />
+                    Creating account…
+                  </span>
+                ) : (
+                  'Create account'
+                )}
+              </Button>
+            </Field>
+            <FieldSeparator>Or</FieldSeparator>
+            <Field>
+              <GoogleButton callbackURL="/onboarding" onError={setError} />
+            </Field>
+          </FieldGroup>
+        </form>
       </div>
     </div>
   )

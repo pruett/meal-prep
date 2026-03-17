@@ -1,7 +1,7 @@
 import { redirect } from '@tanstack/react-router'
 
 /**
- * Reusable beforeLoad guard that redirects unauthenticated users to /auth/login.
+ * Reusable beforeLoad guard that redirects unauthenticated users to /login.
  *
  * Usage:
  *   beforeLoad: requireAuth
@@ -14,6 +14,6 @@ export function requireAuth({
   context: { token: string | null }
 }) {
   if (!context.token) {
-    throw redirect({ to: '/auth/login' })
+    throw redirect({ to: '/login' })
   }
 }

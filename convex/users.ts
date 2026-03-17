@@ -1,5 +1,5 @@
 import { v } from 'convex/values'
-import { mutation, query } from './_generated/server'
+import { internalMutation, mutation, query } from './_generated/server'
 import { authComponent } from './auth'
 
 export const getAuthenticated = query({
@@ -45,6 +45,44 @@ export const createFromAuth = mutation({
       onboardingCompleted: false,
       createdAt: Date.now(),
     })
+  },
+})
+
+export const createWithPreferences = internalMutation({
+  args: {
+    betterAuthId: v.string(),
+    email: v.string(),
+    name: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const existing = await ctx.db
+      .query('users')
+      .withIndex('by_betterAuthId', (q) =>
+        q.eq('betterAuthId', args.betterAuthId),
+      )
+      .unique()
+    if (existing) {
+      return existing._id
+    }
+    const userId = await ctx.db.insert('users', {
+      betterAuthId: args.betterAuthId,
+      email: args.email,
+      name: args.name,
+      generationsRemaining: 25,
+      onboardingCompleted: false,
+      createdAt: Date.now(),
+    })
+    await ctx.db.insert('preferences', {
+      userId,
+      dietaryRestrictions: [],
+      cuisinePreferences: [],
+      mealsPerWeek: 7,
+      householdSize: 2,
+      maxPrepTimeMinutes: 45,
+      kitchenEquipment: [],
+      foodsToAvoid: '',
+    })
+    return userId
   },
 })
 

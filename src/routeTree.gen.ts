@@ -9,16 +9,16 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SignupRouteImport } from './routes/signup'
 import { Route as PreferencesRouteImport } from './routes/preferences'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as DesignSystemRouteImport } from './routes/design-system'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DemoTanstackQueryRouteImport } from './routes/demo/tanstack-query'
 import { Route as DemoBetterAuthRouteImport } from './routes/demo/better-auth'
-import { Route as AuthSignupRouteImport } from './routes/auth/signup'
-import { Route as AuthLoginRouteImport } from './routes/auth/login'
 import { Route as PlanWeekStartIndexRouteImport } from './routes/plan/$weekStart/index'
 import { Route as PlanWeekStartPrepRouteImport } from './routes/plan/$weekStart/prep'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
@@ -26,6 +26,11 @@ import { Route as ApiAiRegenerateMealsRouteImport } from './routes/api/ai/regene
 import { Route as ApiAiGeneratePrepRouteImport } from './routes/api/ai/generate-prep'
 import { Route as ApiAiGenerateMealsRouteImport } from './routes/api/ai/generate-meals'
 
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PreferencesRoute = PreferencesRouteImport.update({
   id: '/preferences',
   path: '/preferences',
@@ -34,6 +39,11 @@ const PreferencesRoute = PreferencesRouteImport.update({
 const OnboardingRoute = OnboardingRouteImport.update({
   id: '/onboarding',
   path: '/onboarding',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DesignSystemRoute = DesignSystemRouteImport.update({
@@ -64,16 +74,6 @@ const DemoTanstackQueryRoute = DemoTanstackQueryRouteImport.update({
 const DemoBetterAuthRoute = DemoBetterAuthRouteImport.update({
   id: '/demo/better-auth',
   path: '/demo/better-auth',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthSignupRoute = AuthSignupRouteImport.update({
-  id: '/auth/signup',
-  path: '/auth/signup',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthLoginRoute = AuthLoginRouteImport.update({
-  id: '/auth/login',
-  path: '/auth/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PlanWeekStartIndexRoute = PlanWeekStartIndexRouteImport.update({
@@ -112,10 +112,10 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/account': typeof AccountRoute
   '/design-system': typeof DesignSystemRoute
+  '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/preferences': typeof PreferencesRoute
-  '/auth/login': typeof AuthLoginRoute
-  '/auth/signup': typeof AuthSignupRoute
+  '/signup': typeof SignupRoute
   '/demo/better-auth': typeof DemoBetterAuthRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/api/ai/generate-meals': typeof ApiAiGenerateMealsRoute
@@ -130,10 +130,10 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/account': typeof AccountRoute
   '/design-system': typeof DesignSystemRoute
+  '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/preferences': typeof PreferencesRoute
-  '/auth/login': typeof AuthLoginRoute
-  '/auth/signup': typeof AuthSignupRoute
+  '/signup': typeof SignupRoute
   '/demo/better-auth': typeof DemoBetterAuthRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/api/ai/generate-meals': typeof ApiAiGenerateMealsRoute
@@ -149,10 +149,10 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/account': typeof AccountRoute
   '/design-system': typeof DesignSystemRoute
+  '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/preferences': typeof PreferencesRoute
-  '/auth/login': typeof AuthLoginRoute
-  '/auth/signup': typeof AuthSignupRoute
+  '/signup': typeof SignupRoute
   '/demo/better-auth': typeof DemoBetterAuthRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/api/ai/generate-meals': typeof ApiAiGenerateMealsRoute
@@ -169,10 +169,10 @@ export interface FileRouteTypes {
     | '/about'
     | '/account'
     | '/design-system'
+    | '/login'
     | '/onboarding'
     | '/preferences'
-    | '/auth/login'
-    | '/auth/signup'
+    | '/signup'
     | '/demo/better-auth'
     | '/demo/tanstack-query'
     | '/api/ai/generate-meals'
@@ -187,10 +187,10 @@ export interface FileRouteTypes {
     | '/about'
     | '/account'
     | '/design-system'
+    | '/login'
     | '/onboarding'
     | '/preferences'
-    | '/auth/login'
-    | '/auth/signup'
+    | '/signup'
     | '/demo/better-auth'
     | '/demo/tanstack-query'
     | '/api/ai/generate-meals'
@@ -205,10 +205,10 @@ export interface FileRouteTypes {
     | '/about'
     | '/account'
     | '/design-system'
+    | '/login'
     | '/onboarding'
     | '/preferences'
-    | '/auth/login'
-    | '/auth/signup'
+    | '/signup'
     | '/demo/better-auth'
     | '/demo/tanstack-query'
     | '/api/ai/generate-meals'
@@ -224,10 +224,10 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   AccountRoute: typeof AccountRoute
   DesignSystemRoute: typeof DesignSystemRoute
+  LoginRoute: typeof LoginRoute
   OnboardingRoute: typeof OnboardingRoute
   PreferencesRoute: typeof PreferencesRoute
-  AuthLoginRoute: typeof AuthLoginRoute
-  AuthSignupRoute: typeof AuthSignupRoute
+  SignupRoute: typeof SignupRoute
   DemoBetterAuthRoute: typeof DemoBetterAuthRoute
   DemoTanstackQueryRoute: typeof DemoTanstackQueryRoute
   ApiAiGenerateMealsRoute: typeof ApiAiGenerateMealsRoute
@@ -240,6 +240,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/preferences': {
       id: '/preferences'
       path: '/preferences'
@@ -252,6 +259,13 @@ declare module '@tanstack/react-router' {
       path: '/onboarding'
       fullPath: '/onboarding'
       preLoaderRoute: typeof OnboardingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/design-system': {
@@ -294,20 +308,6 @@ declare module '@tanstack/react-router' {
       path: '/demo/better-auth'
       fullPath: '/demo/better-auth'
       preLoaderRoute: typeof DemoBetterAuthRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth/signup': {
-      id: '/auth/signup'
-      path: '/auth/signup'
-      fullPath: '/auth/signup'
-      preLoaderRoute: typeof AuthSignupRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth/login': {
-      id: '/auth/login'
-      path: '/auth/login'
-      fullPath: '/auth/login'
-      preLoaderRoute: typeof AuthLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/plan/$weekStart/': {
@@ -360,10 +360,10 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   AccountRoute: AccountRoute,
   DesignSystemRoute: DesignSystemRoute,
+  LoginRoute: LoginRoute,
   OnboardingRoute: OnboardingRoute,
   PreferencesRoute: PreferencesRoute,
-  AuthLoginRoute: AuthLoginRoute,
-  AuthSignupRoute: AuthSignupRoute,
+  SignupRoute: SignupRoute,
   DemoBetterAuthRoute: DemoBetterAuthRoute,
   DemoTanstackQueryRoute: DemoTanstackQueryRoute,
   ApiAiGenerateMealsRoute: ApiAiGenerateMealsRoute,

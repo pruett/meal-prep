@@ -19,9 +19,10 @@ beforeEach(() => {
 
 /** Find calls where the second arg (the mutation args) matches a predicate. */
 function findCallsWhere(predicate: (args: Record<string, unknown>) => boolean) {
-  return mockFetchAuthMutation.mock.calls.filter(
-    ([, callArgs]: [unknown, Record<string, unknown>]) => predicate(callArgs),
-  )
+  return mockFetchAuthMutation.mock.calls.filter((call) => {
+    const callArgs = call[1]
+    return typeof callArgs === 'object' && callArgs !== null && predicate(callArgs)
+  })
 }
 
 function decrementCreditCalls() {

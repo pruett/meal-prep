@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
 import { useQuery } from '@tanstack/react-query'
@@ -30,6 +30,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from '~/components/ui/dropdown-menu'
+import { PrepGenerationInterstitial } from '~/components/prep/prep-generation-interstitial'
 import { PrepGuideInline } from '~/components/prep/prep-guide-inline'
 import { ErrorFallback } from '~/components/error-boundary'
 import { HomeSkeleton } from '~/components/route-skeletons'
@@ -181,6 +182,11 @@ function HomePage() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [isRegenerating, setIsRegenerating] = useState(false)
   const [isGeneratingPrep, setIsGeneratingPrep] = useState(false)
+  const [showPrepInterstitial, setShowPrepInterstitial] = useState(false)
+  const [prepGenerationError, setPrepGenerationError] = useState<string | null>(
+    null,
+  )
+  const [prepInterstitialKey, setPrepInterstitialKey] = useState(0)
   const outOfCredits = user?.generationsRemaining === 0
 
   const mealPlanId = currentWeekPlan?._id ?? null
@@ -196,6 +202,8 @@ function HomePage() {
     currentWeekMeals?.filter((m: Doc<'meals'>) => m.status === 'rejected')
       .length ?? 0
   const pendingCount = currentMealCount - acceptedCount - rejectedCount
+
+  const isPrepGuideReady = planStatus === 'finalized'
 
   const handleGenerate = async () => {
     setIsGenerating(true)
@@ -248,7 +256,10 @@ function HomePage() {
   }
 
   const handleGeneratePrep = async () => {
-    if (!mealPlanId) return
+    if (!mealPlanId || isGeneratingPrep) return
+    setPrepInterstitialKey((key) => key + 1)
+    setShowPrepInterstitial(true)
+    setPrepGenerationError(null)
     setIsGeneratingPrep(true)
 
     try {
@@ -265,9 +276,7 @@ function HomePage() {
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Something went wrong'
-      toast.error(message, {
-        action: { label: 'Retry', onClick: () => void handleGeneratePrep() },
-      })
+      setPrepGenerationError(message)
     } finally {
       setIsGeneratingPrep(false)
     }
@@ -312,10 +321,20 @@ function HomePage() {
                 })}
               </h1>
               {planStatus === 'reviewing' && (
-                <Badge variant="secondary">In Progress</Badge>
+                <Badge
+                  variant="outline"
+                  className="border-sky-200 bg-sky-50 text-sky-700"
+                >
+                  In Progress
+                </Badge>
               )}
               {planStatus === 'finalized' && (
-                <Badge variant="outline" className="border-primary/30 text-primary">Complete</Badge>
+                <Badge
+                  variant="outline"
+                  className="border-emerald-200 bg-emerald-50 text-emerald-700"
+                >
+                  Ready
+                </Badge>
               )}
               {currentWeekPlan && (planStatus === 'reviewing' || planStatus === 'finalized') && (
                 <DropdownMenu>
@@ -353,71 +372,90 @@ function HomePage() {
         <TabsContent value="this-week">
           <section className="pt-4">
             {currentWeekPlan ? (
-              <div className="flex flex-col gap-4">
-                {/* Inline Prep Guide — visible after finalization */}
-                {planStatus === 'finalized' && mealPlanId && (
-                  <PrepGuideInline mealPlanId={mealPlanId} />
-                )}
+              showPrepInterstitial && mealPlanId ? (
+                <PrepGenerationInterstitial
+                  key={prepInterstitialKey}
+                  mealCount={acceptedCount}
+                  completed={isPrepGuideReady}
+                  error={prepGenerationError}
+                  onRetry={() => void handleGeneratePrep()}
+                  onComplete={() => {
+                    setShowPrepInterstitial(false)
+                    setPrepGenerationError(null)
+                  }}
+                />
+              ) : (
+                <div className="flex flex-col gap-4">
+                  {/* Inline Prep Guide — visible after finalization */}
+                  {planStatus === 'finalized' && mealPlanId && (
+                    <PrepGuideInline mealPlanId={mealPlanId} />
+                  )}
 
-                {/* Meals list — only show when plan is not finalized */}
-                {planStatus !== 'finalized' && (currentMealCount > 0 || isActivelyGenerating) && (
-                  <div className="flex flex-col gap-3">
-                    {currentWeekMeals?.map((meal) => (
-                      <MealCard
-                        key={meal._id}
-                        meal={meal}
-                        showActions={planStatus === 'reviewing'}
-                        isRegenerating={meal.status === 'rejected' && planStatus === 'generating'}
-                      />
-                    ))}
-                    {isActivelyGenerating &&
-                      currentMealCount < totalRequested &&
-                      Array.from(
-                        { length: totalRequested - currentMealCount },
-                        (_, i) => <MealSkeleton key={`skeleton-${i}`} />,
-                      )}
-                  </div>
-                )}
+                  {/* Meals list — only show when plan is not finalized */}
+                  {planStatus !== 'finalized' &&
+                    (currentMealCount > 0 || isActivelyGenerating) && (
+                      <div className="flex flex-col gap-3">
+                        {currentWeekMeals?.map((meal) => (
+                          <MealCard
+                            key={meal._id}
+                            meal={meal}
+                            showActions={planStatus === 'reviewing'}
+                            isRegenerating={
+                              meal.status === 'rejected' &&
+                              planStatus === 'generating'
+                            }
+                          />
+                        ))}
+                        {isActivelyGenerating &&
+                          currentMealCount < totalRequested &&
+                          Array.from(
+                            { length: totalRequested - currentMealCount },
+                            (_, i) => <MealSkeleton key={`skeleton-${i}`} />,
+                          )}
+                      </div>
+                    )}
 
-                {/* Empty state — plan exists but no meals and not generating */}
-                {currentMealCount === 0 && !isActivelyGenerating && (
-                  <Empty>
-                    <EmptyHeader>
-                      <EmptyTitle>No meals generated yet</EmptyTitle>
-                      <EmptyDescription>
-                        Something may have gone wrong during generation. Try generating again.
-                      </EmptyDescription>
-                    </EmptyHeader>
-                  </Empty>
-                )}
+                  {/* Empty state — plan exists but no meals and not generating */}
+                  {currentMealCount === 0 && !isActivelyGenerating && (
+                    <Empty>
+                      <EmptyHeader>
+                        <EmptyTitle>No meals generated yet</EmptyTitle>
+                        <EmptyDescription>
+                          Something may have gone wrong during generation. Try
+                          generating again.
+                        </EmptyDescription>
+                      </EmptyHeader>
+                    </Empty>
+                  )}
 
-                {planStatus === 'archived' && (
-                  <div className="flex justify-center border-t border-[var(--line)] pt-4">
-                    <button
-                      type="button"
-                      onClick={handleDelete}
-                      className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-red-500 transition-colors hover:bg-red-50 hover:text-red-600"
-                    >
-                      <svg
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
+                  {planStatus === 'archived' && (
+                    <div className="flex justify-center border-t border-[var(--line)] pt-4">
+                      <button
+                        type="button"
+                        onClick={handleDelete}
+                        className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-red-500 transition-colors hover:bg-red-50 hover:text-red-600"
                       >
-                        <polyline points="3 6 5 6 21 6" />
-                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                        <line x1="10" y1="11" x2="10" y2="17" />
-                        <line x1="14" y1="11" x2="14" y2="17" />
-                      </svg>
-                      Delete Plan
-                    </button>
-                  </div>
-                )}
-              </div>
+                        <svg
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <polyline points="3 6 5 6 21 6" />
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                          <line x1="10" y1="11" x2="10" y2="17" />
+                          <line x1="14" y1="11" x2="14" y2="17" />
+                        </svg>
+                        Delete Plan
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )
             ) : outOfCredits ? (
               <div className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6">
                 <EmptyState
@@ -497,7 +535,9 @@ function HomePage() {
       </Tabs>
 
       {/* Action drawer — always visible during review */}
-      {planStatus === 'reviewing' && currentMealCount > 0 && (
+      {planStatus === 'reviewing' &&
+        currentMealCount > 0 &&
+        !showPrepInterstitial && (
         <div className="fixed inset-x-0 bottom-0 z-10 h-[var(--action-drawer-height)] bg-background">
           <div className="pointer-events-none absolute inset-x-0 -top-10 h-10 bg-gradient-to-t from-background to-transparent" />
           <div className="mx-auto flex w-full max-w-md flex-col items-center gap-3 px-4 py-6">

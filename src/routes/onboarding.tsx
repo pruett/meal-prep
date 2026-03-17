@@ -8,7 +8,6 @@ import { api } from "../../convex/_generated/api";
 import { fetchAuthQuery } from "~/lib/auth-server";
 import { requireAuth } from "~/lib/auth-guard";
 import { Button } from "~/components/ui/button";
-import { Slider } from "~/components/ui/slider";
 import {
   Item,
   ItemMedia,
@@ -19,17 +18,19 @@ import {
 } from "~/components/ui/item";
 import {
   ArrowRight,
-  Check,
-  ChevronLeft,
   ChefHat,
+  ChevronLeft,
   Clock,
   Globe,
   Leaf,
   Loader2,
-  Minus,
-  Plus,
   Users,
 } from "lucide-react";
+import { DietSelector } from "~/components/preferences/diet-selector";
+import { CuisineSelector } from "~/components/preferences/cuisine-selector";
+import { MealPlanningControls } from "~/components/preferences/meal-planning-controls";
+import { CookingSetup } from "~/components/preferences/cooking-setup";
+import { formatTime } from "~/components/preferences/constants";
 
 // ---------------------------------------------------------------------------
 // Server loader
@@ -77,53 +78,6 @@ export const Route = createFileRoute("/onboarding")({
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
-
-const DIETARY_RESTRICTIONS = [
-  { id: "vegetarian", label: "Vegetarian" },
-  { id: "vegan", label: "Vegan" },
-  { id: "pescatarian", label: "Pescatarian" },
-  { id: "gluten-free", label: "Gluten-Free" },
-  { id: "dairy-free", label: "Dairy-Free" },
-  { id: "nut-free", label: "Nut-Free" },
-  { id: "keto", label: "Keto" },
-  { id: "paleo", label: "Paleo" },
-  { id: "low-carb", label: "Low-Carb" },
-  { id: "low-sodium", label: "Low-Sodium" },
-  { id: "halal", label: "Halal" },
-  { id: "kosher", label: "Kosher" },
-] as const;
-
-const CUISINES = [
-  { id: "italian", label: "Italian" },
-  { id: "mexican", label: "Mexican" },
-  { id: "chinese", label: "Chinese" },
-  { id: "japanese", label: "Japanese" },
-  { id: "indian", label: "Indian" },
-  { id: "thai", label: "Thai" },
-  { id: "mediterranean", label: "Mediterranean" },
-  { id: "korean", label: "Korean" },
-  { id: "french", label: "French" },
-  { id: "american", label: "American" },
-  { id: "greek", label: "Greek" },
-  { id: "middle-eastern", label: "Middle Eastern" },
-  { id: "vietnamese", label: "Vietnamese" },
-  { id: "caribbean", label: "Caribbean" },
-] as const;
-
-const EQUIPMENT = [
-  { id: "oven", label: "Oven" },
-  { id: "stovetop", label: "Stovetop" },
-  { id: "microwave", label: "Microwave" },
-  { id: "slow-cooker", label: "Slow Cooker" },
-  { id: "instant-pot", label: "Instant Pot" },
-  { id: "air-fryer", label: "Air Fryer" },
-  { id: "blender", label: "Blender" },
-  { id: "food-processor", label: "Food Processor" },
-  { id: "grill", label: "Grill" },
-  { id: "wok", label: "Wok" },
-  { id: "cast-iron", label: "Cast Iron" },
-  { id: "sheet-pan", label: "Sheet Pan" },
-] as const;
 
 const STEP_META = [
   { title: "Dietary restrictions", subtitle: "Select any that apply" },
@@ -243,35 +197,10 @@ function OnboardingPage() {
     navigate,
   ]);
 
-  const toggleSet = (
-    setter: React.Dispatch<React.SetStateAction<Set<string>>>,
-    id: string,
-  ) => {
-    setter((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
-
   const variants = {
     enter: (d: number) => ({ x: d > 0 ? 80 : -80, opacity: 0 }),
     center: { x: 0, opacity: 1 },
     exit: (d: number) => ({ x: d > 0 ? -80 : 80, opacity: 0 }),
-  };
-
-  const formatTime = (minutes: number) => {
-    if (minutes >= 120) return "2 hrs";
-    if (minutes >= 60) {
-      const rem = minutes % 60;
-      return `${Math.floor(minutes / 60)} hr${rem > 0 ? ` ${rem} min` : ""}`;
-    }
-    return `${minutes} min`;
-  };
-
-  const adjustHousehold = (delta: number) => {
-    setHouseholdSize((prev) => Math.min(10, Math.max(1, prev + delta)));
   };
 
   return (
@@ -349,130 +278,38 @@ function OnboardingPage() {
             transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
           >
             {stepIndex === 0 && (
-              <ChipGrid
-                items={DIETARY_RESTRICTIONS}
+              <DietSelector
                 selected={dietaryRestrictions}
-                onToggle={(id) => toggleSet(setDietaryRestrictions, id)}
+                onChange={setDietaryRestrictions}
+                layout="list"
               />
             )}
 
             {stepIndex === 1 && (
-              <ChipGrid
-                items={CUISINES}
+              <CuisineSelector
                 selected={cuisineLikes}
-                onToggle={(id) => toggleSet(setCuisineLikes, id)}
-                onSelectAll={() => {
-                  const allSelected = CUISINES.every(({ id }) => cuisineLikes.has(id));
-                  setCuisineLikes(allSelected ? new Set() : new Set(CUISINES.map(({ id }) => id)));
-                }}
+                onChange={setCuisineLikes}
+                layout="list"
               />
             )}
 
             {stepIndex === 2 && (
-              <div className="flex flex-col gap-8">
-                <div>
-                  <div className="mb-4 flex items-baseline justify-between">
-                    <label className="text-sm font-medium">
-                      Meals per week
-                    </label>
-                    <span className="text-2xl font-bold tabular-nums text-primary">
-                      {mealsPerWeek}
-                    </span>
-                  </div>
-                  <Slider
-                    value={[mealsPerWeek]}
-                    onValueChange={(val) =>
-                      setMealsPerWeek(Array.isArray(val) ? val[0] : val)
-                    }
-                    min={3}
-                    max={14}
-                    step={1}
-                  />
-                  <div className="mt-2 flex justify-between text-xs text-muted-foreground">
-                    <span>3</span>
-                    <span>14</span>
-                  </div>
-                </div>
-
-                <div>
-                  <div className="mb-4 flex items-baseline justify-between">
-                    <label className="text-sm font-medium">
-                      Household size
-                    </label>
-                    <span className="text-sm text-muted-foreground">
-                      {householdSize === 1
-                        ? "Just me"
-                        : `${householdSize} people`}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-center gap-5">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => adjustHousehold(-1)}
-                      disabled={householdSize <= 1}
-                      className="rounded-full"
-                    >
-                      <Minus className="h-4 w-4" />
-                    </Button>
-                    <span className="w-12 text-center text-3xl font-bold tabular-nums text-primary">
-                      {householdSize}
-                    </span>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => adjustHousehold(1)}
-                      disabled={householdSize >= 10}
-                      className="rounded-full"
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
+              <MealPlanningControls
+                mealsPerWeek={mealsPerWeek}
+                onMealsPerWeekChange={setMealsPerWeek}
+                householdSize={householdSize}
+                onHouseholdSizeChange={setHouseholdSize}
+              />
             )}
 
             {stepIndex === 3 && (
-              <div className="flex flex-col gap-8">
-                <div>
-                  <div className="mb-4 flex items-baseline justify-between">
-                    <label className="text-sm font-medium">
-                      Max prep time per meal
-                    </label>
-                    <span className="text-2xl font-bold tabular-nums text-primary">
-                      {formatTime(maxPrepTime)}
-                    </span>
-                  </div>
-                  <Slider
-                    value={[maxPrepTime]}
-                    onValueChange={(val) =>
-                      setMaxPrepTime(Array.isArray(val) ? val[0] : val)
-                    }
-                    min={15}
-                    max={120}
-                    step={5}
-                  />
-                  <div className="mt-2 flex justify-between text-xs text-muted-foreground">
-                    <span>15 min</span>
-                    <span>2 hrs</span>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="mb-3 block text-sm font-medium">
-                    Kitchen equipment
-                  </label>
-                  <ChipGrid
-                    items={EQUIPMENT}
-                    selected={equipment}
-                    onToggle={(id) => toggleSet(setEquipment, id)}
-                    onSelectAll={() => {
-                      const allSelected = EQUIPMENT.every(({ id }) => equipment.has(id));
-                      setEquipment(allSelected ? new Set() : new Set(EQUIPMENT.map(({ id }) => id)));
-                    }}
-                  />
-                </div>
-              </div>
+              <CookingSetup
+                maxPrepTime={maxPrepTime}
+                onMaxPrepTimeChange={setMaxPrepTime}
+                equipment={equipment}
+                onEquipmentChange={setEquipment}
+                equipmentLayout="list"
+              />
             )}
 
             {stepIndex === 4 && (
@@ -483,7 +320,6 @@ function OnboardingPage() {
                 householdSize={householdSize}
                 maxPrepTime={maxPrepTime}
                 equipment={equipment}
-                formatTime={formatTime}
                 isSaving={isSaving}
               />
             )}
@@ -523,57 +359,6 @@ function OnboardingPage() {
 }
 
 // ---------------------------------------------------------------------------
-// Chip grid
-// ---------------------------------------------------------------------------
-
-function ChipGrid({
-  items,
-  selected,
-  onToggle,
-  onSelectAll,
-}: {
-  items: ReadonlyArray<{ id: string; label: string }>;
-  selected: Set<string>;
-  onToggle: (id: string) => void;
-  onSelectAll?: () => void;
-}) {
-  const allSelected = items.every(({ id }) => selected.has(id));
-
-  return (
-    <div className="flex flex-col gap-2">
-      {onSelectAll && (
-        <Button
-          variant="ghost"
-          size="sm"
-          className="self-end"
-          onClick={onSelectAll}
-        >
-          {allSelected ? "Deselect all" : "Select all"}
-        </Button>
-      )}
-      {items.map(({ id, label }) => {
-        const isSelected = selected.has(id);
-        return (
-          <button
-            key={id}
-            type="button"
-            onClick={() => onToggle(id)}
-            className={`flex items-center justify-between rounded-lg border px-4 py-2.5 text-left text-sm font-medium transition-colors ${
-              isSelected
-                ? "border-primary bg-primary text-primary-foreground"
-                : "border-border bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-            }`}
-          >
-            {label}
-            {isSelected && <Check className="h-4 w-4" />}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
 // Summary step
 // ---------------------------------------------------------------------------
 
@@ -584,7 +369,6 @@ function SummaryStep({
   householdSize,
   maxPrepTime,
   equipment,
-  formatTime,
   isSaving,
 }: {
   dietaryRestrictions: Set<string>;
@@ -593,7 +377,6 @@ function SummaryStep({
   householdSize: number;
   maxPrepTime: number;
   equipment: Set<string>;
-  formatTime: (m: number) => string;
   isSaving: boolean;
 }) {
   const rows = [

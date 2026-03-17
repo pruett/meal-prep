@@ -14,7 +14,7 @@ interface ShoppingListProps {
 export function ShoppingList({ items }: ShoppingListProps) {
   if (items.length === 0) {
     return (
-      <p className="py-8 text-center text-sm text-[var(--sea-ink-soft)]">
+      <p className="py-8 text-center text-sm text-muted-foreground">
         No shopping items.
       </p>
     )
@@ -64,7 +64,7 @@ function ShoppingCategory({
 
   return (
     <div>
-      <h3 className="mb-2 text-sm font-semibold uppercase tracking-wider text-[var(--sea-ink-soft)]">
+      <h3 className="mb-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
         {category}
       </h3>
       <div className="space-y-1">
@@ -75,15 +75,15 @@ function ShoppingCategory({
               key={i}
               type="button"
               onClick={() => toggle(i)}
-              className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm transition-colors hover:bg-[var(--sand)] ${
+              className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm transition-colors hover:bg-muted ${
                 isChecked ? 'opacity-50' : ''
               }`}
             >
               <span
                 className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border transition-colors ${
                   isChecked
-                    ? 'border-[var(--palm)] bg-[var(--palm)]'
-                    : 'border-[var(--line)]'
+                    ? 'border-primary bg-primary'
+                    : 'border-border'
                 }`}
               >
                 {isChecked && (
@@ -101,11 +101,11 @@ function ShoppingCategory({
                 )}
               </span>
               <span
-                className={`flex-1 ${isChecked ? 'line-through' : 'text-[var(--sea-ink)]'}`}
+                className={`flex-1 ${isChecked ? 'line-through' : 'text-foreground'}`}
               >
                 {item.item}
               </span>
-              <span className="shrink-0 text-xs text-[var(--sea-ink-soft)]">
+              <span className="shrink-0 text-xs text-muted-foreground">
                 {item.quantity} {item.unit}
               </span>
             </button>

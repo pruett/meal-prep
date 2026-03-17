@@ -9,14 +9,28 @@ import { api } from '../../convex/_generated/api'
 import { PastPlansList } from '~/components/plan/past-plans-list'
 import { MealCard } from '~/components/meals/meal-card'
 import { MealSkeleton } from '~/components/meals/meal-skeleton'
-import { Badge } from '~/components/ui/badge'
-import { Button } from '~/components/ui/button'
+import { Button, buttonVariants } from '~/components/ui/button'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '~/components/ui/tabs'
-import type { MealPlanStatus } from '../../convex/schema'
+import { Badge } from '~/components/ui/badge'
+import { Separator } from '~/components/ui/separator'
 import { EmptyState } from '~/components/empty-state'
-import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from '~/components/ui/empty'
+import {
+  Empty,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+  EmptyContent,
+  EmptyMedia,
+} from '~/components/ui/empty'
 import { Spinner } from '~/components/ui/spinner'
-import { RefreshCw } from 'lucide-react'
+import { Archive, ChevronUp, CircleCheck, Ellipsis, RefreshCw, UtensilsCrossed, Settings, ArrowRight, ArrowUpRight } from 'lucide-react'
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from '~/components/ui/dropdown-menu'
+import { PrepGuideInline } from '~/components/prep/prep-guide-inline'
 import { ErrorFallback } from '~/components/error-boundary'
 import { HomeSkeleton } from '~/components/route-skeletons'
 import { requireAuth } from '~/lib/auth-guard'
@@ -25,15 +39,6 @@ import { fetchAuthQuery } from '~/lib/auth-server'
 import { authClient } from '~/lib/auth-client'
 import type { Doc } from '../../convex/_generated/dataModel'
 
-const statusConfig: Record<
-  MealPlanStatus,
-  { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }
-> = {
-  generating: { label: 'Generating', variant: 'default' },
-  reviewing: { label: 'Reviewing', variant: 'secondary' },
-  finalized: { label: 'Finalized', variant: 'outline' },
-  archived: { label: 'Archived', variant: 'destructive' },
-}
 
 function getCurrentWeekStart(): string {
   const now = new Date()
@@ -136,6 +141,27 @@ function HomePage() {
     initialData: loaderData?.currentWeekMeals,
   })
 
+  // Reactive subscription for user preferences
+  const { data: preferences } = useQuery({
+    ...convexQuery(
+      api.preferences.getByUser,
+      userId ? { userId } : 'skip',
+    ),
+  })
+
+  const preferencesSummary = useMemo(() => {
+    if (!preferences) return null
+    const parts: string[] = []
+    if (preferences.mealsPerWeek) parts.push(`${preferences.mealsPerWeek} meals/week`)
+    if (preferences.householdSize) parts.push(`${preferences.householdSize} servings`)
+    if (preferences.maxPrepTimeMinutes) parts.push(`${preferences.maxPrepTimeMinutes}min max prep`)
+    if (preferences.dietaryRestrictions?.length) {
+      parts.push(preferences.dietaryRestrictions.slice(0, 2).join(', ') +
+        (preferences.dietaryRestrictions.length > 2 ? ` +${preferences.dietaryRestrictions.length - 2}` : ''))
+    }
+    return parts.length > 0 ? parts.join(' · ') : null
+  }, [preferences])
+
   const pastPlans = useMemo(() => {
     const countMap = ssrCountMap ?? {}
     return plans
@@ -169,6 +195,7 @@ function HomePage() {
   const rejectedCount =
     currentWeekMeals?.filter((m: Doc<'meals'>) => m.status === 'rejected')
       .length ?? 0
+  const pendingCount = currentMealCount - acceptedCount - rejectedCount
 
   const handleGenerate = async () => {
     setIsGenerating(true)
@@ -266,7 +293,7 @@ function HomePage() {
   }
 
   return (
-    <main className="page-wrap rise-in px-4 pb-28 pt-14">
+    <main className="page-wrap rise-in mx-auto max-w-5xl px-4 [--action-drawer-height:7rem] pb-[calc(var(--action-drawer-height)+2rem)] pt-14">
       <Tabs defaultValue="this-week">
         <TabsList className="mb-6">
           <TabsTrigger value="this-week">This Week</TabsTrigger>
@@ -277,22 +304,37 @@ function HomePage() {
         <TabsContent value="this-week">
           <section className="mb-8">
             <div className="flex items-center gap-3">
-              <h1 className="display-title text-3xl font-bold tracking-tight text-[var(--sea-ink)] sm:text-4xl">
+              <h1 className="display-title text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
                 Week of{' '}
                 {new Date(weekStart + 'T00:00:00').toLocaleDateString('en-US', {
                   month: 'long',
                   day: 'numeric',
                 })}
               </h1>
-              {planStatus && (
-                <Badge variant={statusConfig[planStatus as MealPlanStatus].variant}>
-                  {statusConfig[planStatus as MealPlanStatus].label}
-                </Badge>
+              {planStatus === 'reviewing' && (
+                <Badge variant="secondary">In Progress</Badge>
               )}
-              {currentWeekPlan && (
-                <Badge variant="outline">
-                  {acceptedCount} accepted / {totalRequested}
-                </Badge>
+              {planStatus === 'finalized' && (
+                <Badge variant="outline" className="border-primary/30 text-primary">Complete</Badge>
+              )}
+              {currentWeekPlan && (planStatus === 'reviewing' || planStatus === 'finalized') && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger
+                    className="ml-auto rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                  >
+                    <Ellipsis className="size-5" />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem render={<Link to="/preferences" />}>
+                      <Settings />
+                      Update Preferences
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleArchive}>
+                      <Archive />
+                      Archive Plan
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               )}
             </div>
           </section>
@@ -301,7 +343,7 @@ function HomePage() {
         {/* Past Meals header */}
         <TabsContent value="past-meals">
           <section className="mb-8">
-            <h1 className="display-title mb-1 text-3xl font-bold tracking-tight text-[var(--sea-ink)] sm:text-4xl">
+            <h1 className="display-title mb-1 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
               Past Meals
             </h1>
           </section>
@@ -312,108 +354,13 @@ function HomePage() {
           <section className="pt-4">
             {currentWeekPlan ? (
               <div className="flex flex-col gap-4">
-                {/* Generate Prep Guide — visible when all meals accepted */}
-                {planStatus === 'reviewing' &&
-                  currentMealCount > 0 &&
-                  acceptedCount === currentMealCount && (
-                    <div className="island-shell flex flex-col gap-3 rounded-xl p-4 sm:flex-row sm:items-center sm:justify-between">
-                      <div>
-                        <p className="text-sm font-semibold text-[var(--sea-ink)]">
-                          All meals accepted
-                        </p>
-                        <p className="text-xs text-[var(--sea-ink-soft)]">
-                          {outOfCredits
-                            ? 'No credits remaining to generate a prep guide.'
-                            : 'Generate full recipes, a shopping list, and batch prep steps.'}
-                        </p>
-                      </div>
-                      <Button
-                        onClick={handleGeneratePrep}
-                        disabled={outOfCredits || isGeneratingPrep}
-                        size="sm"
-                      >
-                        {isGeneratingPrep ? (
-                          <>
-                            <svg
-                              className="mr-1.5 h-3.5 w-3.5 animate-spin"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                            >
-                              <circle
-                                cx="12"
-                                cy="12"
-                                r="10"
-                                stroke="currentColor"
-                                strokeWidth="2.5"
-                                strokeOpacity="0.2"
-                              />
-                              <path
-                                d="M12 2a10 10 0 0 1 10 10"
-                                stroke="currentColor"
-                                strokeWidth="2.5"
-                                strokeLinecap="round"
-                              />
-                            </svg>
-                            Generating…
-                          </>
-                        ) : (
-                          'Generate Prep Guide'
-                        )}
-                      </Button>
-                    </div>
-                  )}
-
-                {/* View Prep Guide — visible after finalization */}
-                {planStatus === 'finalized' && (
-                  <Link
-                    to="/plan/$weekStart/prep"
-                    params={{ weekStart }}
-                    className="island-shell flex items-center justify-between rounded-xl p-4 transition-shadow hover:shadow-md"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--palm)]/15">
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="var(--palm)"
-                          strokeWidth="2.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                          <polyline points="14 2 14 8 20 8" />
-                          <line x1="16" y1="13" x2="8" y2="13" />
-                          <line x1="16" y1="17" x2="8" y2="17" />
-                          <polyline points="10 9 9 9 8 9" />
-                        </svg>
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold text-[var(--sea-ink)]">
-                          View Prep Guide
-                        </p>
-                        <p className="text-xs text-[var(--sea-ink-soft)]">
-                          Recipes, shopping list, and batch prep steps
-                        </p>
-                      </div>
-                    </div>
-                    <svg
-                      className="h-4 w-4 text-[var(--sea-ink-soft)]"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <polyline points="9 18 15 12 9 6" />
-                    </svg>
-                  </Link>
+                {/* Inline Prep Guide — visible after finalization */}
+                {planStatus === 'finalized' && mealPlanId && (
+                  <PrepGuideInline mealPlanId={mealPlanId} />
                 )}
 
-                {/* Meals list */}
-                {(currentMealCount > 0 || isActivelyGenerating) && (
+                {/* Meals list — only show when plan is not finalized */}
+                {planStatus !== 'finalized' && (currentMealCount > 0 || isActivelyGenerating) && (
                   <div className="flex flex-col gap-3">
                     {currentWeekMeals?.map((meal) => (
                       <MealCard
@@ -444,32 +391,6 @@ function HomePage() {
                   </Empty>
                 )}
 
-                {/* Archive / Delete plan */}
-                {(planStatus === 'reviewing' || planStatus === 'finalized') && (
-                  <div className="flex justify-center border-t border-[var(--line)] pt-4">
-                    <button
-                      type="button"
-                      onClick={handleArchive}
-                      className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-[var(--sea-ink-soft)] transition-colors hover:bg-[var(--surface-strong)] hover:text-[var(--sea-ink)]"
-                    >
-                      <svg
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <polyline points="21 8 21 21 3 21 3 8" />
-                        <rect x="1" y="3" width="22" height="5" />
-                        <line x1="10" y1="12" x2="14" y2="12" />
-                      </svg>
-                      Archive Plan
-                    </button>
-                  </div>
-                )}
                 {planStatus === 'archived' && (
                   <div className="flex justify-center border-t border-[var(--line)] pt-4">
                     <button
@@ -520,47 +441,49 @@ function HomePage() {
                 />
               </div>
             ) : (
-              <div className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6 text-center">
-                <p className="mb-1 text-base font-semibold text-[var(--sea-ink)]">
-                  No plan for this week
-                </p>
-                <p className="mb-5 text-sm text-[var(--sea-ink-soft)]">
-                  Generate an AI-powered meal plan to get started.
-                </p>
-                <Button
-                  onClick={handleGenerate}
-                  disabled={isGenerating}
-                  size="lg"
-                >
-                  {isGenerating ? (
-                    <>
-                      <svg
-                        className="mr-1.5 h-4 w-4 animate-spin"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                      >
-                        <circle
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="2.5"
-                          strokeOpacity="0.2"
-                        />
-                        <path
-                          d="M12 2a10 10 0 0 1 10 10"
-                          stroke="currentColor"
-                          strokeWidth="2.5"
-                          strokeLinecap="round"
-                        />
-                      </svg>
-                      Generating…
-                    </>
-                  ) : (
-                    'Generate Meals'
+              <Empty className="mx-auto max-w-lg border border-dashed">
+                <EmptyHeader>
+                  <EmptyMedia variant="icon">
+                    <UtensilsCrossed />
+                  </EmptyMedia>
+                  <EmptyTitle>No meals this week</EmptyTitle>
+                  <EmptyDescription>
+                    You haven't created any meal plans for this week.
+                    <br />
+                    Get started by creating this week's meal plan.
+                  </EmptyDescription>
+                </EmptyHeader>
+                <EmptyContent>
+                  <Button
+                    onClick={handleGenerate}
+                    disabled={isGenerating}
+                    size="lg"
+                  >
+                    {isGenerating ? (
+                      <>
+                        <Spinner data-icon="inline-start" />
+                        Generating…
+                      </>
+                    ) : (
+                      <>
+                        Generate Meals
+                        <ArrowRight data-icon="inline-end" />
+                      </>
+                    )}
+                  </Button>
+                  <Separator />
+                  <Link to="/preferences" className={buttonVariants({ variant: 'link' })}>
+                    <Settings data-icon="inline-start" />
+                    Update Preferences
+                    <ArrowUpRight data-icon="inline-end" />
+                  </Link>
+                  {preferencesSummary && (
+                    <p className="text-xs text-muted-foreground">
+                      {preferencesSummary}
+                    </p>
                   )}
-                </Button>
-              </div>
+                </EmptyContent>
+              </Empty>
             )}
           </section>
         </TabsContent>
@@ -573,28 +496,73 @@ function HomePage() {
         </TabsContent>
       </Tabs>
 
-      {/* Sticky regenerate bar */}
-      {rejectedCount > 0 && (
-        <div className="fixed inset-x-0 bottom-0 z-10 border-t border-border/50 bg-background/80 backdrop-blur-lg">
-          <div className="mx-auto w-full max-w-md px-4 py-4">
-            <Button
-              className="w-full"
-              size="lg"
-              onClick={handleRegenerate}
-              disabled={outOfCredits || isRegenerating}
-            >
-              {isRegenerating ? (
-                <>
-                  <Spinner data-icon="inline-start" />
-                  Regenerating…
-                </>
-              ) : (
-                <>
-                  <RefreshCw data-icon="inline-start" />
-                  Regenerate {rejectedCount} Meals
-                </>
-              )}
-            </Button>
+      {/* Action drawer — always visible during review */}
+      {planStatus === 'reviewing' && currentMealCount > 0 && (
+        <div className="fixed inset-x-0 bottom-0 z-10 h-[var(--action-drawer-height)] bg-background">
+          <div className="pointer-events-none absolute inset-x-0 -top-10 h-10 bg-gradient-to-t from-background to-transparent" />
+          <div className="mx-auto flex w-full max-w-md flex-col items-center gap-3 px-4 py-6">
+            {acceptedCount === currentMealCount ? (
+              <>
+                <p className="flex items-center gap-2 text-base text-muted-foreground">
+                  All meals accepted
+                  <CircleCheck className="size-4" />
+                </p>
+                <Button
+                  className="w-full"
+                  size="lg"
+                  onClick={handleGeneratePrep}
+                  disabled={outOfCredits || isGeneratingPrep}
+                >
+                  {isGeneratingPrep ? (
+                    <>
+                      <Spinner data-icon="inline-start" />
+                      Generating…
+                    </>
+                  ) : (
+                    <>
+                      Generate Prep Guide
+                      <ArrowRight data-icon="inline-end" />
+                    </>
+                  )}
+                </Button>
+              </>
+            ) : rejectedCount > 0 ? (
+              <>
+                <p className="text-base text-muted-foreground">
+                  {acceptedCount + rejectedCount} of {currentMealCount} reviewed
+                </p>
+                <Button
+                  className="w-full"
+                  size="lg"
+                  onClick={handleRegenerate}
+                  disabled={outOfCredits || isRegenerating}
+                >
+                  {isRegenerating ? (
+                    <>
+                      <Spinner data-icon="inline-start" />
+                      Regenerating…
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw data-icon="inline-start" />
+                      Regenerate {rejectedCount} Meals
+                    </>
+                  )}
+                </Button>
+              </>
+            ) : (
+              <p className="flex items-center gap-2 text-base text-muted-foreground">
+                {pendingCount === currentMealCount ? (
+                  <>
+                    <ChevronUp className="size-4" />
+                    Accept or reject each meal to continue
+                    <ChevronUp className="size-4" />
+                  </>
+                ) : (
+                  `${acceptedCount} of ${currentMealCount} accepted — keep reviewing`
+                )}
+              </p>
+            )}
           </div>
         </div>
       )}

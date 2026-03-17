@@ -98,7 +98,7 @@ export default function Header() {
   });
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[var(--line)] bg-[var(--header-bg)] px-4 backdrop-blur-lg">
+    <header className="border-b border-bg-muted bg-background px-4 backdrop-blur-lg">
       <nav className="page-wrap flex items-center gap-3 py-3">
         <h2 className="m-0 flex-shrink-0 text-base font-semibold tracking-tight">
           <Link
@@ -110,8 +110,8 @@ export default function Header() {
         </h2>
 
         <div className="ml-auto flex items-center gap-2 sm:gap-3">
-          {user && <CreditsBadge credits={user.generationsRemaining} />}
-          <UserMenu />
+          {/*{user && <CreditsBadge credits={user.generationsRemaining} />}*/}
+          {/*<UserMenu />*/}
         </div>
       </nav>
     </header>

@@ -108,7 +108,7 @@ function RootComponent() {
   const { token, convexQueryClient } = Route.useRouteContext()
 
   return (
-    <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
+    <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
       <ConvexBetterAuthProvider
         client={convexQueryClient.convexClient}
         authClient={authClient}
@@ -136,7 +136,12 @@ function RootComponent() {
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html
+      lang="en"
+      className="light"
+      style={{ colorScheme: 'light' }}
+      suppressHydrationWarning
+    >
       <head>
         <HeadContent />
       </head>

@@ -16,6 +16,6 @@ export function requireOnboarding({
   context: { onboardingCompleted?: boolean }
 }) {
   if (context.onboardingCompleted === false) {
-    throw redirect({ to: '/onboarding/diet' })
+    throw redirect({ to: '/onboarding' })
   }
 }

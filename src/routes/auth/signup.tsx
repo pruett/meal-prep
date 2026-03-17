@@ -58,7 +58,7 @@ function SignupPage() {
           name,
         })
         await convex.mutation(api.preferences.create, { userId })
-        void router.navigate({ to: '/onboarding/diet' })
+        void router.navigate({ to: '/onboarding' })
       }
     } catch {
       setError('Something went wrong. Please try again.')
@@ -81,7 +81,7 @@ function SignupPage() {
         </div>
 
         <div className="island-shell rounded-xl p-6">
-          <GoogleButton callbackURL="/onboarding/diet" onError={setError} />
+          <GoogleButton callbackURL="/onboarding" onError={setError} />
 
           <div className="my-5 flex items-center gap-3">
             <Separator className="flex-1" />

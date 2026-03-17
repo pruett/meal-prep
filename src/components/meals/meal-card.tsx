@@ -2,23 +2,26 @@ import { useMutation } from 'convex/react'
 import { toast } from 'sonner'
 import type { Doc } from '../../../convex/_generated/dataModel'
 import { api } from '../../../convex/_generated/api'
-import { Badge } from '~/components/ui/badge'
+import { Check, CircleCheck, Clock, LeafyGreen, X, XCircle } from 'lucide-react'
+import { Button } from '~/components/ui/button'
+import { Skeleton } from '~/components/ui/skeleton'
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '~/components/ui/card'
+  Item,
+  ItemContent,
+  ItemFooter,
+  ItemTitle,
+} from '~/components/ui/item'
 import { cn } from '~/lib/utils'
+
+export const MEAL_CARD_HEIGHT = 'min-h-[140px]'
 
 interface MealCardProps {
   meal: Doc<'meals'>
   showActions?: boolean
+  isRegenerating?: boolean
 }
 
-export function MealCard({ meal, showActions = false }: MealCardProps) {
+export function MealCard({ meal, showActions = false, isRegenerating = false }: MealCardProps) {
   const updateStatus = useMutation(api.meals.updateStatus)
 
   const isAccepted = meal.status === 'accepted'
@@ -46,92 +49,91 @@ export function MealCard({ meal, showActions = false }: MealCardProps) {
     }
   }
 
+  if (isRegenerating) {
+    return (
+      <Item variant="outline" className={MEAL_CARD_HEIGHT}>
+        <ItemContent>
+          <Skeleton className="h-5 w-3/4" />
+          <Skeleton className="h-4 w-full" />
+        </ItemContent>
+        <ItemFooter>
+          <Skeleton className="h-3.5 w-3/4" />
+          <Skeleton className="h-3 w-20" />
+        </ItemFooter>
+      </Item>
+    )
+  }
+
   return (
-    <Card
-      size="sm"
+    <Item
+      variant="outline"
       className={cn(
-        'transition-all duration-200',
-        isAccepted &&
-          'ring-2 ring-[var(--palm)] bg-[linear-gradient(165deg,rgba(47,106,74,0.06),rgba(47,106,74,0.02))]',
-        isRejected && 'opacity-50 grayscale-[20%]',
+        MEAL_CARD_HEIGHT,
+        'relative overflow-hidden transition-all duration-200',
+        isAccepted && 'border-foreground/30',
       )}
     >
-      <CardHeader>
-        <CardTitle
-          className={cn(
-            isRejected &&
-              'line-through decoration-[var(--sea-ink-soft)]/30 decoration-1',
-          )}
-        >
-          {meal.name}
-        </CardTitle>
-        <CardDescription>{meal.description}</CardDescription>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-3">
-        <div className="flex flex-wrap gap-1.5">
-          {meal.keyIngredients.map((ingredient) => (
-            <Badge key={ingredient} variant="secondary">
-              {ingredient}
-            </Badge>
-          ))}
-        </div>
-        <p className="text-xs text-muted-foreground">
-          {meal.estimatedPrepMinutes} min prep
-        </p>
-      </CardContent>
-      {showActions && (
-        <CardFooter className="gap-2">
-          <button
-            type="button"
-            onClick={handleAccept}
-            className={cn(
-              'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all duration-150',
-              isAccepted
-                ? 'bg-[var(--palm)] text-white shadow-sm'
-                : 'bg-[var(--palm)]/10 text-[var(--palm)] hover:bg-[var(--palm)]/20',
-            )}
-          >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <polyline points="20 6 9 17 4 12" />
-            </svg>
-            {isAccepted ? 'Accepted' : 'Accept'}
-          </button>
-          <button
-            type="button"
-            onClick={handleReject}
-            className={cn(
-              'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all duration-150',
-              isRejected
-                ? 'bg-destructive text-white shadow-sm'
-                : 'bg-destructive/10 text-destructive hover:bg-destructive/20',
-            )}
-          >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-            {isRejected ? 'Rejected' : 'Reject'}
-          </button>
-        </CardFooter>
+      {isAccepted && (
+        <CircleCheck className="absolute right-3 top-3 size-5" />
       )}
-    </Card>
+      {isRejected && (
+        <XCircle className="absolute right-3 top-3 size-5 text-destructive" />
+      )}
+      <ItemContent>
+        <div className="flex items-center gap-2">
+          <ItemTitle
+            className={cn(
+              'text-base font-semibold',
+              isRejected &&
+                'line-through decoration-muted-foreground/30 decoration-1',
+            )}
+          >
+            {meal.name}
+          </ItemTitle>
+          <span className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Clock className="size-3 shrink-0" />
+            {meal.estimatedPrepMinutes}m
+          </span>
+        </div>
+        <ItemContent>{meal.description}</ItemContent>
+      </ItemContent>
+      <ItemFooter>
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <LeafyGreen className="size-3.5 shrink-0" />
+          <span>
+            <span className="font-medium text-foreground">Ingredients</span>{' '}
+            {meal.keyIngredients.join(', ')}
+          </span>
+        </div>
+        {showActions && (
+          <div className="flex items-center justify-end gap-2">
+            <Button
+              size="sm"
+              variant={isAccepted ? 'default' : 'outline'}
+              onClick={handleAccept}
+              className={cn(
+                !isAccepted &&
+                  'text-primary border-primary/30 hover:bg-primary/10',
+              )}
+            >
+              <Check data-icon="inline-start" />
+              {isAccepted ? 'Accepted' : 'Accept'}
+            </Button>
+            <Button
+              size="sm"
+              variant={isRejected ? 'destructive' : 'outline'}
+              onClick={handleReject}
+              className={cn(
+                !isRejected &&
+                  'text-destructive border-destructive/30 hover:bg-destructive/10',
+              )}
+            >
+              <X data-icon="inline-start" />
+              {isRejected ? 'Rejected' : 'Reject'}
+            </Button>
+          </div>
+        )}
+      </ItemFooter>
+    </Item>
   )
 }

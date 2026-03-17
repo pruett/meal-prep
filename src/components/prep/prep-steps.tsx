@@ -1,4 +1,15 @@
+import { useState } from 'react'
+import { Check, Clock, UtensilsCrossed } from 'lucide-react'
 import { Badge } from '~/components/ui/badge'
+import { Button } from '~/components/ui/button'
+import {
+  Item,
+  ItemMedia,
+  ItemContent,
+  ItemActions,
+  ItemFooter,
+  ItemGroup,
+} from '~/components/ui/item'
 
 type BatchPrepStep = {
   stepNumber: number
@@ -12,9 +23,11 @@ interface PrepStepsProps {
 }
 
 export function PrepSteps({ steps }: PrepStepsProps) {
+  const [doneSteps, setDoneSteps] = useState<Set<number>>(new Set())
+
   if (steps.length === 0) {
     return (
-      <p className="py-8 text-center text-sm text-[var(--sea-ink-soft)]">
+      <p className="py-8 text-center text-sm text-muted-foreground">
         No prep steps.
       </p>
     )
@@ -22,49 +35,86 @@ export function PrepSteps({ steps }: PrepStepsProps) {
 
   const sorted = steps.slice().sort((a, b) => a.stepNumber - b.stepNumber)
 
+  function toggleDone(stepNumber: number) {
+    setDoneSteps((prev) => {
+      const next = new Set(prev)
+      if (next.has(stepNumber)) {
+        next.delete(stepNumber)
+      } else {
+        next.add(stepNumber)
+      }
+      return next
+    })
+  }
+
   return (
-    <div className="space-y-4">
+    <ItemGroup>
       {sorted.map((step) => (
-        <PrepStep key={step.stepNumber} step={step} />
+        <PrepStep
+          key={step.stepNumber}
+          step={step}
+          done={doneSteps.has(step.stepNumber)}
+          onToggleDone={() => toggleDone(step.stepNumber)}
+        />
       ))}
-    </div>
+    </ItemGroup>
   )
 }
 
-function PrepStep({ step }: { step: BatchPrepStep }) {
+function PrepStep({
+  step,
+  done,
+  onToggleDone,
+}: {
+  step: BatchPrepStep
+  done: boolean
+  onToggleDone: () => void
+}) {
   return (
-    <div className="flex gap-3 rounded-xl border border-[var(--line)] p-3 sm:gap-4 sm:p-4">
-      <span
-        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white"
-        style={{ backgroundColor: 'var(--lagoon-deep)' }}
-      >
-        {step.stepNumber}
-      </span>
-      <div className="min-w-0 flex-1">
-        <p className="text-sm text-[var(--sea-ink)]">{step.instruction}</p>
-        <div className="mt-2 flex flex-wrap items-center gap-2">
-          <span className="inline-flex items-center gap-1 text-xs text-[var(--sea-ink-soft)]">
-            <svg
-              className="h-3.5 w-3.5"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <circle cx="12" cy="12" r="10" />
-              <polyline points="12 6 12 12 16 14" />
-            </svg>
-            {step.estimatedMinutes} min
-          </span>
-          {step.relatedMeals.map((meal) => (
-            <Badge key={meal} variant="secondary" className="text-xs">
-              {meal}
-            </Badge>
-          ))}
-        </div>
-      </div>
-    </div>
+    <Item variant="outline" className={done ? 'opacity-50' : ''}>
+      <ItemMedia>
+        <span
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold text-primary-foreground bg-primary"
+        >
+          {step.stepNumber}
+        </span>
+      </ItemMedia>
+      <ItemContent>
+        <p
+          className={`text-sm text-foreground ${done ? 'line-through' : ''}`}
+        >
+          {step.instruction}
+        </p>
+      </ItemContent>
+      <ItemActions>
+        <Button
+          variant={done ? 'secondary' : 'outline'}
+          size="sm"
+          onClick={onToggleDone}
+        >
+          <Check data-icon="inline-start" />
+          Mark complete
+        </Button>
+      </ItemActions>
+      <ItemFooter>
+        {step.relatedMeals.length > 0 ? (
+          <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+            <UtensilsCrossed className="size-3.5 shrink-0" />
+            <span className="shrink-0">Meals</span>
+            {step.relatedMeals.map((meal) => (
+              <Badge key={meal} variant="secondary" className="text-xs">
+                {meal}
+              </Badge>
+            ))}
+          </div>
+        ) : (
+          <div />
+        )}
+        <span className="inline-flex shrink-0 items-center gap-1 text-xs text-muted-foreground">
+          <Clock className="size-3.5" />
+          {step.estimatedMinutes} min
+        </span>
+      </ItemFooter>
+    </Item>
   )
 }

@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
 import {
   Plus,
@@ -36,6 +37,7 @@ import {
 } from '~/components/ui/item'
 import { Badge } from '~/components/ui/badge'
 import { Separator } from '~/components/ui/separator'
+import { PrepGenerationInterstitial } from '~/components/prep/prep-generation-interstitial'
 
 export const Route = createFileRoute('/design-system')({
   component: DesignSystem,
@@ -67,6 +69,58 @@ function Subsection({
     <div className="flex flex-col gap-3">
       <h3 className="text-sm font-medium text-muted-foreground">{title}</h3>
       {children}
+    </div>
+  )
+}
+
+function InterstitialPlayground() {
+  const [completed, setCompleted] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [key, setKey] = useState(0)
+
+  function reset() {
+    setCompleted(false)
+    setError(null)
+    setKey((k) => k + 1)
+  }
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-wrap gap-2">
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => {
+            setError(null)
+            setCompleted(true)
+          }}
+        >
+          Mark Complete
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => {
+            setCompleted(false)
+            setError('Something went wrong generating your prep guide. Please try again.')
+          }}
+        >
+          Simulate Error
+        </Button>
+        <Button size="sm" variant="outline" onClick={reset}>
+          Reset
+        </Button>
+      </div>
+      <div className="rounded-lg border">
+        <PrepGenerationInterstitial
+          key={key}
+          mealCount={7}
+          completed={completed}
+          error={error}
+          onRetry={reset}
+          onComplete={() => alert('onComplete fired — would navigate to prep page')}
+        />
+      </div>
     </div>
   )
 }
@@ -459,6 +513,14 @@ function DesignSystem() {
                 </ItemContent>
               </Item>
             </ItemGroup>
+          </Subsection>
+        </Section>
+        <Separator />
+
+        {/* ── Prep Generation Interstitial ── */}
+        <Section title="Prep Generation Interstitial">
+          <Subsection title="Interactive Test">
+            <InterstitialPlayground />
           </Subsection>
         </Section>
       </div>

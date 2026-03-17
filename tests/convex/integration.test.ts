@@ -750,7 +750,7 @@ describe('integration: user onboarding flow', () => {
 // ---------------------------------------------------------------------------
 
 describe('integration: full meal plan lifecycle', () => {
-  it('complete lifecycle: generate → review → regenerate → accept all → prep guide → finalize → archive', async () => {
+  it('complete lifecycle: generate → review → regenerate → accept all → prep guide → finalize', async () => {
     const t = convexTest(schema, modules)
     const userId = await createUserWithPreferences(t)
 
@@ -905,14 +905,6 @@ describe('integration: full meal plan lifecycle', () => {
       mealPlanId: planId,
     })
     expect(finalMeals.every((m) => m.fullRecipe !== null)).toBe(true)
-
-    // === ARCHIVE ===
-    await t.mutation(api.mealPlans.updateStatus, {
-      id: planId,
-      status: 'archived',
-    })
-    const planArchived = await t.run(async (ctx) => ctx.db.get(planId))
-    expect(planArchived!.status).toBe('archived')
 
     // Verify credit accounting: 25 - 3 = 22
     const userFinal = await t.run(async (ctx) => ctx.db.get(userId))

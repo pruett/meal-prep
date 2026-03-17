@@ -25,7 +25,6 @@ export const updateStatus = mutation({
       v.literal('generating'),
       v.literal('reviewing'),
       v.literal('finalized'),
-      v.literal('archived'),
     ),
   },
   handler: async (ctx, args) => {
@@ -55,9 +54,6 @@ export const deletePlan = mutation({
   handler: async (ctx, args) => {
     const plan = await ctx.db.get(args.id)
     if (!plan) throw new Error('Plan not found')
-    if (plan.status !== 'archived') {
-      throw new Error('Only archived plans can be deleted')
-    }
 
     // Delete associated meals
     const meals = await ctx.db

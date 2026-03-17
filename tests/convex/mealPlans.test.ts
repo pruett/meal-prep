@@ -85,23 +85,6 @@ describe('mealPlans.updateStatus', () => {
     expect(plan!.status).toBe('finalized')
   })
 
-  it('transitions to archived', async () => {
-    const t = convexTest(schema, modules)
-    const userId = await createTestUser(t)
-    const planId = await t.mutation(api.mealPlans.create, {
-      userId,
-      weekStartDate: '2026-03-09',
-      totalMealsRequested: 7,
-    })
-
-    await t.mutation(api.mealPlans.updateStatus, {
-      id: planId,
-      status: 'archived',
-    })
-    const plan = await t.run(async (ctx) => ctx.db.get(planId))
-    expect(plan!.status).toBe('archived')
-  })
-
   it('allows re-setting the same status', async () => {
     const t = convexTest(schema, modules)
     const userId = await createTestUser(t)

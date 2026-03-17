@@ -4,7 +4,7 @@ import { PlanSummary } from './plan-summary'
 interface MealPlanSummary {
   _id: string
   weekStartDate: string
-  status: 'generating' | 'reviewing' | 'finalized' | 'archived'
+  status: 'generating' | 'reviewing' | 'finalized'
   totalMealsRequested: number
   mealCount: number
 }
@@ -33,7 +33,7 @@ export function PastPlansList({ plans }: PastPlansListProps) {
           </svg>
         }
         title="No past plans"
-        description="Your completed and archived meal plans will appear here."
+        description="Your past meal plans will appear here."
       />
     )
   }

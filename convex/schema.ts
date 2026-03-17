@@ -5,7 +5,6 @@ export const MEAL_PLAN_STATUSES = [
   'generating',
   'reviewing',
   'finalized',
-  'archived',
 ] as const
 
 export type MealPlanStatus = (typeof MEAL_PLAN_STATUSES)[number]
@@ -47,7 +46,6 @@ export default defineSchema({
       v.literal('generating'),
       v.literal('reviewing'),
       v.literal('finalized'),
-      v.literal('archived'),
     ),
     totalMealsRequested: v.number(),
     createdAt: v.number(),

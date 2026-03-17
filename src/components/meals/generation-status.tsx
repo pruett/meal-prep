@@ -1,7 +1,7 @@
 import { cn } from '~/lib/utils'
 
 interface GenerationStatusProps {
-  status: 'generating' | 'reviewing' | 'finalized' | 'archived'
+  status: 'generating' | 'reviewing' | 'finalized'
   totalMeals: number
   mealsCount: number
   acceptedCount: number
@@ -27,7 +27,6 @@ export function GenerationStatus({
           'border-[var(--lagoon)]/25 bg-[var(--lagoon)]/[0.06]',
         status === 'finalized' &&
           'border-[var(--palm)]/25 bg-[var(--palm)]/[0.06]',
-        status === 'archived' && 'border-[var(--line)] bg-[var(--surface)]',
       )}
     >
       {/* Status icon */}
@@ -35,7 +34,6 @@ export function GenerationStatus({
         {status === 'generating' && <GeneratingIcon />}
         {status === 'reviewing' && <ReviewingIcon />}
         {status === 'finalized' && <FinalizedIcon />}
-        {status === 'archived' && <ArchivedIcon />}
       </div>
 
       {/* Content */}
@@ -47,13 +45,11 @@ export function GenerationStatus({
               status === 'generating' && 'text-[var(--lagoon-deep)]',
               status === 'reviewing' && 'text-[var(--lagoon-deep)]',
               status === 'finalized' && 'text-[var(--palm)]',
-              status === 'archived' && 'text-[var(--sea-ink-soft)]',
             )}
           >
             {status === 'generating' && 'Generating meals…'}
             {status === 'reviewing' && 'Review your meals'}
             {status === 'finalized' && 'Plan finalized'}
-            {status === 'archived' && 'Archived'}
           </span>
         </div>
         <p className="text-xs text-[var(--sea-ink-soft)]">
@@ -77,8 +73,6 @@ export function GenerationStatus({
           )}
           {status === 'finalized' &&
             `${acceptedCount} meals ready for prep`}
-          {status === 'archived' &&
-            `${mealsCount} meals · ${acceptedCount} accepted`}
         </p>
       </div>
 
@@ -167,23 +161,3 @@ function FinalizedIcon() {
   )
 }
 
-function ArchivedIcon() {
-  return (
-    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--sea-ink-soft)]/10">
-      <svg
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="var(--sea-ink-soft)"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <path d="M21 8v13H3V8" />
-        <path d="M1 3h22v5H1z" />
-        <path d="M10 12h4" />
-      </svg>
-    </div>
-  )
-}

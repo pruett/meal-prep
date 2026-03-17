@@ -3,7 +3,7 @@ import { cn } from '~/lib/utils'
 
 interface PlanSummaryProps {
   weekStartDate: string
-  status: 'generating' | 'reviewing' | 'finalized' | 'archived'
+  status: 'generating' | 'reviewing' | 'finalized'
   mealCount: number
   totalMealsRequested: number
 }
@@ -45,12 +45,6 @@ const STATUS_CONFIG = {
     dotClass: 'bg-emerald-500',
     textClass: 'text-emerald-700',
     bgClass: 'bg-emerald-50',
-  },
-  archived: {
-    label: 'Archived',
-    dotClass: 'bg-[var(--sea-ink-soft)]',
-    textClass: 'text-[var(--sea-ink-soft)]',
-    bgClass: 'bg-[var(--sea-ink-soft)]/[0.08]',
   },
 } as const
 

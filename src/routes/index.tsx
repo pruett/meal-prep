@@ -34,6 +34,7 @@ import { PrepGenerationInterstitial } from '~/components/prep/prep-generation-in
 import { PrepGuideInline } from '~/components/prep/prep-guide-inline'
 import { ErrorFallback } from '~/components/error-boundary'
 import { HomeSkeleton } from '~/components/route-skeletons'
+import { AppPage } from '~/components/layout/app-page'
 import { requireAuth } from '~/lib/auth-guard'
 import { requireOnboarding } from '~/lib/onboarding-guard'
 import { fetchAuthQuery } from '~/lib/auth-server'
@@ -302,7 +303,7 @@ function HomePage() {
   }
 
   return (
-    <main className="page-wrap rise-in mx-auto max-w-5xl px-4 [--action-drawer-height:7rem] pb-[calc(var(--action-drawer-height)+2rem)] pt-14">
+    <AppPage className="[--action-drawer-height:7rem] pb-[calc(var(--action-drawer-height)+2rem)]">
       <Tabs defaultValue="this-week">
         <TabsList className="mb-6">
           <TabsTrigger value="this-week">This Week</TabsTrigger>
@@ -606,6 +607,6 @@ function HomePage() {
           </div>
         </div>
       )}
-    </main>
+    </AppPage>
   )
 }

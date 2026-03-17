@@ -23,6 +23,7 @@ import { CuisineSelector } from '~/components/preferences/cuisine-selector'
 import { MealPlanningControls } from '~/components/preferences/meal-planning-controls'
 import { CookingSetup } from '~/components/preferences/cooking-setup'
 import { FoodsToAvoidInput } from '~/components/preferences/foods-to-avoid-input'
+import { AppPage } from '~/components/layout/app-page'
 import {
   DIETARY_RESTRICTIONS,
   CUISINES,
@@ -279,11 +280,11 @@ function PreferencesPage() {
 
   if (!userId) {
     return (
-      <main className="page-wrap px-4 pb-8 pt-8">
+      <AppPage className="pt-8">
         <p className="py-12 text-center text-sm text-muted-foreground">
           Unable to load preferences. Please try again.
         </p>
-      </main>
+      </AppPage>
     )
   }
 
@@ -335,7 +336,7 @@ function PreferencesPage() {
   }
 
   return (
-    <main className="page-wrap rise-in px-4 pb-8 pt-14">
+    <AppPage>
       {/* Header */}
       <section className="mb-8">
         <p className="island-kicker mb-2">Preferences</p>
@@ -411,6 +412,6 @@ function PreferencesPage() {
           </div>
         </Section>
       </div>
-    </main>
+    </AppPage>
   )
 }

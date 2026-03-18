@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { AnimatePresence } from 'motion/react'
 import { createFileRoute } from '@tanstack/react-router'
 import {
   Plus,
@@ -39,6 +40,7 @@ import { Badge } from '~/components/ui/badge'
 import { Chip, ChipIcon, ChipGroup } from '~/components/ui/chip'
 import { Separator } from '~/components/ui/separator'
 import { PrepGenerationInterstitial } from '~/components/prep/prep-generation-interstitial'
+import { GeneratingInterstitial } from '~/components/generating-interstitial'
 
 export const Route = createFileRoute('/design-system')({
   component: DesignSystem,
@@ -122,6 +124,39 @@ function InterstitialPlayground() {
           onComplete={() => alert('onComplete fired — would navigate to prep page')}
         />
       </div>
+    </div>
+  )
+}
+
+function MealGenerationPlayground() {
+  const [active, setActive] = useState(false)
+  const [elapsed, setElapsed] = useState(0)
+
+  useEffect(() => {
+    if (!active) {
+      setElapsed(0)
+      return
+    }
+    const interval = setInterval(() => setElapsed((t) => t + 500), 500)
+    return () => clearInterval(interval)
+  }, [active])
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-wrap gap-2">
+        <Button size="sm" variant="outline" onClick={() => setActive(true)}>
+          Show Interstitial
+        </Button>
+        <Button size="sm" variant="outline" onClick={() => setActive(false)}>
+          Dismiss
+        </Button>
+      </div>
+      <p className="text-sm text-muted-foreground">
+        Click "Show Interstitial" to trigger the fullscreen meal generation overlay. Press Dismiss or Escape to close.
+      </p>
+      <AnimatePresence>
+        {active && <GeneratingInterstitial elapsed={elapsed} onClose={() => setActive(false)} />}
+      </AnimatePresence>
     </div>
   )
 }
@@ -602,6 +637,15 @@ function DesignSystem() {
             </ItemGroup>
           </Subsection>
         </Section>
+        <Separator />
+
+        {/* ── Meal Generation Interstitial ── */}
+        <Section title="Meal Generation Interstitial">
+          <Subsection title="Fullscreen Overlay">
+            <MealGenerationPlayground />
+          </Subsection>
+        </Section>
+
         <Separator />
 
         {/* ── Prep Generation Interstitial ── */}

@@ -11,10 +11,12 @@ interface AcceptedMeal {
 export interface MealPromptPreferences {
   dietaryRestrictions: string[]
   cuisinePreferences: CuisinePreference[]
-  householdSize: number
-  maxPrepTimeMinutes: number
+  household: { adults: number; kids: number; infants: number }
+  mealsPerWeek: { breakfast: number; lunch: number; dinner: number }
+  maxWeeklyPrepMinutes: number
+  maxCookTimeMinutes: number
   kitchenEquipment: string[]
-  foodsToAvoid: string
+  customInstructions: string
 }
 
 export function buildMealSuggestionsPrompt(
@@ -66,12 +68,13 @@ interface PrepGuideMeal {
 
 export function buildPrepGuidePrompt(
   acceptedMeals: PrepGuideMeal[],
-  householdSize: number = 2,
+  household: { adults: number; kids: number; infants: number } = { adults: 2, kids: 0, infants: 0 },
 ): string {
   const sections: string[] = []
+  const totalPeople = household.adults + household.kids + household.infants
 
   sections.push(
-    `You are a meal prep assistant. Generate a complete prep guide for the following ${acceptedMeals.length} ${acceptedMeals.length === 1 ? 'meal' : 'meals'}, serving ${householdSize} ${householdSize === 1 ? 'person' : 'people'}.`,
+    `You are a meal prep assistant. Generate a complete prep guide for the following ${acceptedMeals.length} ${acceptedMeals.length === 1 ? 'meal' : 'meals'}, serving ${totalPeople} ${totalPeople === 1 ? 'person' : 'people'}.`,
   )
 
   // List accepted meals with their details
@@ -84,7 +87,7 @@ export function buildPrepGuidePrompt(
   sections.push(`Meals to prepare:\n${mealList}`)
 
   sections.push(`For each meal, provide a full recipe including:
-- Complete ingredient list with exact quantities scaled for ${householdSize} ${householdSize === 1 ? 'serving' : 'servings'}
+- Complete ingredient list with exact quantities scaled for ${totalPeople} ${totalPeople === 1 ? 'serving' : 'servings'}
 - Step-by-step cooking instructions
 - Per-serving nutrition estimate (calories, protein, carbs, fat)
 - The "mealName" field must exactly match the meal name listed above`)
@@ -112,10 +115,12 @@ function buildPreferencesSection(
     return `Dietary preferences (defaults):
 - No dietary restrictions
 - Preferred cuisines: Mediterranean, Asian, Mexican
-- Household size: 2
-- Max prep time: 45 minutes per meal
+- Household: 2 people (2 adults)
+- Meals per week: 5 dinners
+- Weekly prep time budget: 120 minutes
+- Max cook time per meal: 30 minutes
 - Kitchen equipment: oven, stovetop, microwave, blender
-- No foods to avoid`
+- No custom instructions`
   }
 
   const lines: string[] = ['Dietary preferences:']
@@ -147,11 +152,25 @@ function buildPreferencesSection(
     lines.push('- Open to all cuisines')
   }
 
-  // Household size
-  lines.push(`- Household size: ${prefs.householdSize}`)
+  // Household
+  const totalPeople = prefs.household.adults + prefs.household.kids + prefs.household.infants
+  const parts: string[] = []
+  if (prefs.household.adults > 0) parts.push(`${prefs.household.adults} adult${prefs.household.adults !== 1 ? 's' : ''}`)
+  if (prefs.household.kids > 0) parts.push(`${prefs.household.kids} kid${prefs.household.kids !== 1 ? 's' : ''}`)
+  if (prefs.household.infants > 0) parts.push(`${prefs.household.infants} infant${prefs.household.infants !== 1 ? 's' : ''}`)
+  lines.push(`- Household: ${totalPeople} ${totalPeople === 1 ? 'person' : 'people'} (${parts.join(', ')})`)
 
-  // Max prep time
-  lines.push(`- Max prep time: ${prefs.maxPrepTimeMinutes} minutes per meal`)
+  // Meals per week
+  const mealParts: string[] = []
+  if (prefs.mealsPerWeek.breakfast > 0) mealParts.push(`${prefs.mealsPerWeek.breakfast} breakfast`)
+  if (prefs.mealsPerWeek.lunch > 0) mealParts.push(`${prefs.mealsPerWeek.lunch} lunch`)
+  if (prefs.mealsPerWeek.dinner > 0) mealParts.push(`${prefs.mealsPerWeek.dinner} dinner`)
+  const totalMeals = prefs.mealsPerWeek.breakfast + prefs.mealsPerWeek.lunch + prefs.mealsPerWeek.dinner
+  lines.push(`- Meals per week: ${totalMeals} total (${mealParts.join(', ')})`)
+
+  // Time budget
+  lines.push(`- Weekly prep time budget: ${prefs.maxWeeklyPrepMinutes} minutes`)
+  lines.push(`- Max cook time per meal: ${prefs.maxCookTimeMinutes} minutes`)
 
   // Kitchen equipment
   if (prefs.kitchenEquipment.length > 0) {
@@ -162,11 +181,11 @@ function buildPreferencesSection(
     lines.push('- Standard kitchen equipment only')
   }
 
-  // Foods to avoid
-  if (prefs.foodsToAvoid.trim()) {
-    lines.push(`- Foods to avoid: ${prefs.foodsToAvoid.trim()}`)
+  // Custom instructions
+  if (prefs.customInstructions.trim()) {
+    lines.push(`- Custom instructions: ${prefs.customInstructions.trim()}`)
   } else {
-    lines.push('- No foods to avoid')
+    lines.push('- No custom instructions')
   }
 
   return lines.join('\n')

@@ -36,7 +36,7 @@ export const Route = createFileRoute('/api/ai/generate-prep')({
         const preferences = await fetchAuthQuery(api.preferences.getByUser, {
           userId: user._id,
         })
-        const householdSize = preferences?.householdSize ?? 2
+        const household = preferences?.household ?? { adults: 2, kids: 0, infants: 0 }
 
         const prompt = buildPrepGuidePrompt(
           acceptedMeals.map((m) => ({
@@ -45,7 +45,7 @@ export const Route = createFileRoute('/api/ai/generate-prep')({
             keyIngredients: m.keyIngredients,
             estimatedPrepMinutes: m.estimatedPrepMinutes,
           })),
-          householdSize,
+          household,
         )
 
         const result = await withRetry({

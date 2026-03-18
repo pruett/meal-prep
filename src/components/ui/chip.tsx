@@ -5,7 +5,7 @@ import { Button } from "~/components/ui/button"
 import { cn } from "~/lib/utils"
 
 const chipVariants = cva(
-  "h-auto rounded-lg justify-between text-left",
+  "h-auto rounded-lg justify-center text-left relative",
   {
     variants: {
       variant: {
@@ -70,7 +70,7 @@ function Chip({
       {...props}
     >
       {children}
-      {selected && <Check className="ml-2 size-4" />}
+      {selected && <Check className="absolute right-3 size-4" />}
     </Button>
   )
 }

@@ -50,10 +50,10 @@ export const EQUIPMENT: PreferenceOption[] = [
 ]
 
 export function formatTime(minutes: number): string {
-  if (minutes >= 120) return "2 hrs"
   if (minutes >= 60) {
+    const hrs = Math.floor(minutes / 60)
     const rem = minutes % 60
-    return `${Math.floor(minutes / 60)} hr${rem > 0 ? ` ${rem} min` : ""}`
+    return `${hrs} hr${hrs > 1 ? "s" : ""}${rem > 0 ? ` ${rem} min` : ""}`
   }
   return `${minutes} min`
 }
@@ -63,10 +63,6 @@ export function toggleInSet(set: Set<string>, id: string): Set<string> {
   if (next.has(id)) next.delete(id)
   else next.add(id)
   return next
-}
-
-export function adjustHouseholdSize(current: number, delta: number): number {
-  return Math.min(10, Math.max(1, current + delta))
 }
 
 export function setsEqual(a: Set<string>, b: Set<string>): boolean {

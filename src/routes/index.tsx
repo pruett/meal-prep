@@ -154,9 +154,15 @@ function HomePage() {
   const preferencesSummary = useMemo(() => {
     if (!preferences) return null
     const parts: string[] = []
-    if (preferences.mealsPerWeek) parts.push(`${preferences.mealsPerWeek} meals/week`)
-    if (preferences.householdSize) parts.push(`${preferences.householdSize} servings`)
-    if (preferences.maxPrepTimeMinutes) parts.push(`${preferences.maxPrepTimeMinutes}min max prep`)
+    if (preferences.mealsPerWeek) {
+      const total = preferences.mealsPerWeek.breakfast + preferences.mealsPerWeek.lunch + preferences.mealsPerWeek.dinner
+      parts.push(`${total} meals/week`)
+    }
+    if (preferences.household) {
+      const total = preferences.household.adults + preferences.household.kids + preferences.household.infants
+      parts.push(`${total} servings`)
+    }
+    if (preferences.maxCookTimeMinutes) parts.push(`${preferences.maxCookTimeMinutes}min/meal`)
     if (preferences.dietaryRestrictions?.length) {
       parts.push(preferences.dietaryRestrictions.slice(0, 2).join(', ') +
         (preferences.dietaryRestrictions.length > 2 ? ` +${preferences.dietaryRestrictions.length - 2}` : ''))

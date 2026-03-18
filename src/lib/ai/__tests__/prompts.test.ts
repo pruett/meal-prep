@@ -5,6 +5,21 @@ import {
   type MealPromptPreferences,
 } from '~/lib/ai/prompts'
 
+const defaultPrefs: MealPromptPreferences = {
+  dietaryRestrictions: [],
+  cuisinePreferences: [],
+  household: { adults: 2, kids: 0, infants: 0 },
+  mealsPerWeek: { breakfast: 0, lunch: 0, dinner: 5 },
+  maxWeeklyPrepMinutes: 120,
+  maxCookTimeMinutes: 30,
+  kitchenEquipment: [],
+  customInstructions: '',
+}
+
+function makePrefs(overrides: Partial<MealPromptPreferences> = {}): MealPromptPreferences {
+  return { ...defaultPrefs, ...overrides }
+}
+
 describe('buildMealSuggestionsPrompt', () => {
   describe('default behavior (no preferences)', () => {
     it('generates prompt with default meal count of 7', () => {
@@ -17,10 +32,12 @@ describe('buildMealSuggestionsPrompt', () => {
       expect(prompt).toContain('Dietary preferences (defaults)')
       expect(prompt).toContain('No dietary restrictions')
       expect(prompt).toContain('Mediterranean, Asian, Mexican')
-      expect(prompt).toContain('Household size: 2')
-      expect(prompt).toContain('Max prep time: 45 minutes')
+      expect(prompt).toContain('Household: 2 people (2 adults)')
+      expect(prompt).toContain('Meals per week: 5 dinners')
+      expect(prompt).toContain('Weekly prep time budget: 120 minutes')
+      expect(prompt).toContain('Max cook time per meal: 30 minutes')
       expect(prompt).toContain('oven, stovetop, microwave, blender')
-      expect(prompt).toContain('No foods to avoid')
+      expect(prompt).toContain('No custom instructions')
     })
 
     it('includes default preferences when null is passed', () => {
@@ -64,40 +81,23 @@ describe('buildMealSuggestionsPrompt', () => {
 
   describe('with dietary restrictions', () => {
     it('includes dietary restrictions in prompt', () => {
-      const prefs: MealPromptPreferences = {
+      const prefs = makePrefs({
         dietaryRestrictions: ['Vegetarian', 'Gluten-Free'],
-        cuisinePreferences: [],
-        householdSize: 2,
-        maxPrepTimeMinutes: 45,
-        kitchenEquipment: [],
-        foodsToAvoid: '',
-      }
+      })
       const prompt = buildMealSuggestionsPrompt(7, prefs)
       expect(prompt).toContain('Dietary restrictions: Vegetarian, Gluten-Free')
     })
 
     it('shows no dietary restrictions when array is empty', () => {
-      const prefs: MealPromptPreferences = {
-        dietaryRestrictions: [],
-        cuisinePreferences: [],
-        householdSize: 2,
-        maxPrepTimeMinutes: 45,
-        kitchenEquipment: [],
-        foodsToAvoid: '',
-      }
+      const prefs = makePrefs()
       const prompt = buildMealSuggestionsPrompt(7, prefs)
       expect(prompt).toContain('No dietary restrictions')
     })
 
     it('includes single dietary restriction', () => {
-      const prefs: MealPromptPreferences = {
+      const prefs = makePrefs({
         dietaryRestrictions: ['Vegan'],
-        cuisinePreferences: [],
-        householdSize: 2,
-        maxPrepTimeMinutes: 45,
-        kitchenEquipment: [],
-        foodsToAvoid: '',
-      }
+      })
       const prompt = buildMealSuggestionsPrompt(7, prefs)
       expect(prompt).toContain('Dietary restrictions: Vegan')
     })
@@ -105,51 +105,36 @@ describe('buildMealSuggestionsPrompt', () => {
 
   describe('with cuisine preferences', () => {
     it('includes liked cuisines', () => {
-      const prefs: MealPromptPreferences = {
-        dietaryRestrictions: [],
+      const prefs = makePrefs({
         cuisinePreferences: [
           { cuisine: 'Italian', preference: 'like' },
           { cuisine: 'Thai', preference: 'like' },
         ],
-        householdSize: 2,
-        maxPrepTimeMinutes: 45,
-        kitchenEquipment: [],
-        foodsToAvoid: '',
-      }
+      })
       const prompt = buildMealSuggestionsPrompt(7, prefs)
       expect(prompt).toContain('Preferred cuisines: Italian, Thai')
     })
 
     it('includes disliked cuisines', () => {
-      const prefs: MealPromptPreferences = {
-        dietaryRestrictions: [],
+      const prefs = makePrefs({
         cuisinePreferences: [
           { cuisine: 'Indian', preference: 'dislike' },
           { cuisine: 'Japanese', preference: 'dislike' },
         ],
-        householdSize: 2,
-        maxPrepTimeMinutes: 45,
-        kitchenEquipment: [],
-        foodsToAvoid: '',
-      }
+      })
       const prompt = buildMealSuggestionsPrompt(7, prefs)
       expect(prompt).toContain('Cuisines to avoid: Indian, Japanese')
     })
 
     it('includes both liked and disliked cuisines', () => {
-      const prefs: MealPromptPreferences = {
-        dietaryRestrictions: [],
+      const prefs = makePrefs({
         cuisinePreferences: [
           { cuisine: 'Italian', preference: 'like' },
           { cuisine: 'Mexican', preference: 'like' },
           { cuisine: 'Indian', preference: 'dislike' },
           { cuisine: 'French', preference: 'neutral' },
         ],
-        householdSize: 2,
-        maxPrepTimeMinutes: 45,
-        kitchenEquipment: [],
-        foodsToAvoid: '',
-      }
+      })
       const prompt = buildMealSuggestionsPrompt(7, prefs)
       expect(prompt).toContain('Preferred cuisines: Italian, Mexican')
       expect(prompt).toContain('Cuisines to avoid: Indian')
@@ -157,17 +142,12 @@ describe('buildMealSuggestionsPrompt', () => {
     })
 
     it('filters out neutral cuisines', () => {
-      const prefs: MealPromptPreferences = {
-        dietaryRestrictions: [],
+      const prefs = makePrefs({
         cuisinePreferences: [
           { cuisine: 'Italian', preference: 'neutral' },
           { cuisine: 'Thai', preference: 'neutral' },
         ],
-        householdSize: 2,
-        maxPrepTimeMinutes: 45,
-        kitchenEquipment: [],
-        foodsToAvoid: '',
-      }
+      })
       const prompt = buildMealSuggestionsPrompt(7, prefs)
       expect(prompt).toContain('Open to all cuisines')
       expect(prompt).not.toContain('Preferred cuisines')
@@ -175,126 +155,85 @@ describe('buildMealSuggestionsPrompt', () => {
     })
 
     it('shows open to all cuisines when preferences array is empty', () => {
-      const prefs: MealPromptPreferences = {
-        dietaryRestrictions: [],
-        cuisinePreferences: [],
-        householdSize: 2,
-        maxPrepTimeMinutes: 45,
-        kitchenEquipment: [],
-        foodsToAvoid: '',
-      }
+      const prefs = makePrefs()
       const prompt = buildMealSuggestionsPrompt(7, prefs)
       expect(prompt).toContain('Open to all cuisines')
     })
   })
 
   describe('with household and cooking preferences', () => {
-    it('includes household size', () => {
-      const prefs: MealPromptPreferences = {
-        dietaryRestrictions: [],
-        cuisinePreferences: [],
-        householdSize: 4,
-        maxPrepTimeMinutes: 45,
-        kitchenEquipment: [],
-        foodsToAvoid: '',
-      }
+    it('includes household breakdown', () => {
+      const prefs = makePrefs({
+        household: { adults: 2, kids: 2, infants: 0 },
+      })
       const prompt = buildMealSuggestionsPrompt(7, prefs)
-      expect(prompt).toContain('Household size: 4')
+      expect(prompt).toContain('Household: 4 people (2 adults, 2 kids)')
     })
 
-    it('includes max prep time', () => {
-      const prefs: MealPromptPreferences = {
-        dietaryRestrictions: [],
-        cuisinePreferences: [],
-        householdSize: 2,
-        maxPrepTimeMinutes: 30,
-        kitchenEquipment: [],
-        foodsToAvoid: '',
-      }
+    it('includes meals per week breakdown', () => {
+      const prefs = makePrefs({
+        mealsPerWeek: { breakfast: 5, lunch: 3, dinner: 7 },
+      })
       const prompt = buildMealSuggestionsPrompt(7, prefs)
-      expect(prompt).toContain('Max prep time: 30 minutes per meal')
+      expect(prompt).toContain('Meals per week: 15 total (5 breakfast, 3 lunch, 7 dinner)')
+    })
+
+    it('includes weekly prep and cook time', () => {
+      const prefs = makePrefs({
+        maxWeeklyPrepMinutes: 90,
+        maxCookTimeMinutes: 40,
+      })
+      const prompt = buildMealSuggestionsPrompt(7, prefs)
+      expect(prompt).toContain('Weekly prep time budget: 90 minutes')
+      expect(prompt).toContain('Max cook time per meal: 40 minutes')
     })
 
     it('includes kitchen equipment lowercased', () => {
-      const prefs: MealPromptPreferences = {
-        dietaryRestrictions: [],
-        cuisinePreferences: [],
-        householdSize: 2,
-        maxPrepTimeMinutes: 45,
+      const prefs = makePrefs({
         kitchenEquipment: ['Oven', 'Stovetop', 'Air Fryer'],
-        foodsToAvoid: '',
-      }
+      })
       const prompt = buildMealSuggestionsPrompt(7, prefs)
       expect(prompt).toContain('Kitchen equipment: oven, stovetop, air fryer')
     })
 
     it('shows standard equipment when kitchen equipment is empty', () => {
-      const prefs: MealPromptPreferences = {
-        dietaryRestrictions: [],
-        cuisinePreferences: [],
-        householdSize: 2,
-        maxPrepTimeMinutes: 45,
-        kitchenEquipment: [],
-        foodsToAvoid: '',
-      }
+      const prefs = makePrefs()
       const prompt = buildMealSuggestionsPrompt(7, prefs)
       expect(prompt).toContain('Standard kitchen equipment only')
     })
   })
 
-  describe('with foods to avoid', () => {
-    it('includes foods to avoid text', () => {
-      const prefs: MealPromptPreferences = {
-        dietaryRestrictions: [],
-        cuisinePreferences: [],
-        householdSize: 2,
-        maxPrepTimeMinutes: 45,
-        kitchenEquipment: [],
-        foodsToAvoid: 'shellfish, peanuts, raw fish',
-      }
+  describe('with custom instructions', () => {
+    it('includes custom instructions text', () => {
+      const prefs = makePrefs({
+        customInstructions: 'No shellfish, extra protein, kid-friendly',
+      })
       const prompt = buildMealSuggestionsPrompt(7, prefs)
       expect(prompt).toContain(
-        'Foods to avoid: shellfish, peanuts, raw fish',
+        'Custom instructions: No shellfish, extra protein, kid-friendly',
       )
     })
 
-    it('shows no foods to avoid when string is empty', () => {
-      const prefs: MealPromptPreferences = {
-        dietaryRestrictions: [],
-        cuisinePreferences: [],
-        householdSize: 2,
-        maxPrepTimeMinutes: 45,
-        kitchenEquipment: [],
-        foodsToAvoid: '',
-      }
+    it('shows no custom instructions when string is empty', () => {
+      const prefs = makePrefs()
       const prompt = buildMealSuggestionsPrompt(7, prefs)
-      expect(prompt).toContain('No foods to avoid')
+      expect(prompt).toContain('No custom instructions')
     })
 
-    it('trims whitespace from foods to avoid', () => {
-      const prefs: MealPromptPreferences = {
-        dietaryRestrictions: [],
-        cuisinePreferences: [],
-        householdSize: 2,
-        maxPrepTimeMinutes: 45,
-        kitchenEquipment: [],
-        foodsToAvoid: '  mushrooms, olives  ',
-      }
+    it('trims whitespace from custom instructions', () => {
+      const prefs = makePrefs({
+        customInstructions: '  avoid mushrooms, prefer one-pot  ',
+      })
       const prompt = buildMealSuggestionsPrompt(7, prefs)
-      expect(prompt).toContain('Foods to avoid: mushrooms, olives')
+      expect(prompt).toContain('Custom instructions: avoid mushrooms, prefer one-pot')
     })
 
-    it('treats whitespace-only string as no foods to avoid', () => {
-      const prefs: MealPromptPreferences = {
-        dietaryRestrictions: [],
-        cuisinePreferences: [],
-        householdSize: 2,
-        maxPrepTimeMinutes: 45,
-        kitchenEquipment: [],
-        foodsToAvoid: '   ',
-      }
+    it('treats whitespace-only string as no custom instructions', () => {
+      const prefs = makePrefs({
+        customInstructions: '   ',
+      })
       const prompt = buildMealSuggestionsPrompt(7, prefs)
-      expect(prompt).toContain('No foods to avoid')
+      expect(prompt).toContain('No custom instructions')
     })
   })
 
@@ -307,10 +246,12 @@ describe('buildMealSuggestionsPrompt', () => {
           { cuisine: 'Japanese', preference: 'like' },
           { cuisine: 'German', preference: 'dislike' },
         ],
-        householdSize: 3,
-        maxPrepTimeMinutes: 60,
+        household: { adults: 2, kids: 1, infants: 0 },
+        mealsPerWeek: { breakfast: 3, lunch: 0, dinner: 7 },
+        maxWeeklyPrepMinutes: 120,
+        maxCookTimeMinutes: 30,
         kitchenEquipment: ['Oven', 'Stovetop', 'Instant Pot', 'Air Fryer'],
-        foodsToAvoid: 'eggplant, bell peppers',
+        customInstructions: 'avoid eggplant, kid-friendly portions',
       }
       const prompt = buildMealSuggestionsPrompt(10, prefs)
       expect(prompt).toContain('Generate exactly 10 meal suggestions')
@@ -321,12 +262,14 @@ describe('buildMealSuggestionsPrompt', () => {
         'Preferred cuisines: Mediterranean, Japanese',
       )
       expect(prompt).toContain('Cuisines to avoid: German')
-      expect(prompt).toContain('Household size: 3')
-      expect(prompt).toContain('Max prep time: 60 minutes per meal')
+      expect(prompt).toContain('Household: 3 people (2 adults, 1 kid)')
+      expect(prompt).toContain('Meals per week: 10 total (3 breakfast, 7 dinner)')
+      expect(prompt).toContain('Weekly prep time budget: 120 minutes')
+      expect(prompt).toContain('Max cook time per meal: 30 minutes')
       expect(prompt).toContain(
         'Kitchen equipment: oven, stovetop, instant pot, air fryer',
       )
-      expect(prompt).toContain('Foods to avoid: eggplant, bell peppers')
+      expect(prompt).toContain('Custom instructions: avoid eggplant, kid-friendly portions')
       expect(prompt).not.toContain('Dietary preferences (defaults)')
     })
   })
@@ -368,10 +311,12 @@ describe('buildMealSuggestionsPrompt', () => {
         cuisinePreferences: [
           { cuisine: 'Thai', preference: 'like' },
         ],
-        householdSize: 1,
-        maxPrepTimeMinutes: 30,
+        household: { adults: 1, kids: 0, infants: 0 },
+        mealsPerWeek: { breakfast: 0, lunch: 0, dinner: 4 },
+        maxWeeklyPrepMinutes: 60,
+        maxCookTimeMinutes: 15,
         kitchenEquipment: ['Stovetop'],
-        foodsToAvoid: 'nuts',
+        customInstructions: 'no nuts',
       }
       const accepted = [
         { name: 'Tofu Pad Thai', description: 'Classic Thai noodle dish' },
@@ -380,10 +325,11 @@ describe('buildMealSuggestionsPrompt', () => {
       expect(prompt).toContain('Generate exactly 4 meal suggestions')
       expect(prompt).toContain('Dietary restrictions: Vegan')
       expect(prompt).toContain('Preferred cuisines: Thai')
-      expect(prompt).toContain('Household size: 1')
-      expect(prompt).toContain('Max prep time: 30 minutes')
+      expect(prompt).toContain('Household: 1 person (1 adult)')
+      expect(prompt).toContain('Weekly prep time budget: 60 minutes')
+      expect(prompt).toContain('Max cook time per meal: 15 minutes')
       expect(prompt).toContain('Kitchen equipment: stovetop')
-      expect(prompt).toContain('Foods to avoid: nuts')
+      expect(prompt).toContain('Custom instructions: no nuts')
       expect(prompt).toContain('- Tofu Pad Thai: Classic Thai noodle dish')
       expect(prompt).toContain('Do NOT suggest any meals similar')
     })
@@ -447,15 +393,15 @@ describe('buildPrepGuidePrompt', () => {
     })
   })
 
-  describe('household size', () => {
-    it('uses specified household size', () => {
-      const prompt = buildPrepGuidePrompt(sampleMeals, 4)
+  describe('household object', () => {
+    it('uses total from household object', () => {
+      const prompt = buildPrepGuidePrompt(sampleMeals, { adults: 2, kids: 2, infants: 0 })
       expect(prompt).toContain('serving 4 people')
       expect(prompt).toContain('scaled for 4 servings')
     })
 
     it('uses singular person for household of 1', () => {
-      const prompt = buildPrepGuidePrompt(sampleMeals, 1)
+      const prompt = buildPrepGuidePrompt(sampleMeals, { adults: 1, kids: 0, infants: 0 })
       expect(prompt).toContain('serving 1 person')
       expect(prompt).toContain('scaled for 1 serving')
     })
@@ -466,8 +412,8 @@ describe('buildPrepGuidePrompt', () => {
       expect(prompt).toContain('scaled for 2 servings')
     })
 
-    it('handles large household size', () => {
-      const prompt = buildPrepGuidePrompt(sampleMeals, 10)
+    it('handles large household', () => {
+      const prompt = buildPrepGuidePrompt(sampleMeals, { adults: 5, kids: 3, infants: 2 })
       expect(prompt).toContain('serving 10 people')
       expect(prompt).toContain('scaled for 10 servings')
     })
@@ -565,7 +511,7 @@ describe('buildPrepGuidePrompt', () => {
         keyIngredients: ['ingredient1', 'ingredient2'],
         estimatedPrepMinutes: 20 + i * 5,
       }))
-      const prompt = buildPrepGuidePrompt(meals, 4)
+      const prompt = buildPrepGuidePrompt(meals, { adults: 4, kids: 0, infants: 0 })
       expect(prompt).toContain('7 meals')
       expect(prompt).toContain('serving 4 people')
       for (let i = 0; i < 7; i++) {

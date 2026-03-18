@@ -76,11 +76,12 @@ export const createWithPreferences = internalMutation({
       userId,
       dietaryRestrictions: [],
       cuisinePreferences: [],
-      mealsPerWeek: 7,
-      householdSize: 2,
-      maxPrepTimeMinutes: 45,
+      household: { adults: 2, kids: 0, infants: 0 },
+      mealsPerWeek: { breakfast: 0, lunch: 0, dinner: 5 },
+      maxWeeklyPrepMinutes: 120,
+      maxCookTimeMinutes: 30,
       kitchenEquipment: [],
-      foodsToAvoid: '',
+      customInstructions: '',
     })
     return userId
   },

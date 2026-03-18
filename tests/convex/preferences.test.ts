@@ -21,11 +21,12 @@ describe('preferences.create', () => {
       userId,
       dietaryRestrictions: [],
       cuisinePreferences: [],
-      mealsPerWeek: 7,
-      householdSize: 2,
-      maxPrepTimeMinutes: 45,
+      household: { adults: 2, kids: 0, infants: 0 },
+      mealsPerWeek: { breakfast: 0, lunch: 0, dinner: 5 },
+      maxWeeklyPrepMinutes: 120,
+      maxCookTimeMinutes: 30,
       kitchenEquipment: [],
-      foodsToAvoid: '',
+      customInstructions: '',
     })
   })
 
@@ -48,7 +49,7 @@ describe('preferences.getByUser', () => {
     const prefs = await t.query(api.preferences.getByUser, { userId })
     expect(prefs).not.toBeNull()
     expect(prefs!.userId).toEqual(userId)
-    expect(prefs!.mealsPerWeek).toBe(7)
+    expect(prefs!.mealsPerWeek).toEqual({ breakfast: 0, lunch: 0, dinner: 5 })
   })
 
   it('returns null for user without preferences', async () => {
@@ -105,36 +106,62 @@ describe('preferences.update', () => {
     })
   })
 
-  it('updates numeric fields', async () => {
+  it('updates household', async () => {
     const t = convexTest(schema, modules)
     const userId = await createTestUser(t)
     await t.mutation(api.preferences.create, { userId })
 
     await t.mutation(api.preferences.update, {
       userId,
-      mealsPerWeek: 14,
-      householdSize: 4,
-      maxPrepTimeMinutes: 60,
+      household: { adults: 3, kids: 2, infants: 1 },
     })
 
     const prefs = await t.query(api.preferences.getByUser, { userId })
-    expect(prefs!.mealsPerWeek).toBe(14)
-    expect(prefs!.householdSize).toBe(4)
-    expect(prefs!.maxPrepTimeMinutes).toBe(60)
+    expect(prefs!.household).toEqual({ adults: 3, kids: 2, infants: 1 })
   })
 
-  it('updates foods to avoid', async () => {
+  it('updates mealsPerWeek as object', async () => {
     const t = convexTest(schema, modules)
     const userId = await createTestUser(t)
     await t.mutation(api.preferences.create, { userId })
 
     await t.mutation(api.preferences.update, {
       userId,
-      foodsToAvoid: 'shellfish, peanuts',
+      mealsPerWeek: { breakfast: 5, lunch: 3, dinner: 5 },
     })
 
     const prefs = await t.query(api.preferences.getByUser, { userId })
-    expect(prefs!.foodsToAvoid).toBe('shellfish, peanuts')
+    expect(prefs!.mealsPerWeek).toEqual({ breakfast: 5, lunch: 3, dinner: 5 })
+  })
+
+  it('updates time fields', async () => {
+    const t = convexTest(schema, modules)
+    const userId = await createTestUser(t)
+    await t.mutation(api.preferences.create, { userId })
+
+    await t.mutation(api.preferences.update, {
+      userId,
+      maxWeeklyPrepMinutes: 180,
+      maxCookTimeMinutes: 60,
+    })
+
+    const prefs = await t.query(api.preferences.getByUser, { userId })
+    expect(prefs!.maxWeeklyPrepMinutes).toBe(180)
+    expect(prefs!.maxCookTimeMinutes).toBe(60)
+  })
+
+  it('updates customInstructions', async () => {
+    const t = convexTest(schema, modules)
+    const userId = await createTestUser(t)
+    await t.mutation(api.preferences.create, { userId })
+
+    await t.mutation(api.preferences.update, {
+      userId,
+      customInstructions: 'No shellfish, extra protein',
+    })
+
+    const prefs = await t.query(api.preferences.getByUser, { userId })
+    expect(prefs!.customInstructions).toBe('No shellfish, extra protein')
   })
 
   it('updates kitchen equipment', async () => {
@@ -158,14 +185,14 @@ describe('preferences.update', () => {
 
     await t.mutation(api.preferences.update, {
       userId,
-      mealsPerWeek: 10,
+      mealsPerWeek: { breakfast: 3, lunch: 3, dinner: 4 },
     })
 
     const prefs = await t.query(api.preferences.getByUser, { userId })
-    expect(prefs!.mealsPerWeek).toBe(10)
+    expect(prefs!.mealsPerWeek).toEqual({ breakfast: 3, lunch: 3, dinner: 4 })
     // Other fields untouched
-    expect(prefs!.householdSize).toBe(2)
-    expect(prefs!.maxPrepTimeMinutes).toBe(45)
+    expect(prefs!.household).toEqual({ adults: 2, kids: 0, infants: 0 })
+    expect(prefs!.maxWeeklyPrepMinutes).toBe(120)
     expect(prefs!.dietaryRestrictions).toEqual([])
   })
 
@@ -176,7 +203,7 @@ describe('preferences.update', () => {
     await expect(
       t.mutation(api.preferences.update, {
         userId,
-        mealsPerWeek: 10,
+        mealsPerWeek: { breakfast: 0, lunch: 0, dinner: 10 },
       }),
     ).rejects.toThrow('Preferences not found for user')
   })
@@ -190,6 +217,6 @@ describe('preferences.update', () => {
     await t.mutation(api.preferences.update, { userId })
 
     const prefs = await t.query(api.preferences.getByUser, { userId })
-    expect(prefs!.mealsPerWeek).toBe(7) // defaults unchanged
+    expect(prefs!.mealsPerWeek).toEqual({ breakfast: 0, lunch: 0, dinner: 5 }) // defaults unchanged
   })
 })

@@ -32,11 +32,20 @@ export default defineSchema({
         ),
       }),
     ),
-    mealsPerWeek: v.number(),
-    householdSize: v.number(),
-    maxPrepTimeMinutes: v.number(),
+    household: v.object({
+      adults: v.number(),
+      kids: v.number(),
+      infants: v.number(),
+    }),
+    mealsPerWeek: v.object({
+      breakfast: v.number(),
+      lunch: v.number(),
+      dinner: v.number(),
+    }),
+    maxWeeklyPrepMinutes: v.number(),
+    maxCookTimeMinutes: v.number(),
     kitchenEquipment: v.array(v.string()),
-    foodsToAvoid: v.string(),
+    customInstructions: v.string(),
   }).index('by_user', ['userId']),
 
   mealPlans: defineTable({

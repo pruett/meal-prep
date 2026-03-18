@@ -1,70 +1,70 @@
 import { Slider } from "~/components/ui/slider"
 import { cn } from "~/lib/utils"
-import { ChipGrid } from "./chip-grid"
-import { EQUIPMENT, formatTime, toggleInSet } from "./constants"
+import { formatTime } from "./constants"
 
 export function CookingSetup({
-  maxPrepTime,
-  onMaxPrepTimeChange,
-  equipment,
-  onEquipmentChange,
-  equipmentLayout,
-  showIcons,
+  maxWeeklyPrep,
+  onMaxWeeklyPrepChange,
+  maxCookTime,
+  onMaxCookTimeChange,
   className,
 }: {
-  maxPrepTime: number
-  onMaxPrepTimeChange: (value: number) => void
-  equipment: Set<string>
-  onEquipmentChange: (next: Set<string>) => void
-  equipmentLayout?: "list" | "grid"
-  showIcons?: boolean
+  maxWeeklyPrep: number
+  onMaxWeeklyPrepChange: (value: number) => void
+  maxCookTime: number
+  onMaxCookTimeChange: (value: number) => void
   className?: string
 }) {
-  const allSelected = EQUIPMENT.every(({ id }) => equipment.has(id))
-
   return (
     <div className={cn("flex flex-col gap-8", className)}>
       <div>
         <div className="mb-4 flex items-baseline justify-between">
-          <label className="text-sm font-medium">Max prep time per meal</label>
+          <label className="text-sm font-medium">Weekly prep time</label>
           <span className="text-2xl font-bold tabular-nums text-primary">
-            {formatTime(maxPrepTime)}
+            {formatTime(maxWeeklyPrep)}
           </span>
         </div>
+        <p className="mb-4 text-xs text-muted-foreground">
+          How long you have to batch-prep for the week
+        </p>
         <Slider
-          value={[maxPrepTime]}
+          value={[maxWeeklyPrep]}
           onValueChange={(val) =>
-            onMaxPrepTimeChange(Array.isArray(val) ? val[0] : val)
+            onMaxWeeklyPrepChange(Array.isArray(val) ? (val[0] ?? maxWeeklyPrep) : val)
           }
-          min={15}
-          max={120}
-          step={5}
+          min={30}
+          max={300}
+          step={15}
         />
         <div className="mt-2 flex justify-between text-xs text-muted-foreground">
-          <span>15 min</span>
-          <span>2 hrs</span>
+          <span>30 min</span>
+          <span>5 hrs</span>
         </div>
       </div>
 
       <div>
-        <label className="mb-3 block text-sm font-medium">
-          Kitchen equipment
-        </label>
-        <ChipGrid
-          items={EQUIPMENT}
-          selected={equipment}
-          onToggle={(id) => onEquipmentChange(toggleInSet(equipment, id))}
-          showSelectAll
-          onSelectAll={() =>
-            onEquipmentChange(
-              allSelected
-                ? new Set()
-                : new Set(EQUIPMENT.map(({ id }) => id)),
-            )
+        <div className="mb-4 flex items-baseline justify-between">
+          <label className="text-sm font-medium">Cook time per meal</label>
+          <span className="text-2xl font-bold tabular-nums text-primary">
+            {formatTime(maxCookTime)}
+          </span>
+        </div>
+        <p className="mb-4 text-xs text-muted-foreground">
+          Max time to finish cooking each meal
+        </p>
+        <Slider
+          value={[maxCookTime]}
+          onValueChange={(val) =>
+            onMaxCookTimeChange(Array.isArray(val) ? (val[0] ?? maxCookTime) : val)
           }
-          layout={equipmentLayout}
-          showIcons={showIcons}
+          min={10}
+          max={90}
+          step={5}
         />
+        <div className="mt-2 flex justify-between text-xs text-muted-foreground">
+          <span>10 min</span>
+          <span>1 hr 30 min</span>
+        </div>
       </div>
     </div>
   )

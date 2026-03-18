@@ -2,7 +2,7 @@ import { useMutation } from 'convex/react'
 import { toast } from 'sonner'
 import type { Doc } from '../../../convex/_generated/dataModel'
 import { api } from '../../../convex/_generated/api'
-import { Check, CircleCheck, Clock, LeafyGreen, X, XCircle } from 'lucide-react'
+import { Check, CircleCheck, LeafyGreen, X, XCircle } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import { Skeleton } from '~/components/ui/skeleton'
 import {
@@ -19,9 +19,10 @@ interface MealCardProps {
   meal: Doc<'meals'>
   showActions?: boolean
   isRegenerating?: boolean
+  variant?: 'default' | 'compact'
 }
 
-export function MealCard({ meal, showActions = false, isRegenerating = false }: MealCardProps) {
+export function MealCard({ meal, showActions = false, isRegenerating = false, variant = 'default' }: MealCardProps) {
   const updateStatus = useMutation(api.meals.updateStatus)
 
   const isAccepted = meal.status === 'accepted'
@@ -64,23 +65,23 @@ export function MealCard({ meal, showActions = false, isRegenerating = false }: 
     )
   }
 
-  return (
-    <Item
-      variant="outline"
-      className={cn(
-        MEAL_CARD_HEIGHT,
-        'relative overflow-hidden transition-all duration-200',
-        isAccepted && 'border-foreground/30',
-      )}
-    >
-      {isAccepted && (
-        <CircleCheck className="absolute right-3 top-3 size-5" />
-      )}
-      {isRejected && (
-        <XCircle className="absolute right-3 top-3 size-5 text-destructive" />
-      )}
-      <ItemContent>
-        <div className="flex items-center gap-2">
+  if (variant === 'compact') {
+    return (
+      <Item
+        variant="outline"
+        className={cn(
+          MEAL_CARD_HEIGHT,
+          'relative h-full flex-col items-stretch overflow-hidden bg-background transition-all duration-200',
+          isAccepted && 'border-foreground/30',
+        )}
+      >
+        {isAccepted && (
+          <CircleCheck className="absolute right-3 top-3 size-5" />
+        )}
+        {isRejected && (
+          <XCircle className="absolute right-3 top-3 size-5 text-destructive" />
+        )}
+        <ItemContent>
           <ItemTitle
             className={cn(
               'text-base font-semibold',
@@ -90,15 +91,8 @@ export function MealCard({ meal, showActions = false, isRegenerating = false }: 
           >
             {meal.name}
           </ItemTitle>
-          <span className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Clock className="size-3 shrink-0" />
-            {meal.estimatedPrepMinutes}m
-          </span>
-        </div>
-        <ItemContent>{meal.description}</ItemContent>
-      </ItemContent>
-      <ItemFooter>
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+        </ItemContent>
+        <div className="flex items-center gap-1.5 px-4 text-xs text-muted-foreground">
           <LeafyGreen className="size-3.5 shrink-0" />
           <span>
             <span className="font-medium text-foreground">Ingredients</span>{' '}
@@ -106,24 +100,13 @@ export function MealCard({ meal, showActions = false, isRegenerating = false }: 
           </span>
         </div>
         {showActions && (
-          <div className="flex items-center justify-end gap-2">
-            <Button
-              size="sm"
-              variant={isAccepted ? 'default' : 'outline'}
-              onClick={handleAccept}
-              className={cn(
-                !isAccepted &&
-                  'text-primary border-primary/30 hover:bg-primary/10',
-              )}
-            >
-              <Check data-icon="inline-start" />
-              {isAccepted ? 'Accepted' : 'Accept'}
-            </Button>
+          <div className="mt-auto flex items-center gap-2 px-4 pb-3.5 pt-2">
             <Button
               size="sm"
               variant={isRejected ? 'destructive' : 'outline'}
               onClick={handleReject}
               className={cn(
+                'flex-1',
                 !isRejected &&
                   'text-destructive border-destructive/30 hover:bg-destructive/10',
               )}
@@ -131,9 +114,90 @@ export function MealCard({ meal, showActions = false, isRegenerating = false }: 
               <X data-icon="inline-start" />
               {isRejected ? 'Rejected' : 'Reject'}
             </Button>
+            <Button
+              size="sm"
+              variant={isAccepted ? 'default' : 'outline'}
+              onClick={handleAccept}
+              className={cn(
+                'flex-1',
+                !isAccepted &&
+                  'text-primary border-primary/30 hover:bg-primary/10',
+              )}
+            >
+              <Check data-icon="inline-start" />
+              {isAccepted ? 'Accepted' : 'Accept'}
+            </Button>
           </div>
         )}
-      </ItemFooter>
-    </Item>
+      </Item>
+    )
+  }
+
+  return (
+    <div className="flex items-center gap-3">
+      {showActions && (
+        <button
+          type="button"
+          onClick={handleReject}
+          className={cn(
+            'flex size-12 shrink-0 items-center justify-center rounded-full border-2 transition-all duration-200',
+            isRejected
+              ? 'border-destructive bg-destructive text-destructive-foreground'
+              : 'border-destructive/30 text-destructive hover:bg-destructive/10',
+          )}
+        >
+          <X className="size-5" />
+        </button>
+      )}
+      <Item
+        variant="outline"
+        className={cn(
+          MEAL_CARD_HEIGHT,
+          'relative flex-1 overflow-hidden transition-all duration-200',
+          isAccepted && 'border-foreground/30',
+        )}
+      >
+        {isAccepted && (
+          <CircleCheck className="absolute right-3 top-3 size-5" />
+        )}
+        {isRejected && (
+          <XCircle className="absolute right-3 top-3 size-5 text-destructive" />
+        )}
+        <ItemContent>
+          <ItemTitle
+            className={cn(
+              'text-base font-semibold',
+              isRejected &&
+                'line-through decoration-muted-foreground/30 decoration-1',
+            )}
+          >
+            {meal.name}
+          </ItemTitle>
+        </ItemContent>
+        <ItemFooter>
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <LeafyGreen className="size-3.5 shrink-0" />
+            <span>
+              <span className="font-medium text-foreground">Ingredients</span>{' '}
+              {meal.keyIngredients.join(', ')}
+            </span>
+          </div>
+        </ItemFooter>
+      </Item>
+      {showActions && (
+        <button
+          type="button"
+          onClick={handleAccept}
+          className={cn(
+            'flex size-12 shrink-0 items-center justify-center rounded-full border-2 transition-all duration-200',
+            isAccepted
+              ? 'border-primary bg-primary text-primary-foreground'
+              : 'border-primary/30 text-primary hover:bg-primary/10',
+          )}
+        >
+          <Check className="size-5" />
+        </button>
+      )}
+    </div>
   )
 }

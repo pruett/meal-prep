@@ -1,19 +1,16 @@
-import { useMemo, useState } from 'react'
-import { createFileRoute, Link } from '@tanstack/react-router'
-import { createServerFn } from '@tanstack/react-start'
-import { useQuery } from '@tanstack/react-query'
-import { convexQuery } from '@convex-dev/react-query'
-import { useMutation } from 'convex/react'
-import { toast } from 'sonner'
-import { api } from '../../convex/_generated/api'
-import { PastPlansList } from '~/components/plan/past-plans-list'
-import { MealCard } from '~/components/meals/meal-card'
-import { MealSkeleton } from '~/components/meals/meal-skeleton'
-import { Button, buttonVariants } from '~/components/ui/button'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '~/components/ui/tabs'
-import { Badge } from '~/components/ui/badge'
-import { Separator } from '~/components/ui/separator'
-import { EmptyState } from '~/components/empty-state'
+import { useMemo, useState } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { createServerFn } from "@tanstack/react-start";
+import { useQuery } from "@tanstack/react-query";
+import { convexQuery } from "@convex-dev/react-query";
+import { useMutation } from "convex/react";
+import { toast } from "sonner";
+import { api } from "../../convex/_generated/api";
+import { MealCard } from "~/components/meals/meal-card";
+import { MealSkeleton } from "~/components/meals/meal-skeleton";
+import { Button, buttonVariants } from "~/components/ui/button";
+import { Separator } from "~/components/ui/separator";
+import { EmptyState } from "~/components/empty-state";
 import {
   Empty,
   EmptyHeader,
@@ -21,491 +18,376 @@ import {
   EmptyDescription,
   EmptyContent,
   EmptyMedia,
-} from '~/components/ui/empty'
-import { Spinner } from '~/components/ui/spinner'
-import { ChevronUp, CircleCheck, Ellipsis, RefreshCw, Trash2, UtensilsCrossed, Settings, ArrowRight, ArrowUpRight } from 'lucide-react'
+} from "~/components/ui/empty";
+import { Spinner } from "~/components/ui/spinner";
+import {
+  ChevronUp,
+  CircleCheck,
+  Ellipsis,
+  RefreshCw,
+  Trash2,
+  UtensilsCrossed,
+  Settings,
+  ArrowRight,
+  ArrowUpRight,
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
-} from '~/components/ui/dropdown-menu'
-import { PrepGenerationInterstitial } from '~/components/prep/prep-generation-interstitial'
-import { PrepGuideInline } from '~/components/prep/prep-guide-inline'
-import { ErrorFallback } from '~/components/error-boundary'
-import { HomeSkeleton } from '~/components/route-skeletons'
-import { AppPage } from '~/components/layout/app-page'
-import { requireAuth } from '~/lib/auth-guard'
-import { requireOnboarding } from '~/lib/onboarding-guard'
-import { fetchAuthQuery } from '~/lib/auth-server'
-import { authClient } from '~/lib/auth-client'
-import type { Doc } from '../../convex/_generated/dataModel'
-
+} from "~/components/ui/dropdown-menu";
+import { PrepGenerationInterstitial } from "~/components/prep/prep-generation-interstitial";
+import { PrepGuideInline } from "~/components/prep/prep-guide-inline";
+import { ErrorFallback } from "~/components/error-boundary";
+import { HomeSkeleton } from "~/components/route-skeletons";
+import { AppPage } from "~/components/layout/app-page";
+import { requireAuth } from "~/lib/auth-guard";
+import { requireOnboarding } from "~/lib/onboarding-guard";
+import { fetchAuthQuery } from "~/lib/auth-server";
+import type { Doc, Id } from "../../convex/_generated/dataModel";
 
 function getCurrentWeekStart(): string {
-  const now = new Date()
-  const day = now.getDay()
-  const diff = now.getDate() - day + (day === 0 ? -6 : 1)
-  const monday = new Date(now.getFullYear(), now.getMonth(), diff)
-  return monday.toISOString().split('T')[0]!
+  const now = new Date();
+  const day = now.getDay();
+  const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+  const monday = new Date(now.getFullYear(), now.getMonth(), diff);
+  return monday.toISOString().split("T")[0]!;
 }
 
-const fetchHomeData = createServerFn({ method: 'GET' }).handler(async () => {
-  try {
-    const user = await fetchAuthQuery(api.users.getAuthenticated, {})
-    if (!user) return null
+const fetchHomeData = createServerFn({ method: "GET" })
+  .inputValidator((d: { userId: string }) => d)
+  .handler(async ({ data: { userId } }) => {
+    try {
+      const weekStart = getCurrentWeekStart();
+      const typedUserId = userId as Id<"users">;
 
-    const plans = await fetchAuthQuery(api.mealPlans.getByUser, {
-      userId: user._id,
-    })
+      const [currentWeekPlan, preferences] = await Promise.all([
+        fetchAuthQuery(api.mealPlans.getByUserAndWeek, {
+          userId: typedUserId,
+          weekStartDate: weekStart,
+        }),
+        fetchAuthQuery(api.preferences.getByUser, { userId: typedUserId }),
+      ]);
 
-    const weekStart = getCurrentWeekStart()
-    const currentWeekPlan = plans.find((p) => p.weekStartDate === weekStart)
+      const currentWeekMeals = currentWeekPlan
+        ? await fetchAuthQuery(api.meals.getByMealPlan, {
+            mealPlanId: currentWeekPlan._id,
+          })
+        : [];
 
-    // Fetch current week's meals
-    const currentWeekMeals = currentWeekPlan
-      ? await fetchAuthQuery(api.meals.getByMealPlan, {
-          mealPlanId: currentWeekPlan._id,
-        })
-      : []
+      return { currentWeekPlan, currentWeekMeals, preferences };
+    } catch {
+      return null;
+    }
+  });
 
-    // Fetch meal counts for past plans
-    const pastPlans = plans.filter((p) => p.weekStartDate !== weekStart)
-    const mealCounts = await Promise.all(
-      pastPlans.map(async (plan) => {
-        const meals = await fetchAuthQuery(api.meals.getByMealPlan, {
-          mealPlanId: plan._id,
-        })
-        return { planId: plan._id, count: meals.length }
-      }),
-    )
-
-    const countMap = Object.fromEntries(
-      mealCounts.map((mc) => [mc.planId, mc.count]),
-    )
-
-    return { userId: user._id, plans, mealCountMap: countMap, currentWeekMeals }
-  } catch {
-    return null
-  }
-})
-
-export const Route = createFileRoute('/')({
+export const Route = createFileRoute("/")({
   beforeLoad: ({ context }) => {
-    requireAuth({ context })
-    requireOnboarding({ context })
+    requireAuth({ context });
+    requireOnboarding({ context });
   },
-  loader: () => fetchHomeData(),
+  loader: ({ context }) => {
+    if (!context.user?._id) return null;
+    return fetchHomeData({ data: { userId: context.user._id as string } });
+  },
   component: HomePage,
   pendingComponent: HomeSkeleton,
   errorComponent: ErrorFallback,
-})
+});
 
 function HomePage() {
-  const loaderData = Route.useLoaderData()
-  const { data: session } = authClient.useSession()
-  const isAuthenticated = !!session?.user
+  // ── Loader data ──────────────────────────────────────────────
+  const loaderData = Route.useLoaderData();
+  const { user: initialUser } = Route.useRouteContext();
 
+  // ── Live Convex subscriptions ──────────────────────────────────────────────
   const { data: user } = useQuery({
-    ...convexQuery(api.users.getAuthenticated, isAuthenticated ? {} : 'skip'),
-  })
+    ...convexQuery(api.users.getAuthenticated, {}),
+    initialData: initialUser ?? undefined,
+  });
 
-  const userId = loaderData?.userId ?? null
-
-  // Reactive subscription for plans
-  const { data: reactivePlans } = useQuery({
+  const weekStart = getCurrentWeekStart();
+  const { data: currentWeekPlan } = useQuery({
     ...convexQuery(
-      api.mealPlans.getByUser,
-      userId ? { userId } : 'skip',
+      api.mealPlans.getByUserAndWeek,
+      user?._id ? { userId: user._id, weekStartDate: weekStart } : "skip",
     ),
-    initialData: loaderData?.plans,
-  })
+    initialData: loaderData?.currentWeekPlan ?? undefined,
+  });
 
-  const weekStart = getCurrentWeekStart()
-  const ssrCountMap = loaderData?.mealCountMap
-
-  const plans = useMemo(
-    () => reactivePlans ?? loaderData?.plans ?? [],
-    [reactivePlans, loaderData?.plans],
-  )
-
-  const currentWeekPlan = useMemo(
-    () => plans.find((p) => p.weekStartDate === weekStart) ?? null,
-    [plans, weekStart],
-  )
-
-  // Reactive subscription for current week's meals
   const { data: currentWeekMeals } = useQuery({
     ...convexQuery(
       api.meals.getByMealPlan,
-      currentWeekPlan ? { mealPlanId: currentWeekPlan._id } : 'skip',
+      currentWeekPlan ? { mealPlanId: currentWeekPlan._id } : "skip",
     ),
     initialData: loaderData?.currentWeekMeals,
-  })
+  });
 
-  // Reactive subscription for user preferences
   const { data: preferences } = useQuery({
     ...convexQuery(
       api.preferences.getByUser,
-      userId ? { userId } : 'skip',
+      user?._id ? { userId: user._id } : "skip",
     ),
-  })
+    initialData: loaderData?.preferences ?? undefined,
+  });
 
   const preferencesSummary = useMemo(() => {
-    if (!preferences) return null
-    const parts: string[] = []
+    if (!preferences) return null;
+    const parts: string[] = [];
     if (preferences.mealsPerWeek) {
-      const total = preferences.mealsPerWeek.breakfast + preferences.mealsPerWeek.lunch + preferences.mealsPerWeek.dinner
-      parts.push(`${total} meals/week`)
+      const total = preferences.mealsPerWeek.breakfast + preferences.mealsPerWeek.lunch + preferences.mealsPerWeek.dinner;
+      parts.push(`${total} meals/week`);
     }
     if (preferences.household) {
-      const total = preferences.household.adults + preferences.household.kids + preferences.household.infants
-      parts.push(`${total} servings`)
+      const total = preferences.household.adults + preferences.household.kids + preferences.household.infants;
+      parts.push(`${total} servings`);
     }
-    if (preferences.maxCookTimeMinutes) parts.push(`${preferences.maxCookTimeMinutes}min/meal`)
+    if (preferences.maxCookTimeMinutes) parts.push(`${preferences.maxCookTimeMinutes}min/meal`);
     if (preferences.dietaryRestrictions?.length) {
-      parts.push(preferences.dietaryRestrictions.slice(0, 2).join(', ') +
-        (preferences.dietaryRestrictions.length > 2 ? ` +${preferences.dietaryRestrictions.length - 2}` : ''))
+      parts.push(preferences.dietaryRestrictions.slice(0, 2).join(", ") +
+        (preferences.dietaryRestrictions.length > 2 ? ` +${preferences.dietaryRestrictions.length - 2}` : ""));
     }
-    return parts.length > 0 ? parts.join(' · ') : null
-  }, [preferences])
+    return parts.length > 0 ? parts.join(" · ") : null;
+  }, [preferences]);
 
-  const pastPlans = useMemo(() => {
-    const countMap = ssrCountMap ?? {}
-    return plans
-      .filter((p) => p.weekStartDate !== weekStart)
-      .map((p) => ({
-        _id: p._id,
-        weekStartDate: p.weekStartDate,
-        status: p.status,
-        totalMealsRequested: p.totalMealsRequested,
-        mealCount: (countMap[p._id as string] as number) ?? p.totalMealsRequested,
-      }))
-  }, [plans, weekStart, ssrCountMap])
+  // ── Mutations ────────────────────────────────────────────────────────────
+  const deletePlan = useMutation(api.mealPlans.deletePlan);
 
-  const deletePlan = useMutation(api.mealPlans.deletePlan)
-
-  const [isGenerating, setIsGenerating] = useState(false)
-  const [isRegenerating, setIsRegenerating] = useState(false)
-  const [isGeneratingPrep, setIsGeneratingPrep] = useState(false)
-  const [showPrepInterstitial, setShowPrepInterstitial] = useState(false)
+  // ── Local state ─────────────────────────────────────────────────────────
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isRegenerating, setIsRegenerating] = useState(false);
+  const [isGeneratingPrep, setIsGeneratingPrep] = useState(false);
+  const [showPrepInterstitial, setShowPrepInterstitial] = useState(false);
   const [prepGenerationError, setPrepGenerationError] = useState<string | null>(
     null,
-  )
-  const [prepInterstitialKey, setPrepInterstitialKey] = useState(0)
-  const outOfCredits = user?.generationsRemaining === 0
+  );
+  const [prepInterstitialKey, setPrepInterstitialKey] = useState(0);
 
-  const mealPlanId = currentWeekPlan?._id ?? null
-  const planStatus = currentWeekPlan?.status
-  const currentMealCount = currentWeekMeals?.length ?? 0
-  const totalRequested = currentWeekPlan?.totalMealsRequested ?? 7
+  // ── Derived state ───────────────────────────────────────────────────────
+  type WeekStatus = "empty" | "reviewing" | "finalized";
+  const weekStatus: WeekStatus = !currentWeekPlan
+    ? "empty"
+    : currentWeekPlan.status === "finalized"
+      ? "finalized"
+      : "reviewing";
+
+  const mealPlanId = currentWeekPlan?._id ?? null;
+  const planStatus = currentWeekPlan?.status;
+  const currentMealCount = currentWeekMeals?.length ?? 0;
+  const totalRequested = currentWeekPlan?.totalMealsRequested ?? 7;
   const isActivelyGenerating =
-    isGenerating || isRegenerating || planStatus === 'generating'
+    isGenerating || isRegenerating || planStatus === "generating";
   const acceptedCount =
-    currentWeekMeals?.filter((m: Doc<'meals'>) => m.status === 'accepted')
-      .length ?? 0
+    currentWeekMeals?.filter((m: Doc<"meals">) => m.status === "accepted")
+      .length ?? 0;
   const rejectedCount =
-    currentWeekMeals?.filter((m: Doc<'meals'>) => m.status === 'rejected')
-      .length ?? 0
-  const pendingCount = currentMealCount - acceptedCount - rejectedCount
+    currentWeekMeals?.filter((m: Doc<"meals">) => m.status === "rejected")
+      .length ?? 0;
+  const pendingCount = currentMealCount - acceptedCount - rejectedCount;
+  const outOfCredits = user?.generationsRemaining === 0;
+  const isPrepGuideReady = planStatus === "finalized";
+  const totalSlots = preferences?.mealsPerWeek
+    ? preferences.mealsPerWeek.breakfast + preferences.mealsPerWeek.lunch + preferences.mealsPerWeek.dinner
+    : (totalRequested ?? 7);
+  const acceptedMeals = useMemo(
+    () =>
+      currentWeekMeals?.filter((m: Doc<"meals">) => m.status === "accepted") ??
+      [],
+    [currentWeekMeals],
+  );
+  const emptySlotCount = Math.max(0, totalSlots - acceptedMeals.length);
+  const firstName = user?.name?.split(" ")[0];
 
-  const isPrepGuideReady = planStatus === 'finalized'
-
+  // ── Handlers ────────────────────────────────────────────────────────────
   const handleGenerate = async () => {
-    setIsGenerating(true)
-
+    setIsGenerating(true);
     try {
-      const response = await fetch('/api/ai/generate-meals', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      })
-
-      const data = await response.json()
-
+      const response = await fetch("/api/ai/generate-meals", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to generate meals')
+        throw new Error(data.error || "Failed to generate meals");
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Something went wrong'
+      const message =
+        err instanceof Error ? err.message : "Something went wrong";
       toast.error(message, {
-        action: { label: 'Retry', onClick: () => void handleGenerate() },
-      })
+        action: { label: "Retry", onClick: () => void handleGenerate() },
+      });
     } finally {
-      setIsGenerating(false)
+      setIsGenerating(false);
     }
-  }
+  };
 
   const handleRegenerate = async () => {
-    if (!mealPlanId) return
-    setIsRegenerating(true)
-
+    if (!mealPlanId) return;
+    setIsRegenerating(true);
     try {
-      const response = await fetch('/api/ai/regenerate-meals', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/ai/regenerate-meals", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ mealPlanId }),
-      })
-
-      const data = await response.json()
-
+      });
+      const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to regenerate meals')
+        throw new Error(data.error || "Failed to regenerate meals");
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Something went wrong'
+      const message =
+        err instanceof Error ? err.message : "Something went wrong";
       toast.error(message, {
-        action: { label: 'Retry', onClick: () => void handleRegenerate() },
-      })
+        action: { label: "Retry", onClick: () => void handleRegenerate() },
+      });
     } finally {
-      setIsRegenerating(false)
+      setIsRegenerating(false);
     }
-  }
+  };
 
   const handleGeneratePrep = async () => {
-    if (!mealPlanId || isGeneratingPrep) return
-    setPrepInterstitialKey((key) => key + 1)
-    setShowPrepInterstitial(true)
-    setPrepGenerationError(null)
-    setIsGeneratingPrep(true)
-
+    if (!mealPlanId || isGeneratingPrep) return;
+    setPrepInterstitialKey((key) => key + 1);
+    setShowPrepInterstitial(true);
+    setPrepGenerationError(null);
+    setIsGeneratingPrep(true);
     try {
-      const response = await fetch('/api/ai/generate-prep', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/ai/generate-prep", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ mealPlanId }),
-      })
-
-      const data = await response.json()
-
+      });
+      const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to generate prep guide')
+        throw new Error(data.error || "Failed to generate prep guide");
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Something went wrong'
-      setPrepGenerationError(message)
+      const message =
+        err instanceof Error ? err.message : "Something went wrong";
+      setPrepGenerationError(message);
     } finally {
-      setIsGeneratingPrep(false)
+      setIsGeneratingPrep(false);
     }
-  }
+  };
 
   const handleDelete = async () => {
-    if (!mealPlanId) return
+    if (!mealPlanId) return;
     try {
-      await deletePlan({ id: mealPlanId })
-      toast.success('Plan deleted')
+      await deletePlan({ id: mealPlanId });
+      toast.success("Plan deleted");
     } catch {
-      toast.error('Failed to delete plan')
+      toast.error("Failed to delete plan");
     }
-  }
+  };
 
   return (
-    <AppPage className="[--action-drawer-height:7rem] pb-[calc(var(--action-drawer-height)+2rem)]">
-      <Tabs defaultValue="this-week">
-        <TabsList className="mb-6">
-          <TabsTrigger value="this-week">This Week</TabsTrigger>
-          <TabsTrigger value="past-meals">Past Meals</TabsTrigger>
-        </TabsList>
-
-        {/* This Week header (visible only on This Week tab) */}
-        <TabsContent value="this-week">
-          <section className="mb-8">
-            <div className="flex items-center gap-3">
-              <h1 className="display-title text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-                Week of{' '}
-                {new Date(weekStart + 'T00:00:00').toLocaleDateString('en-US', {
-                  month: 'long',
-                  day: 'numeric',
-                })}
-              </h1>
-              {planStatus === 'reviewing' && (
-                <Badge
-                  variant="outline"
-                  className="border-sky-200 bg-sky-50 text-sky-700"
-                >
-                  In Progress
-                </Badge>
-              )}
-              {planStatus === 'finalized' && (
-                <Badge
-                  variant="outline"
-                  className="border-emerald-200 bg-emerald-50 text-emerald-700"
-                >
-                  Ready
-                </Badge>
-              )}
-              {currentWeekPlan && (planStatus === 'reviewing' || planStatus === 'finalized') && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger
-                    className="ml-auto rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                  >
-                    <Ellipsis className="size-5" />
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem render={<Link to="/preferences" />}>
-                      <Settings />
-                      Update Preferences
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleDelete} className="text-red-600 focus:text-red-600">
-                      <Trash2 />
-                      Delete Plan
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-            </div>
-          </section>
-        </TabsContent>
-
-        {/* Past Meals header */}
-        <TabsContent value="past-meals">
-          <section className="mb-8">
-            <h1 className="display-title mb-1 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-              Past Meals
+    <AppPage className="bg-muted">
+      <section className="mb-8">
+        <div className="flex items-center gap-3">
+          <div>
+            <h1 className="display-title text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+              Hi{firstName ? `, ${firstName}` : ""}
             </h1>
-          </section>
-        </TabsContent>
-
-        {/* This Week */}
-        <TabsContent value="this-week">
-          <section className="pt-4">
-            {currentWeekPlan ? (
-              showPrepInterstitial && mealPlanId ? (
-                <PrepGenerationInterstitial
-                  key={prepInterstitialKey}
-                  mealCount={acceptedCount}
-                  completed={isPrepGuideReady}
-                  error={prepGenerationError}
-                  onRetry={() => void handleGeneratePrep()}
-                  onComplete={() => {
-                    setShowPrepInterstitial(false)
-                    setPrepGenerationError(null)
-                  }}
-                />
-              ) : (
-                <div className="flex flex-col gap-4">
-                  {/* Inline Prep Guide — visible after finalization */}
-                  {planStatus === 'finalized' && mealPlanId && (
-                    <PrepGuideInline mealPlanId={mealPlanId} />
-                  )}
-
-                  {/* Meals list — only show when plan is not finalized */}
-                  {planStatus !== 'finalized' &&
-                    (currentMealCount > 0 || isActivelyGenerating) && (
-                      <div className="flex flex-col gap-3">
-                        {currentWeekMeals?.map((meal) => (
-                          <MealCard
-                            key={meal._id}
-                            meal={meal}
-                            showActions={planStatus === 'reviewing'}
-                            isRegenerating={
-                              meal.status === 'rejected' &&
-                              planStatus === 'generating'
-                            }
-                          />
-                        ))}
-                        {isActivelyGenerating &&
-                          currentMealCount < totalRequested &&
-                          Array.from(
-                            { length: totalRequested - currentMealCount },
-                            (_, i) => <MealSkeleton key={`skeleton-${i}`} />,
-                          )}
-                      </div>
-                    )}
-
-                  {/* Empty state — plan exists but no meals and not generating */}
-                  {currentMealCount === 0 && !isActivelyGenerating && (
-                    <Empty>
-                      <EmptyHeader>
-                        <EmptyTitle>No meals generated yet</EmptyTitle>
-                        <EmptyDescription>
-                          Something may have gone wrong during generation. Try
-                          generating again.
-                        </EmptyDescription>
-                      </EmptyHeader>
-                    </Empty>
-                  )}
-
-                </div>
-              )
-            ) : outOfCredits ? (
-              <div className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6">
-                <EmptyState
-                  icon={
-                    <svg
-                      className="h-5 w-5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={1.5}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"
-                      />
-                    </svg>
-                  }
-                  title="Out of credits"
-                  description="You've used all your generation credits. Meal generation is currently unavailable."
-                />
-              </div>
-            ) : (
-              <Empty className="mx-auto max-w-lg border border-dashed">
-                <EmptyHeader>
-                  <EmptyMedia variant="icon">
-                    <UtensilsCrossed />
-                  </EmptyMedia>
-                  <EmptyTitle>No meals this week</EmptyTitle>
-                  <EmptyDescription>
-                    You haven't created any meal plans for this week.
-                    <br />
-                    Get started by creating this week's meal plan.
-                  </EmptyDescription>
-                </EmptyHeader>
-                <EmptyContent>
-                  <Button
-                    onClick={handleGenerate}
-                    disabled={isGenerating}
-                    size="lg"
-                  >
-                    {isGenerating ? (
-                      <>
-                        <Spinner data-icon="inline-start" />
-                        Generating…
-                      </>
-                    ) : (
-                      <>
-                        Generate Meals
-                        <ArrowRight data-icon="inline-end" />
-                      </>
-                    )}
-                  </Button>
-                  <Separator />
-                  <Link to="/preferences" className={buttonVariants({ variant: 'link' })}>
-                    <Settings data-icon="inline-start" />
+            <p className="mt-1 text-sm text-muted-foreground">
+              You don't have a meal plan this week. Look through the meal
+              suggestions below.
+            </p>
+          </div>
+          {currentWeekPlan &&
+            (planStatus === "reviewing" || planStatus === "finalized") && (
+              <DropdownMenu>
+                <DropdownMenuTrigger className="ml-auto rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
+                  <Ellipsis className="size-5" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem render={<Link to="/preferences" />}>
+                    <Settings />
                     Update Preferences
-                    <ArrowUpRight data-icon="inline-end" />
-                  </Link>
-                  {preferencesSummary && (
-                    <p className="text-xs text-muted-foreground">
-                      {preferencesSummary}
-                    </p>
-                  )}
-                </EmptyContent>
-              </Empty>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={handleDelete}
+                    className="text-red-600 focus:text-red-600"
+                  >
+                    <Trash2 />
+                    Delete Plan
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
-          </section>
-        </TabsContent>
+        </div>
+      </section>
 
-        {/* Past Meals */}
-        <TabsContent value="past-meals">
-          <section className="pt-4">
-            <PastPlansList plans={pastPlans} />
-          </section>
-        </TabsContent>
-      </Tabs>
+      <section className="pt-4">
+        {showPrepInterstitial && mealPlanId ? (
+          <PrepGenerationInterstitial
+            key={prepInterstitialKey}
+            mealCount={acceptedCount}
+            completed={isPrepGuideReady}
+            error={prepGenerationError}
+            onRetry={() => void handleGeneratePrep()}
+            onComplete={() => {
+              setShowPrepInterstitial(false);
+              setPrepGenerationError(null);
+            }}
+          />
+        ) : (
+          <>
+            {weekStatus === "empty" && (
+              <WeekEmptyView
+                outOfCredits={outOfCredits}
+                isGenerating={isGenerating}
+                onGenerate={handleGenerate}
+                preferencesSummary={preferencesSummary}
+              />
+            )}
+            {weekStatus === "reviewing" && (
+              <WeekReviewingView
+                meals={currentWeekMeals ?? []}
+                planStatus={planStatus!}
+                isActivelyGenerating={isActivelyGenerating}
+                currentMealCount={currentMealCount}
+                totalRequested={totalRequested}
+              />
+            )}
+            {weekStatus === "finalized" && mealPlanId && (
+              <WeekFinalizedView mealPlanId={mealPlanId} />
+            )}
+          </>
+        )}
+      </section>
 
-      {/* Action drawer — always visible during review */}
+      {/* Your Weekly Plan — always visible */}
+      <section className="pt-4">
+        <h2 className="mb-3 text-lg font-semibold text-foreground">
+          Your Weekly Plan
+        </h2>
+        <code>{JSON.stringify(emptySlotCount)}</code>
+        <div className="flex flex-col gap-3">
+          {acceptedMeals.map((meal) => (
+            <div
+              key={meal._id}
+              className="flex items-center gap-3 rounded-2xl border border-foreground/30 bg-background px-4 py-3.5"
+            >
+              <CircleCheck className="size-5 shrink-0 text-primary" />
+              <span className="text-base font-semibold">{meal.name}</span>
+            </div>
+          ))}
+          {Array.from({ length: emptySlotCount }, (_, i) => (
+            <div
+              key={`empty-${i}`}
+              className="flex min-h-[72px] flex-col items-center justify-center gap-1.5 rounded-2xl border-2 border-dashed border-muted-foreground/20 bg-background px-4 py-4"
+            >
+              <UtensilsCrossed className="size-5 text-muted-foreground/30" />
+              <span className="text-xs font-medium text-muted-foreground/40">
+                Meal {acceptedMeals.length + i + 1}
+              </span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Action drawer — commented out for now
       {planStatus === 'reviewing' &&
         currentMealCount > 0 &&
         !showPrepInterstitial && (
@@ -577,6 +459,151 @@ function HomePage() {
           </div>
         </div>
       )}
+      */}
     </AppPage>
-  )
+  );
+}
+
+// ── Phase components ────────────────────────────────────────────────────────
+
+function WeekEmptyView({
+  outOfCredits,
+  isGenerating,
+  onGenerate,
+  preferencesSummary,
+}: {
+  outOfCredits: boolean;
+  isGenerating: boolean;
+  onGenerate: () => void;
+  preferencesSummary: string | null;
+}) {
+  if (outOfCredits) {
+    return (
+      <div className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6">
+        <EmptyState
+          icon={
+            <svg
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1.5}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"
+              />
+            </svg>
+          }
+          title="Out of credits"
+          description="You've used all your generation credits. Meal generation is currently unavailable."
+        />
+      </div>
+    );
+  }
+
+  return (
+    <Empty className="mx-auto max-w-lg border border-dashed">
+      <EmptyHeader>
+        <EmptyMedia variant="icon">
+          <UtensilsCrossed />
+        </EmptyMedia>
+        <EmptyTitle>No meals this week</EmptyTitle>
+        <EmptyDescription>
+          You haven't created any meal plans for this week.
+          <br />
+          Get started by creating this week's meal plan.
+        </EmptyDescription>
+      </EmptyHeader>
+      <EmptyContent>
+        <Button onClick={onGenerate} disabled={isGenerating} size="lg">
+          {isGenerating ? (
+            <>
+              <Spinner data-icon="inline-start" />
+              Generating…
+            </>
+          ) : (
+            <>
+              Generate Meals
+              <ArrowRight data-icon="inline-end" />
+            </>
+          )}
+        </Button>
+        <Separator />
+        <Link to="/preferences" className={buttonVariants({ variant: "link" })}>
+          <Settings data-icon="inline-start" />
+          Update Preferences
+          <ArrowUpRight data-icon="inline-end" />
+        </Link>
+        {preferencesSummary && (
+          <p className="text-xs text-muted-foreground">{preferencesSummary}</p>
+        )}
+      </EmptyContent>
+    </Empty>
+  );
+}
+
+function WeekReviewingView({
+  meals,
+  planStatus,
+  isActivelyGenerating,
+  currentMealCount,
+  totalRequested,
+}: {
+  meals: Doc<"meals">[];
+  planStatus: string;
+  isActivelyGenerating: boolean;
+  currentMealCount: number;
+  totalRequested: number;
+}) {
+  if (currentMealCount === 0 && !isActivelyGenerating) {
+    return (
+      <Empty>
+        <EmptyHeader>
+          <EmptyTitle>No meals generated yet</EmptyTitle>
+          <EmptyDescription>
+            Something may have gone wrong during generation. Try generating
+            again.
+          </EmptyDescription>
+        </EmptyHeader>
+      </Empty>
+    );
+  }
+
+  return (
+    <div className="-mx-4 px-4">
+      <h2 className="mb-3 text-lg font-semibold text-foreground">
+        Meal Suggestions
+      </h2>
+      <div className="flex gap-3 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-none">
+        {meals.map((meal) => (
+          <div key={meal._id} className="w-[280px] shrink-0 snap-start">
+            <MealCard
+              meal={meal}
+              variant="compact"
+              showActions={planStatus === "reviewing"}
+              isRegenerating={
+                meal.status === "rejected" && planStatus === "generating"
+              }
+            />
+          </div>
+        ))}
+        {isActivelyGenerating &&
+          currentMealCount < totalRequested &&
+          Array.from({ length: totalRequested - currentMealCount }, (_, i) => (
+            <div
+              key={`h-skeleton-${i}`}
+              className="w-[280px] shrink-0 snap-start"
+            >
+              <MealSkeleton />
+            </div>
+          ))}
+      </div>
+    </div>
+  );
+}
+
+function WeekFinalizedView({ mealPlanId }: { mealPlanId: Id<"mealPlans"> }) {
+  return <PrepGuideInline mealPlanId={mealPlanId} />;
 }

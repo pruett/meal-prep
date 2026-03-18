@@ -34,21 +34,21 @@ interface MyRouterContext {
 
 const getAuth = createServerFn({ method: 'GET' }).handler(async () => {
   const token = await getToken()
-  if (!token) return { token: null, onboardingCompleted: undefined as boolean | undefined }
+  if (!token) return { token: null, onboardingCompleted: undefined as boolean | undefined, user: null }
 
   const user = await fetchAuthQuery(api.users.getAuthenticated, {})
 
-  return { token, onboardingCompleted: user?.onboardingCompleted }
+  return { token, onboardingCompleted: user?.onboardingCompleted, user: user ?? null }
 })
 
 
 export const Route = createRootRouteWithContext<MyRouterContext>()({
   beforeLoad: async (ctx) => {
-    const { token, onboardingCompleted } = await getAuth()
+    const { token, onboardingCompleted, user } = await getAuth()
     if (token) {
       ctx.context.convexQueryClient.serverHttpClient?.setAuth(token)
     }
-    return { token, onboardingCompleted }
+    return { token, onboardingCompleted, user }
   },
   head: () => ({
     meta: [

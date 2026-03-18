@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { AnimatePresence } from 'motion/react'
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import {
   Plus,
   ArrowRight,
@@ -206,7 +206,63 @@ function DesignSystem() {
         </p>
       </header>
 
-      <div className="flex flex-col gap-16">
+      {/* ── Brand Concepts ── */}
+      <section className="mb-16">
+        <h2 className="text-xl font-semibold tracking-tight mb-6">Brand Concepts</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Link
+            to="/brand-warmth"
+            className="group rounded-2xl border p-6 transition-all hover:border-[#E8764B]/30 hover:bg-[#FFF9F5]"
+          >
+            <div className="mb-3 text-3xl">🍳</div>
+            <h3 className="text-lg font-bold tracking-tight mb-1" style={{ fontFamily: "'Nunito Variable', sans-serif" }}>
+              PrepChef
+            </h3>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Warm &amp; nurturing. Peachy corals, rounded shapes, Nunito font. Like a warm kitchen hug.
+            </p>
+            <span className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-[#E8764B]">
+              View concept <ArrowRight className="size-3" />
+            </span>
+          </Link>
+
+          <Link
+            to="/brand-fresh"
+            className="group rounded-2xl border p-6 transition-all hover:border-[#4A7C59]/30 hover:bg-[#F8FAF6]"
+          >
+            <div className="mb-3 text-3xl">🌿</div>
+            <h3 className="text-lg font-bold tracking-tight mb-1" style={{ fontFamily: "'Plus Jakarta Sans Variable', sans-serif" }}>
+              yeschef
+            </h3>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Fresh &amp; confident. Sage greens, clean lines, Plus Jakarta Sans. Like a farmers market morning.
+            </p>
+            <span className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-[#4A7C59]">
+              View concept <ArrowRight className="size-3" />
+            </span>
+          </Link>
+
+          <Link
+            to="/brand-soft"
+            className="group rounded-2xl border p-6 transition-all hover:border-[#C17B5D]/30 hover:bg-[#FDFCFA]"
+          >
+            <div className="mb-3 text-3xl">🍽️</div>
+            <h3 className="text-lg font-bold tracking-tight mb-1" style={{ fontFamily: "'Outfit Variable', sans-serif" }}>
+              tastebud
+            </h3>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Soft &amp; elegant. Warm earth tones, refined spacing, Outfit font. Like a beautiful cookbook.
+            </p>
+            <span className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-[#C17B5D]">
+              View concept <ArrowRight className="size-3" />
+            </span>
+          </Link>
+        </div>
+      </section>
+
+      <Separator />
+
+      <div className="flex flex-col gap-16 mt-16">
         {/* ── Button ── */}
         <Section title="Button">
           <Subsection title="Variants">

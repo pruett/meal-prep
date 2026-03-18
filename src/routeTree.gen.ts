@@ -14,6 +14,9 @@ import { Route as PreferencesRouteImport } from './routes/preferences'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DesignSystemRouteImport } from './routes/design-system'
+import { Route as BrandWarmthRouteImport } from './routes/brand-warmth'
+import { Route as BrandSoftRouteImport } from './routes/brand-soft'
+import { Route as BrandFreshRouteImport } from './routes/brand-fresh'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
@@ -49,6 +52,21 @@ const LoginRoute = LoginRouteImport.update({
 const DesignSystemRoute = DesignSystemRouteImport.update({
   id: '/design-system',
   path: '/design-system',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BrandWarmthRoute = BrandWarmthRouteImport.update({
+  id: '/brand-warmth',
+  path: '/brand-warmth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BrandSoftRoute = BrandSoftRouteImport.update({
+  id: '/brand-soft',
+  path: '/brand-soft',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BrandFreshRoute = BrandFreshRouteImport.update({
+  id: '/brand-fresh',
+  path: '/brand-fresh',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AccountRoute = AccountRouteImport.update({
@@ -111,6 +129,9 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/account': typeof AccountRoute
+  '/brand-fresh': typeof BrandFreshRoute
+  '/brand-soft': typeof BrandSoftRoute
+  '/brand-warmth': typeof BrandWarmthRoute
   '/design-system': typeof DesignSystemRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
@@ -129,6 +150,9 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/account': typeof AccountRoute
+  '/brand-fresh': typeof BrandFreshRoute
+  '/brand-soft': typeof BrandSoftRoute
+  '/brand-warmth': typeof BrandWarmthRoute
   '/design-system': typeof DesignSystemRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
@@ -148,6 +172,9 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/account': typeof AccountRoute
+  '/brand-fresh': typeof BrandFreshRoute
+  '/brand-soft': typeof BrandSoftRoute
+  '/brand-warmth': typeof BrandWarmthRoute
   '/design-system': typeof DesignSystemRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
@@ -168,6 +195,9 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/account'
+    | '/brand-fresh'
+    | '/brand-soft'
+    | '/brand-warmth'
     | '/design-system'
     | '/login'
     | '/onboarding'
@@ -186,6 +216,9 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/account'
+    | '/brand-fresh'
+    | '/brand-soft'
+    | '/brand-warmth'
     | '/design-system'
     | '/login'
     | '/onboarding'
@@ -204,6 +237,9 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/account'
+    | '/brand-fresh'
+    | '/brand-soft'
+    | '/brand-warmth'
     | '/design-system'
     | '/login'
     | '/onboarding'
@@ -223,6 +259,9 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   AccountRoute: typeof AccountRoute
+  BrandFreshRoute: typeof BrandFreshRoute
+  BrandSoftRoute: typeof BrandSoftRoute
+  BrandWarmthRoute: typeof BrandWarmthRoute
   DesignSystemRoute: typeof DesignSystemRoute
   LoginRoute: typeof LoginRoute
   OnboardingRoute: typeof OnboardingRoute
@@ -273,6 +312,27 @@ declare module '@tanstack/react-router' {
       path: '/design-system'
       fullPath: '/design-system'
       preLoaderRoute: typeof DesignSystemRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/brand-warmth': {
+      id: '/brand-warmth'
+      path: '/brand-warmth'
+      fullPath: '/brand-warmth'
+      preLoaderRoute: typeof BrandWarmthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/brand-soft': {
+      id: '/brand-soft'
+      path: '/brand-soft'
+      fullPath: '/brand-soft'
+      preLoaderRoute: typeof BrandSoftRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/brand-fresh': {
+      id: '/brand-fresh'
+      path: '/brand-fresh'
+      fullPath: '/brand-fresh'
+      preLoaderRoute: typeof BrandFreshRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/account': {
@@ -359,6 +419,9 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   AccountRoute: AccountRoute,
+  BrandFreshRoute: BrandFreshRoute,
+  BrandSoftRoute: BrandSoftRoute,
+  BrandWarmthRoute: BrandWarmthRoute,
   DesignSystemRoute: DesignSystemRoute,
   LoginRoute: LoginRoute,
   OnboardingRoute: OnboardingRoute,

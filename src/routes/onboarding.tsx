@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { AnimatePresence, motion } from "motion/react";
@@ -24,13 +24,21 @@ import {
   Globe,
   Leaf,
   Loader2,
+  MessageSquare,
   Users,
+  UtensilsCrossed,
 } from "lucide-react";
+import { HouseholdSelector } from "~/components/preferences/household-selector";
+import type { Household } from "~/components/preferences/household-selector";
 import { DietSelector } from "~/components/preferences/diet-selector";
 import { CuisineSelector } from "~/components/preferences/cuisine-selector";
 import { MealPlanningControls } from "~/components/preferences/meal-planning-controls";
+import type { MealsPerWeek } from "~/components/preferences/meal-planning-controls";
+import { EquipmentSelector } from "~/components/preferences/equipment-selector";
 import { CookingSetup } from "~/components/preferences/cooking-setup";
+import { CustomInstructionsInput } from "~/components/preferences/custom-instructions-input";
 import { formatTime } from "~/components/preferences/constants";
+import { GeneratingInterstitial } from "~/components/generating-interstitial";
 
 // ---------------------------------------------------------------------------
 // Server loader
@@ -50,11 +58,16 @@ const fetchOnboardingData = createServerFn({ method: "GET" }).handler(
       preferences: {
         dietaryRestrictions: prefs?.dietaryRestrictions ?? [],
         cuisinePreferences: prefs?.cuisinePreferences ?? [],
-        foodsToAvoid: prefs?.foodsToAvoid ?? "",
-        mealsPerWeek: prefs?.mealsPerWeek ?? 7,
-        householdSize: prefs?.householdSize ?? 1,
-        maxPrepTimeMinutes: prefs?.maxPrepTimeMinutes ?? 45,
+        household: prefs?.household ?? { adults: 2, kids: 0, infants: 0 },
+        mealsPerWeek: prefs?.mealsPerWeek ?? {
+          breakfast: 0,
+          lunch: 0,
+          dinner: 5,
+        },
+        maxWeeklyPrepMinutes: prefs?.maxWeeklyPrepMinutes ?? 120,
+        maxCookTimeMinutes: prefs?.maxCookTimeMinutes ?? 30,
         kitchenEquipment: prefs?.kitchenEquipment ?? [],
+        customInstructions: prefs?.customInstructions ?? "",
       },
     };
   },
@@ -80,10 +93,13 @@ export const Route = createFileRoute("/onboarding")({
 // ---------------------------------------------------------------------------
 
 const STEP_META = [
+  { title: "Your household", subtitle: "Who are you cooking for?" },
   { title: "Dietary restrictions", subtitle: "Select any that apply" },
   { title: "Cuisine preferences", subtitle: "Pick your favorites" },
-  { title: "Meal planning", subtitle: "How many meals & for whom?" },
-  { title: "Cooking setup", subtitle: "Time budget & equipment" },
+  { title: "Meals per week", subtitle: "How many of each meal?" },
+  { title: "Kitchen equipment", subtitle: "What do you have to work with?" },
+  { title: "Cooking time", subtitle: "How much time do you have?" },
+  { title: "Custom instructions", subtitle: "Anything else we should know?" },
   { title: "Ready to go", subtitle: "Here's your summary" },
 ] as const;
 
@@ -102,7 +118,23 @@ function OnboardingPage() {
   const [stepIndex, setStepIndex] = useState(0);
   const [direction, setDirection] = useState(1);
   const [isSaving, setIsSaving] = useState(false);
+  const [savingElapsed, setSavingElapsed] = useState(0);
 
+  // Track elapsed time while saving for interstitial message rotation
+  useEffect(() => {
+    if (!isSaving) {
+      setSavingElapsed(0);
+      return;
+    }
+    const interval = setInterval(() => {
+      setSavingElapsed((t) => t + 500);
+    }, 500);
+    return () => clearInterval(interval);
+  }, [isSaving]);
+
+  const [household, setHousehold] = useState<Household>(
+    () => data?.preferences.household ?? { adults: 2, kids: 0, infants: 0 },
+  );
   const [dietaryRestrictions, setDietaryRestrictions] = useState<Set<string>>(
     () => new Set(data?.preferences.dietaryRestrictions ?? []),
   );
@@ -113,17 +145,21 @@ function OnboardingPage() {
     }
     return set;
   });
-  const [mealsPerWeek, setMealsPerWeek] = useState(
-    data?.preferences.mealsPerWeek ?? 7,
+  const [mealsPerWeek, setMealsPerWeek] = useState<MealsPerWeek>(
+    () =>
+      data?.preferences.mealsPerWeek ?? { breakfast: 0, lunch: 0, dinner: 5 },
   );
-  const [householdSize, setHouseholdSize] = useState(
-    data?.preferences.householdSize ?? 1,
+  const [maxWeeklyPrep, setMaxWeeklyPrep] = useState(
+    data?.preferences.maxWeeklyPrepMinutes ?? 120,
   );
-  const [maxPrepTime, setMaxPrepTime] = useState(
-    data?.preferences.maxPrepTimeMinutes ?? 45,
+  const [maxCookTime, setMaxCookTime] = useState(
+    data?.preferences.maxCookTimeMinutes ?? 30,
   );
   const [equipment, setEquipment] = useState<Set<string>>(
     () => new Set(data?.preferences.kitchenEquipment ?? []),
+  );
+  const [customInstructions, setCustomInstructions] = useState(
+    data?.preferences.customInstructions ?? "",
   );
 
   if (!data) {
@@ -163,11 +199,12 @@ function OnboardingPage() {
           cuisine: c,
           preference: "like" as const,
         })),
-        foodsToAvoid: "",
+        household,
         mealsPerWeek,
-        householdSize,
-        maxPrepTimeMinutes: maxPrepTime,
+        maxWeeklyPrepMinutes: maxWeeklyPrep,
+        maxCookTimeMinutes: maxCookTime,
         kitchenEquipment: Array.from(equipment),
+        customInstructions,
       });
 
       const res = await fetch("/api/ai/generate-meals", { method: "POST" });
@@ -188,10 +225,12 @@ function OnboardingPage() {
     userId,
     dietaryRestrictions,
     cuisineLikes,
+    household,
     mealsPerWeek,
-    householdSize,
-    maxPrepTime,
+    maxWeeklyPrep,
+    maxCookTime,
     equipment,
+    customInstructions,
     updatePreferences,
     completeOnboarding,
     navigate,
@@ -204,6 +243,10 @@ function OnboardingPage() {
   };
 
   return (
+    <>
+    <AnimatePresence>
+      {isSaving && <GeneratingInterstitial elapsed={savingElapsed} />}
+    </AnimatePresence>
     <div className="min-h-[calc(100vh-64px)] px-4 pt-12 [--action-drawer-height:7rem] pb-[calc(var(--action-drawer-height)+2rem)]">
       <div className="mx-auto w-full max-w-md">
         {/* Top bar */}
@@ -278,48 +321,72 @@ function OnboardingPage() {
             transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
           >
             {stepIndex === 0 && (
-              <DietSelector
-                selected={dietaryRestrictions}
-                onChange={setDietaryRestrictions}
-                layout="list"
+              <HouseholdSelector
+                household={household}
+                onHouseholdChange={setHousehold}
               />
             )}
 
             {stepIndex === 1 && (
-              <CuisineSelector
-                selected={cuisineLikes}
-                onChange={setCuisineLikes}
+              <DietSelector
+                selected={dietaryRestrictions}
+                onChange={setDietaryRestrictions}
                 layout="list"
+                showIcons
               />
             )}
 
             {stepIndex === 2 && (
-              <MealPlanningControls
-                mealsPerWeek={mealsPerWeek}
-                onMealsPerWeekChange={setMealsPerWeek}
-                householdSize={householdSize}
-                onHouseholdSizeChange={setHouseholdSize}
+              <CuisineSelector
+                selected={cuisineLikes}
+                onChange={setCuisineLikes}
+                layout="list"
+                showIcons
               />
             )}
 
             {stepIndex === 3 && (
-              <CookingSetup
-                maxPrepTime={maxPrepTime}
-                onMaxPrepTimeChange={setMaxPrepTime}
-                equipment={equipment}
-                onEquipmentChange={setEquipment}
-                equipmentLayout="list"
+              <MealPlanningControls
+                mealsPerWeek={mealsPerWeek}
+                onMealsPerWeekChange={setMealsPerWeek}
               />
             )}
 
             {stepIndex === 4 && (
+              <EquipmentSelector
+                equipment={equipment}
+                onEquipmentChange={setEquipment}
+                layout="list"
+                showIcons
+              />
+            )}
+
+            {stepIndex === 5 && (
+              <CookingSetup
+                maxWeeklyPrep={maxWeeklyPrep}
+                onMaxWeeklyPrepChange={setMaxWeeklyPrep}
+                maxCookTime={maxCookTime}
+                onMaxCookTimeChange={setMaxCookTime}
+              />
+            )}
+
+            {stepIndex === 6 && (
+              <CustomInstructionsInput
+                value={customInstructions}
+                onChange={setCustomInstructions}
+              />
+            )}
+
+            {stepIndex === 7 && (
               <SummaryStep
+                household={household}
                 dietaryRestrictions={dietaryRestrictions}
                 cuisineLikes={cuisineLikes}
                 mealsPerWeek={mealsPerWeek}
-                householdSize={householdSize}
-                maxPrepTime={maxPrepTime}
+                maxWeeklyPrep={maxWeeklyPrep}
+                maxCookTime={maxCookTime}
                 equipment={equipment}
+                customInstructions={customInstructions}
                 isSaving={isSaving}
               />
             )}
@@ -359,6 +426,7 @@ function OnboardingPage() {
         </div>
       </div>
     </div>
+    </>
   );
 }
 
@@ -367,23 +435,57 @@ function OnboardingPage() {
 // ---------------------------------------------------------------------------
 
 function SummaryStep({
+  household,
   dietaryRestrictions,
   cuisineLikes,
   mealsPerWeek,
-  householdSize,
-  maxPrepTime,
+  maxWeeklyPrep,
+  maxCookTime,
   equipment,
+  customInstructions,
   isSaving,
 }: {
+  household: Household;
   dietaryRestrictions: Set<string>;
   cuisineLikes: Set<string>;
-  mealsPerWeek: number;
-  householdSize: number;
-  maxPrepTime: number;
+  mealsPerWeek: MealsPerWeek;
+  maxWeeklyPrep: number;
+  maxCookTime: number;
   equipment: Set<string>;
+  customInstructions: string;
   isSaving: boolean;
 }) {
+  const totalPeople = household.adults + household.kids + household.infants;
+  const totalMeals =
+    mealsPerWeek.breakfast + mealsPerWeek.lunch + mealsPerWeek.dinner;
+
+  const householdParts: string[] = [];
+  if (household.adults > 0)
+    householdParts.push(
+      `${household.adults} adult${household.adults !== 1 ? "s" : ""}`,
+    );
+  if (household.kids > 0)
+    householdParts.push(
+      `${household.kids} kid${household.kids !== 1 ? "s" : ""}`,
+    );
+  if (household.infants > 0)
+    householdParts.push(
+      `${household.infants} infant${household.infants !== 1 ? "s" : ""}`,
+    );
+
+  const mealParts: string[] = [];
+  if (mealsPerWeek.breakfast > 0) mealParts.push(`${mealsPerWeek.breakfast}B`);
+  if (mealsPerWeek.lunch > 0) mealParts.push(`${mealsPerWeek.lunch}L`);
+  if (mealsPerWeek.dinner > 0) mealParts.push(`${mealsPerWeek.dinner}D`);
+
+  const timeValue = `${formatTime(maxWeeklyPrep)} prep / ${formatTime(maxCookTime)} per meal`;
+
   const rows = [
+    {
+      label: "Household",
+      icon: Users,
+      value: `${totalPeople} ${totalPeople === 1 ? "person" : "people"} (${householdParts.join(", ")})`,
+    },
     {
       label: "Diet",
       icon: Leaf,
@@ -402,13 +504,13 @@ function SummaryStep({
     },
     {
       label: "Meals",
-      icon: Users,
-      value: `${mealsPerWeek}/week for ${householdSize === 1 ? "just me" : `${householdSize} people`}`,
+      icon: UtensilsCrossed,
+      value: `${totalMeals}/week (${mealParts.join(", ")})`,
     },
     {
       label: "Cooking",
       icon: Clock,
-      value: `${formatTime(maxPrepTime)} max`,
+      value: timeValue,
     },
     ...(equipment.size > 0
       ? [
@@ -416,6 +518,15 @@ function SummaryStep({
             label: "Equipment",
             icon: ChefHat,
             value: Array.from(equipment).join(", "),
+          },
+        ]
+      : []),
+    ...(customInstructions.trim()
+      ? [
+          {
+            label: "Instructions",
+            icon: MessageSquare,
+            value: customInstructions.trim(),
           },
         ]
       : []),

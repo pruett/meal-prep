@@ -1,81 +1,80 @@
-import { Minus, Plus } from "lucide-react"
-import { Button } from "~/components/ui/button"
-import { Slider } from "~/components/ui/slider"
-import { cn } from "~/lib/utils"
-import { adjustHouseholdSize } from "./constants"
+import { Slider } from "~/components/ui/slider";
+import { cn } from "~/lib/utils";
+
+export type MealsPerWeek = { breakfast: number; lunch: number; dinner: number };
 
 export function MealPlanningControls({
   mealsPerWeek,
   onMealsPerWeekChange,
-  householdSize,
-  onHouseholdSizeChange,
   className,
 }: {
-  mealsPerWeek: number
-  onMealsPerWeekChange: (value: number) => void
-  householdSize: number
-  onHouseholdSizeChange: (value: number) => void
-  className?: string
+  mealsPerWeek: MealsPerWeek;
+  onMealsPerWeekChange: (value: MealsPerWeek) => void;
+  className?: string;
 }) {
+  const total =
+    mealsPerWeek.breakfast + mealsPerWeek.lunch + mealsPerWeek.dinner;
+
   return (
     <div className={cn("flex flex-col gap-8", className)}>
-      <div>
-        <div className="mb-4 flex items-baseline justify-between">
-          <label className="text-sm font-medium">Meals per week</label>
-          <span className="text-2xl font-bold tabular-nums text-primary">
-            {mealsPerWeek}
-          </span>
-        </div>
-        <Slider
-          value={[mealsPerWeek]}
-          onValueChange={(val) =>
-            onMealsPerWeekChange(Array.isArray(val) ? val[0] : val)
-          }
-          min={3}
-          max={14}
-          step={1}
-        />
-        <div className="mt-2 flex justify-between text-xs text-muted-foreground">
-          <span>3</span>
-          <span>14</span>
-        </div>
+      <div className="flex items-baseline justify-between">
+        <label className="text-sm font-medium">Total meals per week</label>
+        <span className="text-2xl font-bold tabular-nums text-primary">
+          {total}
+        </span>
       </div>
 
-      <div>
-        <div className="mb-4 flex items-baseline justify-between">
-          <label className="text-sm font-medium">Household size</label>
-          <span className="text-sm text-muted-foreground">
-            {householdSize === 1 ? "Just me" : `${householdSize} people`}
-          </span>
-        </div>
-        <div className="flex items-center justify-center gap-5">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() =>
-              onHouseholdSizeChange(adjustHouseholdSize(householdSize, -1))
-            }
-            disabled={householdSize <= 1}
-            className="rounded-full"
-          >
-            <Minus className="h-4 w-4" />
-          </Button>
-          <span className="w-12 text-center text-3xl font-bold tabular-nums text-primary">
-            {householdSize}
-          </span>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() =>
-              onHouseholdSizeChange(adjustHouseholdSize(householdSize, 1))
-            }
-            disabled={householdSize >= 10}
-            className="rounded-full"
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
-        </div>
+      <MealSlider
+        label="Breakfast"
+        value={mealsPerWeek.breakfast}
+        onChange={(v) =>
+          onMealsPerWeekChange({ ...mealsPerWeek, breakfast: v })
+        }
+      />
+      <MealSlider
+        label="Lunch"
+        value={mealsPerWeek.lunch}
+        onChange={(v) => onMealsPerWeekChange({ ...mealsPerWeek, lunch: v })}
+      />
+      <MealSlider
+        label="Dinner"
+        value={mealsPerWeek.dinner}
+        onChange={(v) => onMealsPerWeekChange({ ...mealsPerWeek, dinner: v })}
+      />
+    </div>
+  );
+}
+
+function MealSlider({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  onChange: (value: number) => void;
+}) {
+  return (
+    <div>
+      <div className="mb-3 flex items-baseline justify-between">
+        <label className="text-sm font-medium">{label}</label>
+        <span className="text-sm font-semibold tabular-nums text-primary">
+          {value}
+        </span>
+      </div>
+      <Slider
+        value={[value]}
+        onValueChange={(val) =>
+          onChange(Array.isArray(val) ? (val[0] ?? value) : val)
+        }
+        min={0}
+        max={7}
+        step={1}
+      />
+      <div className="mt-1.5 flex justify-between text-xs text-muted-foreground">
+        <span>0</span>
+        <span>7</span>
       </div>
     </div>
-  )
+  );
 }

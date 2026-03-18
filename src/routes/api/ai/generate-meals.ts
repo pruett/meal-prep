@@ -24,7 +24,8 @@ export const Route = createFileRoute('/api/ai/generate-meals')({
         const diff = now.getDate() - day + (day === 0 ? -6 : 1)
         const monday = new Date(now.getFullYear(), now.getMonth(), diff)
         const weekStartDate = monday.toISOString().split('T')[0]!
-        const totalMeals = preferences?.mealsPerWeek ?? 7
+        const mealsPerWeek = preferences?.mealsPerWeek ?? { breakfast: 0, lunch: 0, dinner: 5 }
+        const totalMeals = mealsPerWeek.breakfast + mealsPerWeek.lunch + mealsPerWeek.dinner
 
         const mealPlanId = await fetchAuthMutation(api.mealPlans.create, {
           userId: user._id,

@@ -105,8 +105,8 @@ describe('onboarding guard: Convex data flow', () => {
     await t.mutation(api.preferences.update, {
       userId,
       dietaryRestrictions: ['vegetarian'],
-      mealsPerWeek: 5,
-      householdSize: 2,
+      mealsPerWeek: { breakfast: 0, lunch: 0, dinner: 5 },
+      household: { adults: 2, kids: 0, infants: 0 },
     })
     await t.mutation(api.users.completeOnboarding, { id: userId })
 

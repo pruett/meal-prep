@@ -18,11 +18,15 @@ import { PreferencesSkeleton } from '~/components/route-skeletons'
 import { requireAuth } from '~/lib/auth-guard'
 import { fetchAuthQuery } from '~/lib/auth-server'
 import { authClient } from '~/lib/auth-client'
+import { HouseholdSelector } from '~/components/preferences/household-selector'
+import type { Household } from '~/components/preferences/household-selector'
 import { DietSelector } from '~/components/preferences/diet-selector'
 import { CuisineSelector } from '~/components/preferences/cuisine-selector'
 import { MealPlanningControls } from '~/components/preferences/meal-planning-controls'
+import type { MealsPerWeek } from '~/components/preferences/meal-planning-controls'
+import { EquipmentSelector } from '~/components/preferences/equipment-selector'
 import { CookingSetup } from '~/components/preferences/cooking-setup'
-import { FoodsToAvoidInput } from '~/components/preferences/foods-to-avoid-input'
+import { CustomInstructionsInput } from '~/components/preferences/custom-instructions-input'
 import { AppPage } from '~/components/layout/app-page'
 import {
   DIETARY_RESTRICTIONS,
@@ -30,7 +34,7 @@ import {
   formatTime,
   setsEqual,
 } from '~/components/preferences/constants'
-import { Leaf, Globe, ShieldBan, CalendarDays, ChefHat } from 'lucide-react'
+import { Leaf, Globe, MessageSquare, CalendarDays, ChefHat, Clock, Users } from 'lucide-react'
 
 // ─── SSR Loader ────────────────────────────────────────────────────────────────
 
@@ -176,6 +180,16 @@ function SaveButton({
   )
 }
 
+// ─── Helpers ────────────────────────────────────────────────────────────────────
+
+function householdsEqual(a: Household, b: Household) {
+  return a.adults === b.adults && a.kids === b.kids && a.infants === b.infants
+}
+
+function mealsEqual(a: MealsPerWeek, b: MealsPerWeek) {
+  return a.breakfast === b.breakfast && a.lunch === b.lunch && a.dinner === b.dinner
+}
+
 // ─── Page Component ────────────────────────────────────────────────────────────
 
 function PreferencesPage() {
@@ -202,6 +216,12 @@ function PreferencesPage() {
 
   // ── Section state ──────────────────────────────────────────────────────────
 
+  // Household
+  const [household, setHousehold] = useState<Household>(
+    () => prefs?.household ?? { adults: 2, kids: 0, infants: 0 },
+  )
+  const savedHouseholdRef = useRef(household)
+
   // Diet
   const [dietSelected, setDietSelected] = useState<Set<string>>(
     () => new Set(prefs?.dietaryRestrictions ?? []),
@@ -218,41 +238,46 @@ function PreferencesPage() {
   })
   const savedCuisinesRef = useRef(cuisineLikes)
 
-  // Foods to avoid
-  const [foodsToAvoid, setFoodsToAvoid] = useState(prefs?.foodsToAvoid ?? '')
-  const savedFoodsRef = useRef(foodsToAvoid)
-
   // Meals planning
-  const [mealsPerWeek, setMealsPerWeek] = useState(prefs?.mealsPerWeek ?? 7)
-  const savedMealsPerWeekRef = useRef(mealsPerWeek)
-  const [householdSize, setHouseholdSize] = useState(prefs?.householdSize ?? 2)
-  const savedHouseholdRef = useRef(householdSize)
+  const [mealsPerWeek, setMealsPerWeek] = useState<MealsPerWeek>(
+    () => prefs?.mealsPerWeek ?? { breakfast: 0, lunch: 0, dinner: 5 },
+  )
+  const savedMealsRef = useRef(mealsPerWeek)
 
   // Cooking
-  const [maxPrepTime, setMaxPrepTime] = useState(prefs?.maxPrepTimeMinutes ?? 45)
-  const savedPrepTimeRef = useRef(maxPrepTime)
+  const [maxWeeklyPrep, setMaxWeeklyPrep] = useState(prefs?.maxWeeklyPrepMinutes ?? 120)
+  const savedWeeklyPrepRef = useRef(maxWeeklyPrep)
+  const [maxCookTime, setMaxCookTime] = useState(prefs?.maxCookTimeMinutes ?? 30)
+  const savedCookTimeRef = useRef(maxCookTime)
   const [equipment, setEquipment] = useState<Set<string>>(
     () => new Set(prefs?.kitchenEquipment ?? []),
   )
   const savedEquipmentRef = useRef(equipment)
 
+  // Custom instructions
+  const [customInstructions, setCustomInstructions] = useState(prefs?.customInstructions ?? '')
+  const savedInstructionsRef = useRef(customInstructions)
+
   // ── Dirty state ────────────────────────────────────────────────────────────
 
+  const householdDirty = !householdsEqual(household, savedHouseholdRef.current)
   const dietDirty = !setsEqual(dietSelected, savedDietRef.current)
   const cuisineDirty = !setsEqual(cuisineLikes, savedCuisinesRef.current)
-  const foodsDirty = foodsToAvoid !== savedFoodsRef.current
-  const mealsDirty =
-    mealsPerWeek !== savedMealsPerWeekRef.current ||
-    householdSize !== savedHouseholdRef.current
+  const mealsDirty = !mealsEqual(mealsPerWeek, savedMealsRef.current)
+  const equipmentDirty = !setsEqual(equipment, savedEquipmentRef.current)
   const cookingDirty =
-    maxPrepTime !== savedPrepTimeRef.current ||
-    !setsEqual(equipment, savedEquipmentRef.current)
+    maxWeeklyPrep !== savedWeeklyPrepRef.current ||
+    maxCookTime !== savedCookTimeRef.current
+  const instructionsDirty = customInstructions !== savedInstructionsRef.current
 
   // ── Helpers ────────────────────────────────────────────────────────────────
 
   const updatePreferences = useMutation(api.preferences.update)
 
   // ── Summaries ──────────────────────────────────────────────────────────────
+
+  const totalPeople = household.adults + household.kids + household.infants
+  const householdSummary = `${totalPeople} ${totalPeople === 1 ? 'person' : 'people'}`
 
   const dietSummary =
     dietSelected.size > 0
@@ -270,11 +295,14 @@ function PreferencesPage() {
           .join(', ')
       : 'Open to all cuisines'
 
-  const avoidSummary = foodsToAvoid.trim() || 'Nothing specific'
+  const totalMeals = mealsPerWeek.breakfast + mealsPerWeek.lunch + mealsPerWeek.dinner
+  const mealsSummary = `${totalMeals} meals/week`
 
-  const mealsSummary = `${mealsPerWeek} meals/week · ${householdSize === 1 ? 'Just me' : `${householdSize} people`}`
+  const equipmentSummary = equipment.size > 0 ? `${equipment.size} items selected` : 'No equipment selected'
 
-  const cookingSummary = `${formatTime(maxPrepTime)} max · ${equipment.size > 0 ? `${equipment.size} items` : 'No equipment selected'}`
+  const cookingSummary = `${formatTime(maxWeeklyPrep)} prep / ${formatTime(maxCookTime)} per meal`
+
+  const instructionsSummary = customInstructions.trim() || 'Nothing specific'
 
   // ── Save handlers ──────────────────────────────────────────────────────────
 
@@ -286,6 +314,14 @@ function PreferencesPage() {
         </p>
       </AppPage>
     )
+  }
+
+  const saveHousehold = async () => {
+    await updatePreferences({
+      userId,
+      household,
+    })
+    savedHouseholdRef.current = household
   }
 
   const saveDiet = async () => {
@@ -307,32 +343,38 @@ function PreferencesPage() {
     savedCuisinesRef.current = cuisineLikes
   }
 
-  const saveAvoid = async () => {
-    await updatePreferences({
-      userId,
-      foodsToAvoid: foodsToAvoid.trim(),
-    })
-    savedFoodsRef.current = foodsToAvoid
-  }
-
   const saveMeals = async () => {
     await updatePreferences({
       userId,
       mealsPerWeek,
-      householdSize,
     })
-    savedMealsPerWeekRef.current = mealsPerWeek
-    savedHouseholdRef.current = householdSize
+    savedMealsRef.current = mealsPerWeek
+  }
+
+  const saveEquipment = async () => {
+    await updatePreferences({
+      userId,
+      kitchenEquipment: Array.from(equipment),
+    })
+    savedEquipmentRef.current = equipment
   }
 
   const saveCooking = async () => {
     await updatePreferences({
       userId,
-      maxPrepTimeMinutes: maxPrepTime,
-      kitchenEquipment: Array.from(equipment),
+      maxWeeklyPrepMinutes: maxWeeklyPrep,
+      maxCookTimeMinutes: maxCookTime,
     })
-    savedPrepTimeRef.current = maxPrepTime
-    savedEquipmentRef.current = equipment
+    savedWeeklyPrepRef.current = maxWeeklyPrep
+    savedCookTimeRef.current = maxCookTime
+  }
+
+  const saveInstructions = async () => {
+    await updatePreferences({
+      userId,
+      customInstructions: customInstructions.trim(),
+    })
+    savedInstructionsRef.current = customInstructions
   }
 
   return (
@@ -350,6 +392,17 @@ function PreferencesPage() {
 
       {/* Sections */}
       <div className="flex flex-col gap-3">
+        {/* ── Household ──────────────────────────────────────────────────── */}
+        <Section icon={Users} title="Household" summary={householdSummary}>
+          <HouseholdSelector
+            household={household}
+            onHouseholdChange={setHousehold}
+          />
+          <div className="mt-4 flex justify-end">
+            <SaveButton onSave={saveHousehold} disabled={!householdDirty} />
+          </div>
+        </Section>
+
         {/* ── Diet ─────────────────────────────────────────────────────────── */}
         <Section icon={Leaf} title="Dietary Restrictions" summary={dietSummary}>
           <DietSelector
@@ -374,41 +427,50 @@ function PreferencesPage() {
           </div>
         </Section>
 
-        {/* ── Foods to Avoid ───────────────────────────────────────────────── */}
-        <Section icon={ShieldBan} title="Foods to Avoid" summary={avoidSummary}>
-          <FoodsToAvoidInput
-            value={foodsToAvoid}
-            onChange={setFoodsToAvoid}
-          />
-          <div className="mt-4 flex justify-end">
-            <SaveButton onSave={saveAvoid} disabled={!foodsDirty} />
-          </div>
-        </Section>
-
         {/* ── Meal Planning ────────────────────────────────────────────────── */}
         <Section icon={CalendarDays} title="Meal Planning" summary={mealsSummary}>
           <MealPlanningControls
             mealsPerWeek={mealsPerWeek}
             onMealsPerWeekChange={setMealsPerWeek}
-            householdSize={householdSize}
-            onHouseholdSizeChange={setHouseholdSize}
           />
           <div className="mt-6 flex justify-end">
             <SaveButton onSave={saveMeals} disabled={!mealsDirty} />
           </div>
         </Section>
 
-        {/* ── Cooking ──────────────────────────────────────────────────────── */}
-        <Section icon={ChefHat} title="Cooking Preferences" summary={cookingSummary}>
-          <CookingSetup
-            maxPrepTime={maxPrepTime}
-            onMaxPrepTimeChange={setMaxPrepTime}
+        {/* ── Equipment ────────────────────────────────────────────────────── */}
+        <Section icon={ChefHat} title="Kitchen Equipment" summary={equipmentSummary}>
+          <EquipmentSelector
             equipment={equipment}
             onEquipmentChange={setEquipment}
             showIcons
           />
+          <div className="mt-4 flex justify-end">
+            <SaveButton onSave={saveEquipment} disabled={!equipmentDirty} />
+          </div>
+        </Section>
+
+        {/* ── Cooking Time ───────────────────────────────────────────────────── */}
+        <Section icon={Clock} title="Cooking Time" summary={cookingSummary}>
+          <CookingSetup
+            maxWeeklyPrep={maxWeeklyPrep}
+            onMaxWeeklyPrepChange={setMaxWeeklyPrep}
+            maxCookTime={maxCookTime}
+            onMaxCookTimeChange={setMaxCookTime}
+          />
           <div className="mt-6 flex justify-end">
             <SaveButton onSave={saveCooking} disabled={!cookingDirty} />
+          </div>
+        </Section>
+
+        {/* ── Custom Instructions ──────────────────────────────────────────── */}
+        <Section icon={MessageSquare} title="Custom Instructions" summary={instructionsSummary}>
+          <CustomInstructionsInput
+            value={customInstructions}
+            onChange={setCustomInstructions}
+          />
+          <div className="mt-4 flex justify-end">
+            <SaveButton onSave={saveInstructions} disabled={!instructionsDirty} />
           </div>
         </Section>
       </div>

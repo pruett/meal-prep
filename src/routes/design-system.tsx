@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { AnimatePresence } from 'motion/react'
 import { createFileRoute } from '@tanstack/react-router'
 import {
   Plus,
@@ -36,8 +37,10 @@ import {
   ItemSeparator,
 } from '~/components/ui/item'
 import { Badge } from '~/components/ui/badge'
+import { Chip, ChipIcon, ChipGroup } from '~/components/ui/chip'
 import { Separator } from '~/components/ui/separator'
 import { PrepGenerationInterstitial } from '~/components/prep/prep-generation-interstitial'
+import { GeneratingInterstitial } from '~/components/generating-interstitial'
 
 export const Route = createFileRoute('/design-system')({
   component: DesignSystem,
@@ -122,6 +125,74 @@ function InterstitialPlayground() {
         />
       </div>
     </div>
+  )
+}
+
+function MealGenerationPlayground() {
+  const [active, setActive] = useState(false)
+  const [elapsed, setElapsed] = useState(0)
+
+  useEffect(() => {
+    if (!active) {
+      setElapsed(0)
+      return
+    }
+    const interval = setInterval(() => setElapsed((t) => t + 500), 500)
+    return () => clearInterval(interval)
+  }, [active])
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-wrap gap-2">
+        <Button size="sm" variant="outline" onClick={() => setActive(true)}>
+          Show Interstitial
+        </Button>
+        <Button size="sm" variant="outline" onClick={() => setActive(false)}>
+          Dismiss
+        </Button>
+      </div>
+      <p className="text-sm text-muted-foreground">
+        Click "Show Interstitial" to trigger the fullscreen meal generation overlay. Press Dismiss or Escape to close.
+      </p>
+      <AnimatePresence>
+        {active && <GeneratingInterstitial elapsed={elapsed} onClose={() => setActive(false)} />}
+      </AnimatePresence>
+    </div>
+  )
+}
+
+function ChipGridDemo() {
+  const [selected, setSelected] = useState<Set<string>>(
+    new Set(['italian', 'thai']),
+  )
+
+  const cuisines = [
+    { id: 'italian', label: 'Italian', icon: '🍝' },
+    { id: 'mexican', label: 'Mexican', icon: '🌮' },
+    { id: 'japanese', label: 'Japanese', icon: '🍣' },
+    { id: 'thai', label: 'Thai', icon: '🍜' },
+    { id: 'indian', label: 'Indian', icon: '🍛' },
+    { id: 'korean', label: 'Korean', icon: '🥘' },
+  ]
+
+  function toggle(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  return (
+    <ChipGroup layout="grid">
+      {cuisines.map(({ id, label, icon }) => (
+        <Chip key={id} selected={selected.has(id)} onClick={() => toggle(id)}>
+          <ChipIcon>{icon}</ChipIcon>
+          <span className="truncate">{label}</span>
+        </Chip>
+      ))}
+    </ChipGroup>
   )
 }
 
@@ -391,6 +462,57 @@ function DesignSystem() {
 
         <Separator />
 
+        {/* ── Chip ── */}
+        <Section title="Chip">
+          <Subsection title="Default">
+            <ChipGroup layout="inline">
+              <Chip>Unselected</Chip>
+              <Chip selected>Selected</Chip>
+              <Chip disabled>Disabled</Chip>
+            </ChipGroup>
+          </Subsection>
+
+          <Subsection title="Sizes">
+            <ChipGroup layout="inline">
+              <Chip size="sm">Small</Chip>
+              <Chip size="default">Default</Chip>
+              <Chip size="lg">Large</Chip>
+            </ChipGroup>
+          </Subsection>
+
+          <Subsection title="With Icons">
+            <ChipGroup layout="inline">
+              <Chip>
+                <ChipIcon>🍝</ChipIcon>
+                Italian
+              </Chip>
+              <Chip selected>
+                <ChipIcon>🌮</ChipIcon>
+                Mexican
+              </Chip>
+              <Chip>
+                <ChipIcon>🍣</ChipIcon>
+                Japanese
+              </Chip>
+            </ChipGroup>
+          </Subsection>
+
+          <Subsection title="Grid Layout">
+            <ChipGridDemo />
+          </Subsection>
+
+          <Subsection title="Outline Variant">
+            <ChipGroup layout="inline">
+              <Chip variant="outline">Default</Chip>
+              <Chip variant="outline" selected>
+                Selected
+              </Chip>
+            </ChipGroup>
+          </Subsection>
+        </Section>
+
+        <Separator />
+
         {/* ── Item ── */}
         <Section title="Item">
           <Subsection title="Default Variant">
@@ -515,6 +637,15 @@ function DesignSystem() {
             </ItemGroup>
           </Subsection>
         </Section>
+        <Separator />
+
+        {/* ── Meal Generation Interstitial ── */}
+        <Section title="Meal Generation Interstitial">
+          <Subsection title="Fullscreen Overlay">
+            <MealGenerationPlayground />
+          </Subsection>
+        </Section>
+
         <Separator />
 
         {/* ── Prep Generation Interstitial ── */}

@@ -658,17 +658,23 @@ describe('integration: user onboarding flow', () => {
     await t.mutation(api.preferences.create, { userId })
     const defaultPrefs = await t.query(api.preferences.getByUser, { userId })
     expect(defaultPrefs).not.toBeNull()
-    expect(defaultPrefs!.mealsPerWeek).toBe(7)
-    expect(defaultPrefs!.householdSize).toBe(2)
+    expect(defaultPrefs!.mealsPerWeek).toEqual({ breakfast: 0, lunch: 0, dinner: 5 })
+    expect(defaultPrefs!.household).toEqual({ adults: 2, kids: 0, infants: 0 })
     expect(defaultPrefs!.dietaryRestrictions).toEqual([])
 
-    // Step 3: Diet step — set dietary restrictions
+    // Step 3: Household step
+    await t.mutation(api.preferences.update, {
+      userId,
+      household: { adults: 2, kids: 2, infants: 0 },
+    })
+
+    // Step 4: Diet step — set dietary restrictions
     await t.mutation(api.preferences.update, {
       userId,
       dietaryRestrictions: ['vegetarian', 'gluten-free'],
     })
 
-    // Step 4: Cuisines step — set cuisine preferences
+    // Step 5: Cuisines step — set cuisine preferences
     await t.mutation(api.preferences.update, {
       userId,
       cuisinePreferences: [
@@ -679,27 +685,27 @@ describe('integration: user onboarding flow', () => {
       ],
     })
 
-    // Step 5: Avoid step — set foods to avoid
+    // Step 6: Meals step — set meals per week
     await t.mutation(api.preferences.update, {
       userId,
-      foodsToAvoid: 'mushrooms, cilantro',
+      mealsPerWeek: { breakfast: 2, lunch: 0, dinner: 5 },
     })
 
-    // Step 6: Meals step — set meals per week and household size
+    // Step 7: Cooking step — set time and equipment
     await t.mutation(api.preferences.update, {
       userId,
-      mealsPerWeek: 5,
-      householdSize: 4,
-    })
-
-    // Step 7: Cooking step — set max prep time and equipment
-    await t.mutation(api.preferences.update, {
-      userId,
-      maxPrepTimeMinutes: 60,
+      maxWeeklyPrepMinutes: 150,
+      maxCookTimeMinutes: 45,
       kitchenEquipment: ['oven', 'slow-cooker', 'blender'],
     })
 
-    // Step 8: Complete onboarding
+    // Step 8: Custom instructions
+    await t.mutation(api.preferences.update, {
+      userId,
+      customInstructions: 'avoid mushrooms, kid-friendly',
+    })
+
+    // Step 9: Complete onboarding
     await t.mutation(api.users.completeOnboarding, { id: userId })
 
     // Verify final state
@@ -715,11 +721,12 @@ describe('integration: user onboarding flow', () => {
         { cuisine: 'French', preference: 'neutral' },
         { cuisine: 'Indian', preference: 'dislike' },
       ],
-      foodsToAvoid: 'mushrooms, cilantro',
-      mealsPerWeek: 5,
-      householdSize: 4,
-      maxPrepTimeMinutes: 60,
+      household: { adults: 2, kids: 2, infants: 0 },
+      mealsPerWeek: { breakfast: 2, lunch: 0, dinner: 5 },
+      maxWeeklyPrepMinutes: 150,
+      maxCookTimeMinutes: 45,
       kitchenEquipment: ['oven', 'slow-cooker', 'blender'],
+      customInstructions: 'avoid mushrooms, kid-friendly',
     })
   })
 
@@ -736,11 +743,12 @@ describe('integration: user onboarding flow', () => {
     expect(prefs).toMatchObject({
       dietaryRestrictions: [],
       cuisinePreferences: [],
-      mealsPerWeek: 7,
-      householdSize: 2,
-      maxPrepTimeMinutes: 45,
+      household: { adults: 2, kids: 0, infants: 0 },
+      mealsPerWeek: { breakfast: 0, lunch: 0, dinner: 5 },
+      maxWeeklyPrepMinutes: 120,
+      maxCookTimeMinutes: 30,
       kitchenEquipment: [],
-      foodsToAvoid: '',
+      customInstructions: '',
     })
   })
 })

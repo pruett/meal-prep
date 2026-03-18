@@ -17,11 +17,12 @@ export const create = mutation({
       userId: args.userId,
       dietaryRestrictions: [],
       cuisinePreferences: [],
-      mealsPerWeek: 7,
-      householdSize: 2,
-      maxPrepTimeMinutes: 45,
+      household: { adults: 2, kids: 0, infants: 0 },
+      mealsPerWeek: { breakfast: 0, lunch: 0, dinner: 5 },
+      maxWeeklyPrepMinutes: 120,
+      maxCookTimeMinutes: 30,
       kitchenEquipment: [],
-      foodsToAvoid: '',
+      customInstructions: '',
     })
   },
 })
@@ -54,11 +55,24 @@ export const update = mutation({
         }),
       ),
     ),
-    mealsPerWeek: v.optional(v.number()),
-    householdSize: v.optional(v.number()),
-    maxPrepTimeMinutes: v.optional(v.number()),
+    household: v.optional(
+      v.object({
+        adults: v.number(),
+        kids: v.number(),
+        infants: v.number(),
+      }),
+    ),
+    mealsPerWeek: v.optional(
+      v.object({
+        breakfast: v.number(),
+        lunch: v.number(),
+        dinner: v.number(),
+      }),
+    ),
+    maxWeeklyPrepMinutes: v.optional(v.number()),
+    maxCookTimeMinutes: v.optional(v.number()),
     kitchenEquipment: v.optional(v.array(v.string())),
-    foodsToAvoid: v.optional(v.string()),
+    customInstructions: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const existing = await ctx.db

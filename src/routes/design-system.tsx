@@ -36,6 +36,7 @@ import {
   ItemSeparator,
 } from '~/components/ui/item'
 import { Badge } from '~/components/ui/badge'
+import { Chip, ChipIcon, ChipGroup } from '~/components/ui/chip'
 import { Separator } from '~/components/ui/separator'
 import { PrepGenerationInterstitial } from '~/components/prep/prep-generation-interstitial'
 
@@ -122,6 +123,41 @@ function InterstitialPlayground() {
         />
       </div>
     </div>
+  )
+}
+
+function ChipGridDemo() {
+  const [selected, setSelected] = useState<Set<string>>(
+    new Set(['italian', 'thai']),
+  )
+
+  const cuisines = [
+    { id: 'italian', label: 'Italian', icon: '🍝' },
+    { id: 'mexican', label: 'Mexican', icon: '🌮' },
+    { id: 'japanese', label: 'Japanese', icon: '🍣' },
+    { id: 'thai', label: 'Thai', icon: '🍜' },
+    { id: 'indian', label: 'Indian', icon: '🍛' },
+    { id: 'korean', label: 'Korean', icon: '🥘' },
+  ]
+
+  function toggle(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  return (
+    <ChipGroup layout="grid">
+      {cuisines.map(({ id, label, icon }) => (
+        <Chip key={id} selected={selected.has(id)} onClick={() => toggle(id)}>
+          <ChipIcon>{icon}</ChipIcon>
+          <span className="truncate">{label}</span>
+        </Chip>
+      ))}
+    </ChipGroup>
   )
 }
 
@@ -386,6 +422,57 @@ function DesignSystem() {
               <Badge>Published</Badge>
               <Badge variant="secondary">+3 more</Badge>
             </div>
+          </Subsection>
+        </Section>
+
+        <Separator />
+
+        {/* ── Chip ── */}
+        <Section title="Chip">
+          <Subsection title="Default">
+            <ChipGroup layout="inline">
+              <Chip>Unselected</Chip>
+              <Chip selected>Selected</Chip>
+              <Chip disabled>Disabled</Chip>
+            </ChipGroup>
+          </Subsection>
+
+          <Subsection title="Sizes">
+            <ChipGroup layout="inline">
+              <Chip size="sm">Small</Chip>
+              <Chip size="default">Default</Chip>
+              <Chip size="lg">Large</Chip>
+            </ChipGroup>
+          </Subsection>
+
+          <Subsection title="With Icons">
+            <ChipGroup layout="inline">
+              <Chip>
+                <ChipIcon>🍝</ChipIcon>
+                Italian
+              </Chip>
+              <Chip selected>
+                <ChipIcon>🌮</ChipIcon>
+                Mexican
+              </Chip>
+              <Chip>
+                <ChipIcon>🍣</ChipIcon>
+                Japanese
+              </Chip>
+            </ChipGroup>
+          </Subsection>
+
+          <Subsection title="Grid Layout">
+            <ChipGridDemo />
+          </Subsection>
+
+          <Subsection title="Outline Variant">
+            <ChipGroup layout="inline">
+              <Chip variant="outline">Default</Chip>
+              <Chip variant="outline" selected>
+                Selected
+              </Chip>
+            </ChipGroup>
           </Subsection>
         </Section>
 

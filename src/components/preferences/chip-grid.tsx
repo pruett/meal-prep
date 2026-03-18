@@ -1,5 +1,5 @@
-import { Check } from "lucide-react"
 import { Button } from "~/components/ui/button"
+import { Chip, ChipIcon, ChipGroup } from "~/components/ui/chip"
 import { cn } from "~/lib/utils"
 import type { PreferenceOption } from "./constants"
 
@@ -36,40 +36,18 @@ export function ChipGrid({
           {allSelected ? "Deselect all" : "Select all"}
         </Button>
       )}
-      <div
-        className={cn(
-          layout === "grid"
-            ? "grid grid-cols-2 gap-2.5 sm:grid-cols-3"
-            : "flex flex-col gap-2",
-        )}
-      >
-        {items.map(({ id, label, icon }) => {
-          const isSelected = selected.has(id)
-          return (
-            <button
-              key={id}
-              type="button"
-              onClick={() => onToggle(id)}
-              className={cn(
-                "flex items-center justify-between rounded-lg border px-4 py-2.5 text-left text-sm font-medium transition-colors",
-                isSelected
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-border bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground",
-              )}
-            >
-              <span className="flex items-center gap-2.5">
-                {showIcons && (
-                  <span className="text-base leading-none" aria-hidden="true">
-                    {icon}
-                  </span>
-                )}
-                <span className="truncate">{label}</span>
-              </span>
-              {isSelected && <Check className="h-4 w-4 shrink-0" />}
-            </button>
-          )
-        })}
-      </div>
+      <ChipGroup layout={layout}>
+        {items.map(({ id, label, icon }) => (
+          <Chip
+            key={id}
+            selected={selected.has(id)}
+            onClick={() => onToggle(id)}
+          >
+            {showIcons && <ChipIcon>{icon}</ChipIcon>}
+            <span className="truncate">{label}</span>
+          </Chip>
+        ))}
+      </ChipGroup>
     </div>
   )
 }

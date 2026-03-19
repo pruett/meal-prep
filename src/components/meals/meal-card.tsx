@@ -3,7 +3,6 @@ import { toast } from 'sonner'
 import type { Doc } from '../../../convex/_generated/dataModel'
 import { api } from '../../../convex/_generated/api'
 import { Check, CircleCheck, LeafyGreen, X, XCircle } from 'lucide-react'
-import { Button } from '~/components/ui/button'
 import { Skeleton } from '~/components/ui/skeleton'
 import {
   Item,
@@ -19,10 +18,13 @@ interface MealCardProps {
   meal: Doc<'meals'>
   showActions?: boolean
   isRegenerating?: boolean
-  variant?: 'default' | 'compact'
 }
 
-export function MealCard({ meal, showActions = false, isRegenerating = false, variant = 'default' }: MealCardProps) {
+export function MealCard({
+  meal,
+  showActions = false,
+  isRegenerating = false,
+}: MealCardProps) {
   const updateStatus = useMutation(api.meals.updateStatus)
 
   const isAccepted = meal.status === 'accepted'
@@ -61,74 +63,6 @@ export function MealCard({ meal, showActions = false, isRegenerating = false, va
           <Skeleton className="h-3.5 w-3/4" />
           <Skeleton className="h-3 w-20" />
         </ItemFooter>
-      </Item>
-    )
-  }
-
-  if (variant === 'compact') {
-    return (
-      <Item
-        variant="outline"
-        className={cn(
-          MEAL_CARD_HEIGHT,
-          'relative h-full flex-col items-stretch overflow-hidden bg-background transition-all duration-200',
-          isAccepted && 'border-foreground/30',
-        )}
-      >
-        {isAccepted && (
-          <CircleCheck className="absolute right-3 top-3 size-5" />
-        )}
-        {isRejected && (
-          <XCircle className="absolute right-3 top-3 size-5 text-destructive" />
-        )}
-        <ItemContent>
-          <ItemTitle
-            className={cn(
-              'text-base font-semibold',
-              isRejected &&
-                'line-through decoration-muted-foreground/30 decoration-1',
-            )}
-          >
-            {meal.name}
-          </ItemTitle>
-        </ItemContent>
-        <div className="flex items-center gap-1.5 px-4 text-xs text-muted-foreground">
-          <LeafyGreen className="size-3.5 shrink-0" />
-          <span>
-            <span className="font-medium text-foreground">Ingredients</span>{' '}
-            {meal.keyIngredients.join(', ')}
-          </span>
-        </div>
-        {showActions && (
-          <div className="mt-auto flex items-center gap-2 px-4 pb-3.5 pt-2">
-            <Button
-              size="sm"
-              variant={isRejected ? 'destructive' : 'outline'}
-              onClick={handleReject}
-              className={cn(
-                'flex-1',
-                !isRejected &&
-                  'text-destructive border-destructive/30 hover:bg-destructive/10',
-              )}
-            >
-              <X data-icon="inline-start" />
-              {isRejected ? 'Rejected' : 'Reject'}
-            </Button>
-            <Button
-              size="sm"
-              variant={isAccepted ? 'default' : 'outline'}
-              onClick={handleAccept}
-              className={cn(
-                'flex-1',
-                !isAccepted &&
-                  'text-primary border-primary/30 hover:bg-primary/10',
-              )}
-            >
-              <Check data-icon="inline-start" />
-              {isAccepted ? 'Accepted' : 'Accept'}
-            </Button>
-          </div>
-        )}
       </Item>
     )
   }

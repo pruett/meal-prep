@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { AnimatePresence } from 'motion/react'
 import { createFileRoute, Link } from '@tanstack/react-router'
+import type { Doc, Id } from '../../convex/_generated/dataModel'
 import {
   Plus,
   ArrowRight,
@@ -17,7 +18,18 @@ import {
   Package,
 } from '@phosphor-icons/react'
 import { Button } from '~/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '~/components/ui/card'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '~/components/ui/tabs'
+import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from '~/components/ui/toggle-group'
 import {
   Empty,
   EmptyHeader,
@@ -39,6 +51,7 @@ import {
 import { Badge } from '~/components/ui/badge'
 import { Chip, ChipIcon, ChipGroup } from '~/components/ui/chip'
 import { Separator } from '~/components/ui/separator'
+import { MealSuggestionCarousel } from '~/components/meals/meal-card-suggestion'
 import { PrepGenerationInterstitial } from '~/components/prep/prep-generation-interstitial'
 import { GeneratingInterstitial } from '~/components/generating-interstitial'
 
@@ -193,6 +206,197 @@ function ChipGridDemo() {
         </Chip>
       ))}
     </ChipGroup>
+  )
+}
+
+function createMockMeal({
+  id,
+  name,
+  keyIngredients,
+  sortOrder,
+  status = 'pending',
+  estimatedPrepMinutes = 25,
+  description = 'A design-system fixture for the meal suggestion carousel.',
+}: {
+  id: string
+  name: string
+  keyIngredients: string[]
+  sortOrder: number
+  status?: Doc<'meals'>['status']
+  estimatedPrepMinutes?: number
+  description?: string
+}): Doc<'meals'> {
+  return {
+    _id: id as Id<'meals'>,
+    _creationTime: 0,
+    mealPlanId: 'design-system-plan' as Id<'mealPlans'>,
+    userId: 'design-system-user' as Id<'users'>,
+    name,
+    description,
+    keyIngredients,
+    estimatedPrepMinutes,
+    status,
+    fullRecipe: null,
+    sortOrder,
+  }
+}
+
+function getMealSuggestionFixtures(): Doc<'meals'>[] {
+  return [
+    createMockMeal({
+      id: 'meal-suggestion-1',
+      name: 'Lemon Chicken Grain Bowls',
+      keyIngredients: ['chicken thighs', 'couscous', 'cucumber', 'feta'],
+      sortOrder: 0,
+    }),
+    createMockMeal({
+      id: 'meal-suggestion-2',
+      name: 'Coconut Curry Lentils',
+      keyIngredients: ['red lentils', 'coconut milk', 'spinach', 'lime'],
+      sortOrder: 1,
+    }),
+    createMockMeal({
+      id: 'meal-suggestion-3',
+      name: 'Crispy Tofu Lettuce Wraps',
+      keyIngredients: ['tofu', 'shiitakes', 'lettuce', 'hoisin'],
+      sortOrder: 2,
+    }),
+    createMockMeal({
+      id: 'meal-suggestion-4',
+      name: 'Pesto Turkey Meatballs',
+      keyIngredients: ['ground turkey', 'pesto', 'orzo', 'zucchini'],
+      sortOrder: 3,
+    }),
+  ]
+}
+
+function MealSuggestionPlayground() {
+  const [meals, setMeals] = useState<Doc<'meals'>[]>(() =>
+    getMealSuggestionFixtures(),
+  )
+  const [planStatus, setPlanStatus] = useState<'reviewing' | 'generating'>(
+    'reviewing',
+  )
+  const [showPlaceholders, setShowPlaceholders] = useState(false)
+
+  const acceptedCount = meals.filter((meal) => meal.status === 'accepted').length
+  const rejectedCount = meals.filter((meal) => meal.status === 'rejected').length
+  const currentMealCount = meals.length
+  const totalRequested = showPlaceholders ? currentMealCount + 2 : currentMealCount
+  const isActivelyGenerating =
+    planStatus === 'generating' || showPlaceholders
+
+  function reset() {
+    setMeals(getMealSuggestionFixtures())
+    setPlanStatus('reviewing')
+    setShowPlaceholders(false)
+  }
+
+  return (
+    <div className="flex flex-col gap-4">
+      <Card>
+        <CardHeader>
+          <CardTitle>Live Canvas</CardTitle>
+          <CardDescription>
+            Reject cards in reviewing mode to test the falling exit animation.
+            Switch to generating to preview rejected cards as regenerating
+            placeholders, and toggle extra placeholders to stress the row
+            spacing.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4">
+          <div className="flex flex-wrap gap-3">
+            <div className="flex flex-col gap-2">
+              <p className="text-xs font-medium text-muted-foreground">
+                Plan status
+              </p>
+              <ToggleGroup
+                value={[planStatus]}
+                onValueChange={(values) => {
+                  const value = values[0]
+                  if (value === 'reviewing' || value === 'generating') {
+                    setPlanStatus(value)
+                  }
+                }}
+                variant="outline"
+                spacing={0}
+              >
+                <ToggleGroupItem value="reviewing">
+                  Reviewing
+                </ToggleGroupItem>
+                <ToggleGroupItem value="generating">
+                  Generating
+                </ToggleGroupItem>
+              </ToggleGroup>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <p className="text-xs font-medium text-muted-foreground">
+                Placeholders
+              </p>
+              <ToggleGroup
+                value={[showPlaceholders ? 'on' : 'off']}
+                onValueChange={(values) => {
+                  const value = values[0]
+                  if (value === 'on') setShowPlaceholders(true)
+                  if (value === 'off') setShowPlaceholders(false)
+                }}
+                variant="outline"
+                spacing={0}
+              >
+                <ToggleGroupItem value="off">Off</ToggleGroupItem>
+                <ToggleGroupItem value="on">On</ToggleGroupItem>
+              </ToggleGroup>
+            </div>
+
+            <div className="flex items-end gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() =>
+                  setMeals((current) =>
+                    current.map((meal) => ({ ...meal, status: 'pending' })),
+                  )
+                }
+              >
+                Clear Statuses
+              </Button>
+              <Button size="sm" variant="outline" onClick={reset}>
+                Reset Demo
+              </Button>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <Badge variant="outline">status: {planStatus}</Badge>
+            <Badge variant="secondary">{acceptedCount} accepted</Badge>
+            <Badge variant="destructive">{rejectedCount} rejected</Badge>
+            <Badge variant="outline">{totalRequested} requested</Badge>
+          </div>
+
+          <Card className="bg-muted/20">
+            <CardContent className="p-4">
+              <MealSuggestionCarousel
+                meals={meals}
+                planStatus={planStatus}
+                isActivelyGenerating={isActivelyGenerating}
+                currentMealCount={currentMealCount}
+                totalRequested={totalRequested}
+                onMealStatusChange={(meal, status) =>
+                  setMeals((current) =>
+                    current.map((candidate) =>
+                      candidate._id === meal._id
+                        ? { ...candidate, status }
+                        : candidate,
+                    ),
+                  )
+                }
+              />
+            </CardContent>
+          </Card>
+        </CardContent>
+      </Card>
+    </div>
   )
 }
 
@@ -693,6 +897,15 @@ function DesignSystem() {
             </ItemGroup>
           </Subsection>
         </Section>
+        <Separator />
+
+        {/* ── Meal Suggestions ── */}
+        <Section title="Meal Suggestions">
+          <Subsection title="Interactive Carousel">
+            <MealSuggestionPlayground />
+          </Subsection>
+        </Section>
+
         <Separator />
 
         {/* ── Meal Generation Interstitial ── */}

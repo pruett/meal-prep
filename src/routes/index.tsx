@@ -6,8 +6,7 @@ import { convexQuery } from "@convex-dev/react-query";
 import { useMutation } from "convex/react";
 import { toast } from "sonner";
 import { api } from "../../convex/_generated/api";
-import { MealCard } from "~/components/meals/meal-card";
-import { MealSkeleton } from "~/components/meals/meal-skeleton";
+import { MealSuggestionCarousel } from "~/components/meals/meal-card-suggestion";
 import { Button, buttonVariants } from "~/components/ui/button";
 import { Separator } from "~/components/ui/separator";
 import { EmptyState } from "~/components/empty-state";
@@ -21,10 +20,8 @@ import {
 } from "~/components/ui/empty";
 import { Spinner } from "~/components/ui/spinner";
 import {
-  ChevronUp,
   CircleCheck,
   Ellipsis,
-  RefreshCw,
   Trash2,
   UtensilsCrossed,
   Settings,
@@ -136,17 +133,28 @@ function HomePage() {
     if (!preferences) return null;
     const parts: string[] = [];
     if (preferences.mealsPerWeek) {
-      const total = preferences.mealsPerWeek.breakfast + preferences.mealsPerWeek.lunch + preferences.mealsPerWeek.dinner;
+      const total =
+        preferences.mealsPerWeek.breakfast +
+        preferences.mealsPerWeek.lunch +
+        preferences.mealsPerWeek.dinner;
       parts.push(`${total} meals/week`);
     }
     if (preferences.household) {
-      const total = preferences.household.adults + preferences.household.kids + preferences.household.infants;
+      const total =
+        preferences.household.adults +
+        preferences.household.kids +
+        preferences.household.infants;
       parts.push(`${total} servings`);
     }
-    if (preferences.maxCookTimeMinutes) parts.push(`${preferences.maxCookTimeMinutes}min/meal`);
+    if (preferences.maxCookTimeMinutes)
+      parts.push(`${preferences.maxCookTimeMinutes}min/meal`);
     if (preferences.dietaryRestrictions?.length) {
-      parts.push(preferences.dietaryRestrictions.slice(0, 2).join(", ") +
-        (preferences.dietaryRestrictions.length > 2 ? ` +${preferences.dietaryRestrictions.length - 2}` : ""));
+      parts.push(
+        preferences.dietaryRestrictions.slice(0, 2).join(", ") +
+          (preferences.dietaryRestrictions.length > 2
+            ? ` +${preferences.dietaryRestrictions.length - 2}`
+            : ""),
+      );
     }
     return parts.length > 0 ? parts.join(" · ") : null;
   }, [preferences]);
@@ -156,7 +164,6 @@ function HomePage() {
 
   // ── Local state ─────────────────────────────────────────────────────────
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isRegenerating, setIsRegenerating] = useState(false);
   const [isGeneratingPrep, setIsGeneratingPrep] = useState(false);
   const [showPrepInterstitial, setShowPrepInterstitial] = useState(false);
   const [prepGenerationError, setPrepGenerationError] = useState<string | null>(
@@ -176,19 +183,16 @@ function HomePage() {
   const planStatus = currentWeekPlan?.status;
   const currentMealCount = currentWeekMeals?.length ?? 0;
   const totalRequested = currentWeekPlan?.totalMealsRequested ?? 7;
-  const isActivelyGenerating =
-    isGenerating || isRegenerating || planStatus === "generating";
+  const isActivelyGenerating = isGenerating || planStatus === "generating";
   const acceptedCount =
     currentWeekMeals?.filter((m: Doc<"meals">) => m.status === "accepted")
       .length ?? 0;
-  const rejectedCount =
-    currentWeekMeals?.filter((m: Doc<"meals">) => m.status === "rejected")
-      .length ?? 0;
-  const pendingCount = currentMealCount - acceptedCount - rejectedCount;
   const outOfCredits = user?.generationsRemaining === 0;
   const isPrepGuideReady = planStatus === "finalized";
   const totalSlots = preferences?.mealsPerWeek
-    ? preferences.mealsPerWeek.breakfast + preferences.mealsPerWeek.lunch + preferences.mealsPerWeek.dinner
+    ? preferences.mealsPerWeek.breakfast +
+      preferences.mealsPerWeek.lunch +
+      preferences.mealsPerWeek.dinner
     : (totalRequested ?? 7);
   const acceptedMeals = useMemo(
     () =>
@@ -219,30 +223,6 @@ function HomePage() {
       });
     } finally {
       setIsGenerating(false);
-    }
-  };
-
-  const handleRegenerate = async () => {
-    if (!mealPlanId) return;
-    setIsRegenerating(true);
-    try {
-      const response = await fetch("/api/ai/regenerate-meals", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mealPlanId }),
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to regenerate meals");
-      }
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Something went wrong";
-      toast.error(message, {
-        action: { label: "Retry", onClick: () => void handleRegenerate() },
-      });
-    } finally {
-      setIsRegenerating(false);
     }
   };
 
@@ -362,7 +342,6 @@ function HomePage() {
         <h2 className="mb-3 text-lg font-semibold text-foreground">
           Your Weekly Plan
         </h2>
-        <code>{JSON.stringify(emptySlotCount)}</code>
         <div className="flex flex-col gap-3">
           {acceptedMeals.map((meal) => (
             <div
@@ -576,30 +555,13 @@ function WeekReviewingView({
       <h2 className="mb-3 text-lg font-semibold text-foreground">
         Meal Suggestions
       </h2>
-      <div className="flex gap-3 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-none">
-        {meals.map((meal) => (
-          <div key={meal._id} className="w-[280px] shrink-0 snap-start">
-            <MealCard
-              meal={meal}
-              variant="compact"
-              showActions={planStatus === "reviewing"}
-              isRegenerating={
-                meal.status === "rejected" && planStatus === "generating"
-              }
-            />
-          </div>
-        ))}
-        {isActivelyGenerating &&
-          currentMealCount < totalRequested &&
-          Array.from({ length: totalRequested - currentMealCount }, (_, i) => (
-            <div
-              key={`h-skeleton-${i}`}
-              className="w-[280px] shrink-0 snap-start"
-            >
-              <MealSkeleton />
-            </div>
-          ))}
-      </div>
+      <MealSuggestionCarousel
+        meals={meals}
+        planStatus={planStatus}
+        isActivelyGenerating={isActivelyGenerating}
+        currentMealCount={currentMealCount}
+        totalRequested={totalRequested}
+      />
     </div>
   );
 }

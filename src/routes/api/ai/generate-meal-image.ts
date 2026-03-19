@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import OpenAI from 'openai'
+import sharp from 'sharp'
 import { api } from '../../../../convex/_generated/api'
 import type { Id } from '../../../../convex/_generated/dataModel'
 import { jsonResponse } from '~/lib/ai/generate'
@@ -43,9 +44,13 @@ export const Route = createFileRoute('/api/ai/generate-meal-image')({
           return jsonResponse({ error: 'No image returned from DALL-E' }, 500)
         }
 
-        // Download image
+        // Download image and resize to 400x400 webp
         const imageResponse = await fetch(imageUrl)
-        const imageBlob = await imageResponse.blob()
+        const imageBuffer = Buffer.from(await imageResponse.arrayBuffer())
+        const resizedBuffer = await sharp(imageBuffer)
+          .resize(400, 400)
+          .webp({ quality: 80 })
+          .toBuffer()
 
         // Upload to Convex storage
         const uploadUrl = await fetchAuthMutation(
@@ -54,8 +59,8 @@ export const Route = createFileRoute('/api/ai/generate-meal-image')({
         )
         const uploadResponse = await fetch(uploadUrl, {
           method: 'POST',
-          headers: { 'Content-Type': imageBlob.type },
-          body: imageBlob,
+          headers: { 'Content-Type': 'image/webp' },
+          body: resizedBuffer,
         })
         const { storageId } = (await uploadResponse.json()) as {
           storageId: Id<'_storage'>

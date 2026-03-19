@@ -1,28 +1,39 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation as useQueryMutation } from "@tanstack/react-query";
 import { convexQuery } from "@convex-dev/react-query";
 import { useMutation } from "convex/react";
 import { toast } from "sonner";
 import { api } from "../../convex/_generated/api";
 import {
-  SwipeList,
+  SwipeListProvider,
   SwipeListHeader,
   SwipeListTitle,
   SwipeListProgress,
   SwipeListHint,
-  SwipeListContent,
+  SwipeList,
   SwipeListCard,
-  SwipeListTray,
+  SwipeListStage,
+  SwipeListCardItem,
   SwipeListEmpty,
   useSwipeList,
 } from "~/components/ui/swipe-list";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "~/components/ui/drawer";
 import {
   ItemMedia,
   ItemContent,
   ItemTitle,
   ItemDescription,
+  ItemGroup,
 } from "~/components/ui/item";
 import { useMealImage } from "~/hooks/use-meal-image";
 import { Button, buttonVariants } from "~/components/ui/button";
@@ -38,6 +49,7 @@ import {
 } from "~/components/ui/empty";
 import { Spinner } from "~/components/ui/spinner";
 import {
+  ChevronUp,
   CircleCheck,
   Ellipsis,
   Trash2,
@@ -45,6 +57,7 @@ import {
   Settings,
   ArrowRight,
   ArrowUpRight,
+  RefreshCw,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -61,6 +74,7 @@ import { requireAuth } from "~/lib/auth-guard";
 import { requireOnboarding } from "~/lib/onboarding-guard";
 import { fetchAuthQuery } from "~/lib/auth-server";
 import type { Doc, Id } from "../../convex/_generated/dataModel";
+import { Skeleton } from "~/components/ui/skeleton";
 
 function getCurrentWeekStart(): string {
   const now = new Date();
@@ -182,6 +196,7 @@ function HomePage() {
 
   // ── Local state ─────────────────────────────────────────────────────────
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isGeneratingMore, setIsGeneratingMore] = useState(false);
   const [isGeneratingPrep, setIsGeneratingPrep] = useState(false);
   const [showPrepInterstitial, setShowPrepInterstitial] = useState(false);
   const [prepGenerationError, setPrepGenerationError] = useState<string | null>(
@@ -241,6 +256,33 @@ function HomePage() {
       });
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  const handleGenerateMore = async () => {
+    if (!mealPlanId || isGeneratingMore) return;
+    setIsGeneratingMore(true);
+    try {
+      const response = await fetch("/api/ai/generate-more-meals", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mealPlanId }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to generate more meals");
+      }
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Something went wrong";
+      toast.error(message, {
+        action: {
+          label: "Retry",
+          onClick: () => void handleGenerateMore(),
+        },
+      });
+    } finally {
+      setIsGeneratingMore(false);
     }
   };
 
@@ -339,13 +381,18 @@ function HomePage() {
                 preferencesSummary={preferencesSummary}
               />
             )}
-            {weekStatus === "reviewing" && (
+            {weekStatus === "reviewing" && mealPlanId && (
               <WeekReviewingView
                 meals={currentWeekMeals ?? []}
+                mealPlanId={mealPlanId}
                 planStatus={planStatus!}
                 isActivelyGenerating={isActivelyGenerating}
                 currentMealCount={currentMealCount}
                 totalRequested={totalRequested}
+                totalSlots={totalSlots}
+                onGenerateMore={handleGenerateMore}
+                isGeneratingMore={isGeneratingMore}
+                outOfCredits={outOfCredits}
               />
             )}
             {weekStatus === "finalized" && mealPlanId && (
@@ -545,24 +592,55 @@ function WeekEmptyView({
 
 function WeekReviewingView({
   meals,
+  mealPlanId,
   isActivelyGenerating,
   currentMealCount,
+  totalSlots,
+  onGenerateMore,
+  isGeneratingMore,
+  outOfCredits,
 }: {
   meals: Doc<"meals">[];
+  mealPlanId: Id<"mealPlans">;
   planStatus: string;
   isActivelyGenerating: boolean;
   currentMealCount: number;
   totalRequested: number;
+  totalSlots: number;
+  onGenerateMore: () => void;
+  isGeneratingMore: boolean;
+  outOfCredits: boolean;
 }) {
   const updateStatus = useMutation(api.meals.updateStatus);
 
   const reviewingMeals = useMemo(
     () =>
-      meals.filter(
-        (m) => m.status !== "accepted" && m.status !== "rejected",
-      ),
+      meals.filter((m) => m.status !== "accepted" && m.status !== "rejected"),
     [meals],
   );
+
+  const loadMore = useQueryMutation({
+    mutationFn: async () => {
+      const response = await fetch("/api/ai/generate-more-meals", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mealPlanId, count: 2 }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to generate more meals");
+      }
+      return data;
+    },
+    onError: (err) => {
+      toast.error(err.message);
+    },
+  });
+
+  const handleLoadMore = useCallback(() => {
+    if (loadMore.isPending || outOfCredits) return;
+    loadMore.mutate();
+  }, [loadMore, outOfCredits]);
 
   if (currentMealCount === 0 && !isActivelyGenerating) {
     return (
@@ -579,17 +657,19 @@ function WeekReviewingView({
   }
 
   return (
-    <SwipeList
+    <SwipeListProvider
       items={reviewingMeals}
       getItemId={(m) => m._id}
-      onKeep={async (meal) => {
+      loadMoreThreshold={3}
+      onLoadMore={handleLoadMore}
+      onSwipeRight={async (meal) => {
         try {
           await updateStatus({ id: meal._id, status: "accepted" });
         } catch {
           toast.error("Failed to accept meal");
         }
       }}
-      onDismiss={async (meal) => {
+      onSwipeLeft={async (meal) => {
         try {
           await updateStatus({ id: meal._id, status: "rejected" });
         } catch {
@@ -598,72 +678,216 @@ function WeekReviewingView({
       }}
       className="-mx-4"
     >
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={async () => {
+          await Promise.all(
+            meals.map((m) => updateStatus({ id: m._id, status: "pending" })),
+          );
+        }}
+      >
+        Reset meals back to pending
+      </Button>
       <SwipeListHeader>
         <SwipeListTitle>Meal Suggestions</SwipeListTitle>
       </SwipeListHeader>
       <SwipeListProgress />
       <SwipeListHint />
-      <SwipeListContent>
+      <SwipeList>
         <PendingMealCards />
-      </SwipeListContent>
-      <SwipeListTray
-        label="Your weekly plan"
-        renderItem={(meal: Doc<"meals">) => <TrayMealChip meal={meal} />}
-      />
+      </SwipeList>
+      <Drawer>
+        <DrawerTrigger asChild>
+          <SelectedMealsTrigger />
+        </DrawerTrigger>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle>Your Weekly Plan</DrawerTitle>
+            <SelectedMealsDescription />
+          </DrawerHeader>
+          <DrawerMealList />
+          <DrawerFooter>
+            <Button size="lg">
+              Finalize Plan
+              <ArrowRight data-icon="inline-end" />
+            </Button>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
       <SwipeListEmpty>
-        <span className="text-4xl">✨</span>
-        <div>
-          <h2 className="text-lg font-bold">All reviewed!</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            You've reviewed all meal suggestions
-          </p>
-        </div>
+        <ReviewCompleteContent
+          meals={meals}
+          totalSlots={totalSlots}
+          onGenerateMore={onGenerateMore}
+          isGeneratingMore={isGeneratingMore}
+          outOfCredits={outOfCredits}
+        />
       </SwipeListEmpty>
-    </SwipeList>
+    </SwipeListProvider>
+  );
+}
+
+function ReviewCompleteContent({
+  meals,
+  totalSlots,
+  onGenerateMore,
+  isGeneratingMore,
+  outOfCredits,
+}: {
+  meals: Doc<"meals">[];
+  totalSlots: number;
+  onGenerateMore: () => void;
+  isGeneratingMore: boolean;
+  outOfCredits: boolean;
+}) {
+  const { swipedRight } = useSwipeList<Doc<"meals">>();
+  const acceptedCount = meals.filter((m) => m.status === "accepted").length;
+  const totalAccepted = Math.max(acceptedCount, swipedRight.length);
+  const remaining = totalSlots - totalAccepted;
+  const needsMore = remaining > 0;
+
+  return (
+    <>
+      <span className="text-4xl">✨</span>
+      <div>
+        <h2 className="text-lg font-bold">All reviewed!</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {needsMore
+            ? `You still need ${remaining} more meal${remaining !== 1 ? "s" : ""} to fill your week.`
+            : "You've reviewed all meal suggestions."}
+        </p>
+      </div>
+      {needsMore && (
+        <Button
+          onClick={onGenerateMore}
+          disabled={isGeneratingMore || outOfCredits}
+          size="lg"
+        >
+          {isGeneratingMore ? (
+            <>
+              <Spinner data-icon="inline-start" />
+              Generating…
+            </>
+          ) : (
+            <>
+              <RefreshCw data-icon="inline-start" />
+              Generate More
+            </>
+          )}
+        </Button>
+      )}
+    </>
   );
 }
 
 function PendingMealCards() {
   const { pending } = useSwipeList<Doc<"meals">>();
   return (
-    <>
+    <ItemGroup>
       {pending.map((meal) => (
         <SwipeListCard key={meal._id} value={meal}>
-          <ItemMedia variant="image" className="size-16 rounded-lg">
-            <MealCardImage meal={meal} />
-          </ItemMedia>
-          <ItemContent>
-            <ItemTitle>{meal.name}</ItemTitle>
-            <ItemDescription>
-              {meal.keyIngredients.join(", ")}
-            </ItemDescription>
-          </ItemContent>
+          <SwipeListStage>
+            <SwipeListCardItem className="p-0">
+              <ItemMedia variant="image" className="size-40">
+                <MealCardImage meal={meal} />
+              </ItemMedia>
+              <ItemContent>
+                <ItemTitle>{meal.name}</ItemTitle>
+                <ItemDescription className="text-xs">
+                  {meal.keyIngredients.join(", ")}
+                </ItemDescription>
+              </ItemContent>
+            </SwipeListCardItem>
+          </SwipeListStage>
+          <Separator className="my-0" />
         </SwipeListCard>
       ))}
-    </>
+    </ItemGroup>
   );
 }
 
 function MealCardImage({ meal }: { meal: Doc<"meals"> }) {
   const { imageUrl } = useMealImage(meal);
-  if (!imageUrl) return <div className="size-full bg-muted" />;
-  return <img src={imageUrl} alt={meal.name} />;
+  if (!imageUrl) return <Skeleton className="size-full rounded-none" />;
+  return <img className="size-full" src={imageUrl} alt={meal.name} />;
 }
 
-function TrayMealChip({ meal }: { meal: Doc<"meals"> }) {
+function SelectedMealsTrigger() {
+  const { swipedRight } = useSwipeList<Doc<"meals">>();
+  return (
+    <>
+      <div className="flex -space-x-1.5">
+        {swipedRight.slice(0, 4).map((meal) => {
+          const thumb = <SelectedMealThumb key={meal._id} meal={meal} />;
+          return thumb;
+        })}
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-semibold">
+          {swipedRight.length} meal{swipedRight.length !== 1 ? "s" : ""} selected
+        </p>
+        <p className="text-xs text-muted-foreground">Tap to review your picks</p>
+      </div>
+      <ChevronUp className="size-4 shrink-0 text-muted-foreground" />
+    </>
+  );
+}
+
+function SelectedMealThumb({ meal }: { meal: Doc<"meals"> }) {
   const { imageUrl } = useMealImage(meal);
   return (
-    <div className="flex shrink-0 items-center gap-2 rounded-xl border border-border bg-background px-2.5 py-1.5">
+    <div className="size-8 shrink-0 overflow-hidden rounded-full border-2 border-card bg-muted">
       {imageUrl && (
         <img
           src={imageUrl}
           alt={meal.name}
-          className="size-7 rounded-lg object-cover"
+          className="size-full object-cover"
         />
       )}
-      <span className="text-xs font-medium whitespace-nowrap">
-        {meal.name}
-      </span>
+    </div>
+  );
+}
+
+function SelectedMealsDescription() {
+  const { swipedRight } = useSwipeList<Doc<"meals">>();
+  return (
+    <DrawerDescription>
+      {swipedRight.length} meal{swipedRight.length !== 1 ? "s" : ""} you've chosen for the
+      week
+    </DrawerDescription>
+  );
+}
+
+function DrawerMealList() {
+  const { swipedRight, getItemId } = useSwipeList<Doc<"meals">>();
+  return (
+    <div className="flex flex-col gap-2 overflow-y-auto px-4">
+      {swipedRight.map((meal) => (
+        <DrawerMealRow key={getItemId(meal)} meal={meal} />
+      ))}
+    </div>
+  );
+}
+
+function DrawerMealRow({ meal }: { meal: Doc<"meals"> }) {
+  const { imageUrl } = useMealImage(meal);
+  return (
+    <div className="flex items-center gap-3 rounded-xl border border-border bg-background p-3">
+      {imageUrl && (
+        <img
+          src={imageUrl}
+          alt={meal.name}
+          className="size-12 rounded-lg object-cover"
+        />
+      )}
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-semibold">{meal.name}</p>
+        <p className="truncate text-xs text-muted-foreground">
+          {meal.keyIngredients.join(", ")}
+        </p>
+      </div>
+      <CircleCheck className="size-4 shrink-0 text-emerald-500" />
     </div>
   );
 }

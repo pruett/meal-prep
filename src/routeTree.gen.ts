@@ -33,6 +33,7 @@ import { Route as PlanWeekStartPrepRouteImport } from './routes/plan/$weekStart/
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiAiRegenerateMealsRouteImport } from './routes/api/ai/regenerate-meals'
 import { Route as ApiAiGeneratePrepRouteImport } from './routes/api/ai/generate-prep'
+import { Route as ApiAiGenerateMoreMealsRouteImport } from './routes/api/ai/generate-more-meals'
 import { Route as ApiAiGenerateMealsRouteImport } from './routes/api/ai/generate-meals'
 import { Route as ApiAiGenerateMealImageRouteImport } from './routes/api/ai/generate-meal-image'
 
@@ -156,6 +157,11 @@ const ApiAiGeneratePrepRoute = ApiAiGeneratePrepRouteImport.update({
   path: '/api/ai/generate-prep',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAiGenerateMoreMealsRoute = ApiAiGenerateMoreMealsRouteImport.update({
+  id: '/api/ai/generate-more-meals',
+  path: '/api/ai/generate-more-meals',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAiGenerateMealsRoute = ApiAiGenerateMealsRouteImport.update({
   id: '/api/ai/generate-meals',
   path: '/api/ai/generate-meals',
@@ -189,6 +195,7 @@ export interface FileRoutesByFullPath {
   '/prototype/': typeof PrototypeIndexRoute
   '/api/ai/generate-meal-image': typeof ApiAiGenerateMealImageRoute
   '/api/ai/generate-meals': typeof ApiAiGenerateMealsRoute
+  '/api/ai/generate-more-meals': typeof ApiAiGenerateMoreMealsRoute
   '/api/ai/generate-prep': typeof ApiAiGeneratePrepRoute
   '/api/ai/regenerate-meals': typeof ApiAiRegenerateMealsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -217,6 +224,7 @@ export interface FileRoutesByTo {
   '/prototype': typeof PrototypeIndexRoute
   '/api/ai/generate-meal-image': typeof ApiAiGenerateMealImageRoute
   '/api/ai/generate-meals': typeof ApiAiGenerateMealsRoute
+  '/api/ai/generate-more-meals': typeof ApiAiGenerateMoreMealsRoute
   '/api/ai/generate-prep': typeof ApiAiGeneratePrepRoute
   '/api/ai/regenerate-meals': typeof ApiAiRegenerateMealsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -246,6 +254,7 @@ export interface FileRoutesById {
   '/prototype/': typeof PrototypeIndexRoute
   '/api/ai/generate-meal-image': typeof ApiAiGenerateMealImageRoute
   '/api/ai/generate-meals': typeof ApiAiGenerateMealsRoute
+  '/api/ai/generate-more-meals': typeof ApiAiGenerateMoreMealsRoute
   '/api/ai/generate-prep': typeof ApiAiGeneratePrepRoute
   '/api/ai/regenerate-meals': typeof ApiAiRegenerateMealsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -276,6 +285,7 @@ export interface FileRouteTypes {
     | '/prototype/'
     | '/api/ai/generate-meal-image'
     | '/api/ai/generate-meals'
+    | '/api/ai/generate-more-meals'
     | '/api/ai/generate-prep'
     | '/api/ai/regenerate-meals'
     | '/api/auth/$'
@@ -304,6 +314,7 @@ export interface FileRouteTypes {
     | '/prototype'
     | '/api/ai/generate-meal-image'
     | '/api/ai/generate-meals'
+    | '/api/ai/generate-more-meals'
     | '/api/ai/generate-prep'
     | '/api/ai/regenerate-meals'
     | '/api/auth/$'
@@ -332,6 +343,7 @@ export interface FileRouteTypes {
     | '/prototype/'
     | '/api/ai/generate-meal-image'
     | '/api/ai/generate-meals'
+    | '/api/ai/generate-more-meals'
     | '/api/ai/generate-prep'
     | '/api/ai/regenerate-meals'
     | '/api/auth/$'
@@ -361,6 +373,7 @@ export interface RootRouteChildren {
   PrototypeIndexRoute: typeof PrototypeIndexRoute
   ApiAiGenerateMealImageRoute: typeof ApiAiGenerateMealImageRoute
   ApiAiGenerateMealsRoute: typeof ApiAiGenerateMealsRoute
+  ApiAiGenerateMoreMealsRoute: typeof ApiAiGenerateMoreMealsRoute
   ApiAiGeneratePrepRoute: typeof ApiAiGeneratePrepRoute
   ApiAiRegenerateMealsRoute: typeof ApiAiRegenerateMealsRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
@@ -538,6 +551,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAiGeneratePrepRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/ai/generate-more-meals': {
+      id: '/api/ai/generate-more-meals'
+      path: '/api/ai/generate-more-meals'
+      fullPath: '/api/ai/generate-more-meals'
+      preLoaderRoute: typeof ApiAiGenerateMoreMealsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/ai/generate-meals': {
       id: '/api/ai/generate-meals'
       path: '/api/ai/generate-meals'
@@ -577,6 +597,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrototypeIndexRoute: PrototypeIndexRoute,
   ApiAiGenerateMealImageRoute: ApiAiGenerateMealImageRoute,
   ApiAiGenerateMealsRoute: ApiAiGenerateMealsRoute,
+  ApiAiGenerateMoreMealsRoute: ApiAiGenerateMoreMealsRoute,
   ApiAiGeneratePrepRoute: ApiAiGeneratePrepRoute,
   ApiAiRegenerateMealsRoute: ApiAiRegenerateMealsRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,

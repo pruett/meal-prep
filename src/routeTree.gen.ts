@@ -20,6 +20,12 @@ import { Route as BrandFreshRouteImport } from './routes/brand-fresh'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PrototypeIndexRouteImport } from './routes/prototype/index'
+import { Route as PrototypeSwipeListRouteImport } from './routes/prototype/swipe-list'
+import { Route as PrototypeSwipeRouteImport } from './routes/prototype/swipe'
+import { Route as PrototypeStoriesRouteImport } from './routes/prototype/stories'
+import { Route as PrototypeRouletteRouteImport } from './routes/prototype/roulette'
+import { Route as PrototypeQuickTapRouteImport } from './routes/prototype/quick-tap'
 import { Route as DemoTanstackQueryRouteImport } from './routes/demo/tanstack-query'
 import { Route as DemoBetterAuthRouteImport } from './routes/demo/better-auth'
 import { Route as PlanWeekStartIndexRouteImport } from './routes/plan/$weekStart/index'
@@ -85,6 +91,36 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrototypeIndexRoute = PrototypeIndexRouteImport.update({
+  id: '/prototype/',
+  path: '/prototype/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrototypeSwipeListRoute = PrototypeSwipeListRouteImport.update({
+  id: '/prototype/swipe-list',
+  path: '/prototype/swipe-list',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrototypeSwipeRoute = PrototypeSwipeRouteImport.update({
+  id: '/prototype/swipe',
+  path: '/prototype/swipe',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrototypeStoriesRoute = PrototypeStoriesRouteImport.update({
+  id: '/prototype/stories',
+  path: '/prototype/stories',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrototypeRouletteRoute = PrototypeRouletteRouteImport.update({
+  id: '/prototype/roulette',
+  path: '/prototype/roulette',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrototypeQuickTapRoute = PrototypeQuickTapRouteImport.update({
+  id: '/prototype/quick-tap',
+  path: '/prototype/quick-tap',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DemoTanstackQueryRoute = DemoTanstackQueryRouteImport.update({
   id: '/demo/tanstack-query',
   path: '/demo/tanstack-query',
@@ -145,6 +181,12 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/demo/better-auth': typeof DemoBetterAuthRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/prototype/quick-tap': typeof PrototypeQuickTapRoute
+  '/prototype/roulette': typeof PrototypeRouletteRoute
+  '/prototype/stories': typeof PrototypeStoriesRoute
+  '/prototype/swipe': typeof PrototypeSwipeRoute
+  '/prototype/swipe-list': typeof PrototypeSwipeListRoute
+  '/prototype/': typeof PrototypeIndexRoute
   '/api/ai/generate-meal-image': typeof ApiAiGenerateMealImageRoute
   '/api/ai/generate-meals': typeof ApiAiGenerateMealsRoute
   '/api/ai/generate-prep': typeof ApiAiGeneratePrepRoute
@@ -167,6 +209,12 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/demo/better-auth': typeof DemoBetterAuthRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/prototype/quick-tap': typeof PrototypeQuickTapRoute
+  '/prototype/roulette': typeof PrototypeRouletteRoute
+  '/prototype/stories': typeof PrototypeStoriesRoute
+  '/prototype/swipe': typeof PrototypeSwipeRoute
+  '/prototype/swipe-list': typeof PrototypeSwipeListRoute
+  '/prototype': typeof PrototypeIndexRoute
   '/api/ai/generate-meal-image': typeof ApiAiGenerateMealImageRoute
   '/api/ai/generate-meals': typeof ApiAiGenerateMealsRoute
   '/api/ai/generate-prep': typeof ApiAiGeneratePrepRoute
@@ -190,6 +238,12 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/demo/better-auth': typeof DemoBetterAuthRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/prototype/quick-tap': typeof PrototypeQuickTapRoute
+  '/prototype/roulette': typeof PrototypeRouletteRoute
+  '/prototype/stories': typeof PrototypeStoriesRoute
+  '/prototype/swipe': typeof PrototypeSwipeRoute
+  '/prototype/swipe-list': typeof PrototypeSwipeListRoute
+  '/prototype/': typeof PrototypeIndexRoute
   '/api/ai/generate-meal-image': typeof ApiAiGenerateMealImageRoute
   '/api/ai/generate-meals': typeof ApiAiGenerateMealsRoute
   '/api/ai/generate-prep': typeof ApiAiGeneratePrepRoute
@@ -214,6 +268,12 @@ export interface FileRouteTypes {
     | '/signup'
     | '/demo/better-auth'
     | '/demo/tanstack-query'
+    | '/prototype/quick-tap'
+    | '/prototype/roulette'
+    | '/prototype/stories'
+    | '/prototype/swipe'
+    | '/prototype/swipe-list'
+    | '/prototype/'
     | '/api/ai/generate-meal-image'
     | '/api/ai/generate-meals'
     | '/api/ai/generate-prep'
@@ -236,6 +296,12 @@ export interface FileRouteTypes {
     | '/signup'
     | '/demo/better-auth'
     | '/demo/tanstack-query'
+    | '/prototype/quick-tap'
+    | '/prototype/roulette'
+    | '/prototype/stories'
+    | '/prototype/swipe'
+    | '/prototype/swipe-list'
+    | '/prototype'
     | '/api/ai/generate-meal-image'
     | '/api/ai/generate-meals'
     | '/api/ai/generate-prep'
@@ -258,6 +324,12 @@ export interface FileRouteTypes {
     | '/signup'
     | '/demo/better-auth'
     | '/demo/tanstack-query'
+    | '/prototype/quick-tap'
+    | '/prototype/roulette'
+    | '/prototype/stories'
+    | '/prototype/swipe'
+    | '/prototype/swipe-list'
+    | '/prototype/'
     | '/api/ai/generate-meal-image'
     | '/api/ai/generate-meals'
     | '/api/ai/generate-prep'
@@ -281,6 +353,12 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   DemoBetterAuthRoute: typeof DemoBetterAuthRoute
   DemoTanstackQueryRoute: typeof DemoTanstackQueryRoute
+  PrototypeQuickTapRoute: typeof PrototypeQuickTapRoute
+  PrototypeRouletteRoute: typeof PrototypeRouletteRoute
+  PrototypeStoriesRoute: typeof PrototypeStoriesRoute
+  PrototypeSwipeRoute: typeof PrototypeSwipeRoute
+  PrototypeSwipeListRoute: typeof PrototypeSwipeListRoute
+  PrototypeIndexRoute: typeof PrototypeIndexRoute
   ApiAiGenerateMealImageRoute: typeof ApiAiGenerateMealImageRoute
   ApiAiGenerateMealsRoute: typeof ApiAiGenerateMealsRoute
   ApiAiGeneratePrepRoute: typeof ApiAiGeneratePrepRoute
@@ -369,6 +447,48 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/prototype/': {
+      id: '/prototype/'
+      path: '/prototype'
+      fullPath: '/prototype/'
+      preLoaderRoute: typeof PrototypeIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/prototype/swipe-list': {
+      id: '/prototype/swipe-list'
+      path: '/prototype/swipe-list'
+      fullPath: '/prototype/swipe-list'
+      preLoaderRoute: typeof PrototypeSwipeListRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/prototype/swipe': {
+      id: '/prototype/swipe'
+      path: '/prototype/swipe'
+      fullPath: '/prototype/swipe'
+      preLoaderRoute: typeof PrototypeSwipeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/prototype/stories': {
+      id: '/prototype/stories'
+      path: '/prototype/stories'
+      fullPath: '/prototype/stories'
+      preLoaderRoute: typeof PrototypeStoriesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/prototype/roulette': {
+      id: '/prototype/roulette'
+      path: '/prototype/roulette'
+      fullPath: '/prototype/roulette'
+      preLoaderRoute: typeof PrototypeRouletteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/prototype/quick-tap': {
+      id: '/prototype/quick-tap'
+      path: '/prototype/quick-tap'
+      fullPath: '/prototype/quick-tap'
+      preLoaderRoute: typeof PrototypeQuickTapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/demo/tanstack-query': {
       id: '/demo/tanstack-query'
       path: '/demo/tanstack-query'
@@ -449,6 +569,12 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   DemoBetterAuthRoute: DemoBetterAuthRoute,
   DemoTanstackQueryRoute: DemoTanstackQueryRoute,
+  PrototypeQuickTapRoute: PrototypeQuickTapRoute,
+  PrototypeRouletteRoute: PrototypeRouletteRoute,
+  PrototypeStoriesRoute: PrototypeStoriesRoute,
+  PrototypeSwipeRoute: PrototypeSwipeRoute,
+  PrototypeSwipeListRoute: PrototypeSwipeListRoute,
+  PrototypeIndexRoute: PrototypeIndexRoute,
   ApiAiGenerateMealImageRoute: ApiAiGenerateMealImageRoute,
   ApiAiGenerateMealsRoute: ApiAiGenerateMealsRoute,
   ApiAiGeneratePrepRoute: ApiAiGeneratePrepRoute,

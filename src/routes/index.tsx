@@ -6,7 +6,25 @@ import { convexQuery } from "@convex-dev/react-query";
 import { useMutation } from "convex/react";
 import { toast } from "sonner";
 import { api } from "../../convex/_generated/api";
-import { MealSuggestionCarousel } from "~/components/meals/meal-card-suggestion";
+import {
+  SwipeList,
+  SwipeListHeader,
+  SwipeListTitle,
+  SwipeListProgress,
+  SwipeListHint,
+  SwipeListContent,
+  SwipeListCard,
+  SwipeListTray,
+  SwipeListEmpty,
+  useSwipeList,
+} from "~/components/ui/swipe-list";
+import {
+  ItemMedia,
+  ItemContent,
+  ItemTitle,
+  ItemDescription,
+} from "~/components/ui/item";
+import { useMealImage } from "~/hooks/use-meal-image";
 import { Button, buttonVariants } from "~/components/ui/button";
 import { Separator } from "~/components/ui/separator";
 import { EmptyState } from "~/components/empty-state";
@@ -337,34 +355,36 @@ function HomePage() {
         )}
       </section>
 
-      {/* Your Weekly Plan — always visible */}
-      <section className="pt-4">
-        <h2 className="mb-3 text-lg font-semibold text-foreground">
-          Your Weekly Plan
-        </h2>
-        <div className="flex flex-col gap-3">
-          {acceptedMeals.map((meal) => (
-            <div
-              key={meal._id}
-              className="flex items-center gap-3 rounded-2xl border border-foreground/30 bg-background px-4 py-3.5"
-            >
-              <CircleCheck className="size-5 shrink-0 text-primary" />
-              <span className="text-base font-semibold">{meal.name}</span>
-            </div>
-          ))}
-          {Array.from({ length: emptySlotCount }, (_, i) => (
-            <div
-              key={`empty-${i}`}
-              className="flex min-h-[72px] flex-col items-center justify-center gap-1.5 rounded-2xl border-2 border-dashed border-muted-foreground/20 bg-background px-4 py-4"
-            >
-              <UtensilsCrossed className="size-5 text-muted-foreground/30" />
-              <span className="text-xs font-medium text-muted-foreground/40">
-                Meal {acceptedMeals.length + i + 1}
-              </span>
-            </div>
-          ))}
-        </div>
-      </section>
+      {/* Your Weekly Plan — hidden during reviewing (SwipeList tray handles it) */}
+      {weekStatus !== "reviewing" && (
+        <section className="pt-4">
+          <h2 className="mb-3 text-lg font-semibold text-foreground">
+            Your Weekly Plan
+          </h2>
+          <div className="flex flex-col gap-3">
+            {acceptedMeals.map((meal) => (
+              <div
+                key={meal._id}
+                className="flex items-center gap-3 rounded-2xl border border-foreground/30 bg-background px-4 py-3.5"
+              >
+                <CircleCheck className="size-5 shrink-0 text-primary" />
+                <span className="text-base font-semibold">{meal.name}</span>
+              </div>
+            ))}
+            {Array.from({ length: emptySlotCount }, (_, i) => (
+              <div
+                key={`empty-${i}`}
+                className="flex min-h-[72px] flex-col items-center justify-center gap-1.5 rounded-2xl border-2 border-dashed border-muted-foreground/20 bg-background px-4 py-4"
+              >
+                <UtensilsCrossed className="size-5 text-muted-foreground/30" />
+                <span className="text-xs font-medium text-muted-foreground/40">
+                  Meal {acceptedMeals.length + i + 1}
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Action drawer — commented out for now
       {planStatus === 'reviewing' &&
@@ -525,10 +545,8 @@ function WeekEmptyView({
 
 function WeekReviewingView({
   meals,
-  planStatus,
   isActivelyGenerating,
   currentMealCount,
-  totalRequested,
 }: {
   meals: Doc<"meals">[];
   planStatus: string;
@@ -536,6 +554,16 @@ function WeekReviewingView({
   currentMealCount: number;
   totalRequested: number;
 }) {
+  const updateStatus = useMutation(api.meals.updateStatus);
+
+  const reviewingMeals = useMemo(
+    () =>
+      meals.filter(
+        (m) => m.status !== "accepted" && m.status !== "rejected",
+      ),
+    [meals],
+  );
+
   if (currentMealCount === 0 && !isActivelyGenerating) {
     return (
       <Empty>
@@ -551,17 +579,91 @@ function WeekReviewingView({
   }
 
   return (
-    <div className="-mx-4 px-4">
-      <h2 className="mb-3 text-lg font-semibold text-foreground">
-        Meal Suggestions
-      </h2>
-      <MealSuggestionCarousel
-        meals={meals}
-        planStatus={planStatus}
-        isActivelyGenerating={isActivelyGenerating}
-        currentMealCount={currentMealCount}
-        totalRequested={totalRequested}
+    <SwipeList
+      items={reviewingMeals}
+      getItemId={(m) => m._id}
+      onKeep={async (meal) => {
+        try {
+          await updateStatus({ id: meal._id, status: "accepted" });
+        } catch {
+          toast.error("Failed to accept meal");
+        }
+      }}
+      onDismiss={async (meal) => {
+        try {
+          await updateStatus({ id: meal._id, status: "rejected" });
+        } catch {
+          toast.error("Failed to dismiss meal");
+        }
+      }}
+      className="-mx-4"
+    >
+      <SwipeListHeader>
+        <SwipeListTitle>Meal Suggestions</SwipeListTitle>
+      </SwipeListHeader>
+      <SwipeListProgress />
+      <SwipeListHint />
+      <SwipeListContent>
+        <PendingMealCards />
+      </SwipeListContent>
+      <SwipeListTray
+        label="Your weekly plan"
+        renderItem={(meal: Doc<"meals">) => <TrayMealChip meal={meal} />}
       />
+      <SwipeListEmpty>
+        <span className="text-4xl">✨</span>
+        <div>
+          <h2 className="text-lg font-bold">All reviewed!</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            You've reviewed all meal suggestions
+          </p>
+        </div>
+      </SwipeListEmpty>
+    </SwipeList>
+  );
+}
+
+function PendingMealCards() {
+  const { pending } = useSwipeList<Doc<"meals">>();
+  return (
+    <>
+      {pending.map((meal) => (
+        <SwipeListCard key={meal._id} value={meal}>
+          <ItemMedia variant="image" className="size-16 rounded-lg">
+            <MealCardImage meal={meal} />
+          </ItemMedia>
+          <ItemContent>
+            <ItemTitle>{meal.name}</ItemTitle>
+            <ItemDescription>
+              {meal.keyIngredients.join(", ")}
+            </ItemDescription>
+          </ItemContent>
+        </SwipeListCard>
+      ))}
+    </>
+  );
+}
+
+function MealCardImage({ meal }: { meal: Doc<"meals"> }) {
+  const { imageUrl } = useMealImage(meal);
+  if (!imageUrl) return <div className="size-full bg-muted" />;
+  return <img src={imageUrl} alt={meal.name} />;
+}
+
+function TrayMealChip({ meal }: { meal: Doc<"meals"> }) {
+  const { imageUrl } = useMealImage(meal);
+  return (
+    <div className="flex shrink-0 items-center gap-2 rounded-xl border border-border bg-background px-2.5 py-1.5">
+      {imageUrl && (
+        <img
+          src={imageUrl}
+          alt={meal.name}
+          className="size-7 rounded-lg object-cover"
+        />
+      )}
+      <span className="text-xs font-medium whitespace-nowrap">
+        {meal.name}
+      </span>
     </div>
   );
 }

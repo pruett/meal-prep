@@ -1,11 +1,11 @@
-import { createContext, useContext } from 'react'
+import { createContext, useContext, useState, useCallback } from 'react'
 import type { ComponentProps, ReactNode } from 'react'
 import { useMutation } from 'convex/react'
 import { AnimatePresence, motion } from 'motion/react'
 import { toast } from 'sonner'
 import type { Doc } from '../../../convex/_generated/dataModel'
 import { api } from '../../../convex/_generated/api'
-import { CheckCircle, X, XCircle } from '@phosphor-icons/react'
+import { CheckCircle, Plus, SpinnerGap, X, XCircle } from '@phosphor-icons/react'
 import { MealSkeleton } from './meal-skeleton'
 import { Button } from '~/components/ui/button'
 import { Skeleton } from '~/components/ui/skeleton'
@@ -282,6 +282,54 @@ export function MealSuggestionActions() {
   )
 }
 
+export function MealSuggestionAddCard({
+  className,
+  onAdd,
+  ...props
+}: ComponentProps<'button'> & { onAdd?: () => Promise<void> }) {
+  const [isLoading, setIsLoading] = useState(false)
+
+  const handleClick = useCallback(async () => {
+    setIsLoading(true)
+    try {
+      if (onAdd) {
+        await onAdd()
+      } else {
+        // Stub: simulate network delay
+        await new Promise((resolve) => setTimeout(resolve, 2000))
+      }
+    } finally {
+      setIsLoading(false)
+    }
+  }, [onAdd])
+
+  return (
+    <button
+      data-slot="meal-suggestion-add-card"
+      type="button"
+      disabled={isLoading}
+      onClick={handleClick}
+      className={cn(
+        'group flex h-full min-h-[200px] cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-border bg-background p-4 text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground disabled:pointer-events-none',
+        className,
+      )}
+      {...props}
+    >
+      {isLoading ? (
+        <>
+          <SpinnerGap className="size-8 animate-spin" />
+          <span className="text-sm font-medium">Generating...</span>
+        </>
+      ) : (
+        <>
+          <Plus className="size-8" />
+          <span className="text-sm font-medium">Add another meal</span>
+        </>
+      )}
+    </button>
+  )
+}
+
 export function MealSuggestionLoadingCard({
   className,
   ...props
@@ -351,6 +399,7 @@ interface MealSuggestionCarouselProps {
     meal: Doc<'meals'>,
     status: Doc<'meals'>['status'],
   ) => void | Promise<void>
+  onAddMeal?: () => Promise<void>
 }
 
 export function MealSuggestionCarousel({
@@ -361,6 +410,7 @@ export function MealSuggestionCarousel({
   totalRequested,
   className,
   onMealStatusChange,
+  onAddMeal,
 }: MealSuggestionCarouselProps) {
   const visibleMeals =
     planStatus === 'generating'
@@ -400,6 +450,11 @@ export function MealSuggestionCarousel({
             <MealSkeleton />
           </div>
         ))}
+      {!isActivelyGenerating && (
+        <div className={MEAL_SUGGESTION_ITEM_WIDTH}>
+          <MealSuggestionAddCard onAdd={onAddMeal} />
+        </div>
+      )}
     </MealSuggestionViewport>
   )
 }

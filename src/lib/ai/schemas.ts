@@ -11,6 +11,11 @@ export const mealSuggestionSchema = z.object({
   estimatedPrepMinutes: z
     .number()
     .describe('Estimated total preparation and cooking time in minutes'),
+  imagePrompt: z
+    .string()
+    .describe(
+      'Image generation prompt following this exact template: "Flat illustration of [MEAL NAME] in a white bowl on a light gray background. Top-down view, centered, simple clean style, soft even lighting, no shadows, no text, no garnish, no utensils. Show [2-3 KEY VISIBLE INGREDIENTS]."',
+    ),
 })
 
 export type MealSuggestion = z.infer<typeof mealSuggestionSchema>

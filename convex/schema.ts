@@ -69,6 +69,8 @@ export default defineSchema({
     description: v.string(),
     keyIngredients: v.array(v.string()),
     estimatedPrepMinutes: v.number(),
+    imagePrompt: v.optional(v.string()),
+    imageStorageId: v.optional(v.id('_storage')),
     status: v.union(
       v.literal('pending'),
       v.literal('accepted'),

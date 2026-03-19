@@ -54,7 +54,8 @@ For each meal, provide:
 - A descriptive name
 - A brief description (1-2 sentences)
 - Key ingredients (5-8 main ingredients, not seasonings/oil/salt)
-- Estimated total prep and cooking time in minutes`)
+- Estimated total prep and cooking time in minutes
+- An image generation prompt using this exact template: "Flat illustration of [MEAL NAME] in a white bowl on a light gray background. Top-down view, centered, simple clean style, soft even lighting, no shadows, no text, no garnish, no utensils. Show [2-3 KEY VISIBLE INGREDIENTS]." Replace [MEAL NAME] with the meal name and [2-3 KEY VISIBLE INGREDIENTS] with the most visually prominent ingredients.`)
 
   return sections.join('\n\n')
 }

@@ -19,6 +19,8 @@ describe('mealSuggestionSchema', () => {
       'ginger',
     ],
     estimatedPrepMinutes: 25,
+    imagePrompt:
+      'Flat illustration of chicken stir fry in a white bowl on a light gray background. Top-down view, centered, simple clean style, soft even lighting, no shadows, no text, no garnish, no utensils. Show chicken, broccoli, snap peas.',
   }
 
   it('accepts valid meal suggestion', () => {
@@ -48,6 +50,17 @@ describe('mealSuggestionSchema', () => {
   it('rejects non-string name', () => {
     expect(() =>
       mealSuggestionSchema.parse({ ...validMeal, name: 123 }),
+    ).toThrow()
+  })
+
+  it('rejects missing imagePrompt', () => {
+    const { imagePrompt: _, ...noImagePrompt } = validMeal
+    expect(() => mealSuggestionSchema.parse(noImagePrompt)).toThrow()
+  })
+
+  it('rejects non-string imagePrompt', () => {
+    expect(() =>
+      mealSuggestionSchema.parse({ ...validMeal, imagePrompt: 123 }),
     ).toThrow()
   })
 

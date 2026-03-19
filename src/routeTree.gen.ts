@@ -28,6 +28,7 @@ import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiAiRegenerateMealsRouteImport } from './routes/api/ai/regenerate-meals'
 import { Route as ApiAiGeneratePrepRouteImport } from './routes/api/ai/generate-prep'
 import { Route as ApiAiGenerateMealsRouteImport } from './routes/api/ai/generate-meals'
+import { Route as ApiAiGenerateMealImageRouteImport } from './routes/api/ai/generate-meal-image'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -124,6 +125,11 @@ const ApiAiGenerateMealsRoute = ApiAiGenerateMealsRouteImport.update({
   path: '/api/ai/generate-meals',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAiGenerateMealImageRoute = ApiAiGenerateMealImageRouteImport.update({
+  id: '/api/ai/generate-meal-image',
+  path: '/api/ai/generate-meal-image',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -139,6 +145,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/demo/better-auth': typeof DemoBetterAuthRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/api/ai/generate-meal-image': typeof ApiAiGenerateMealImageRoute
   '/api/ai/generate-meals': typeof ApiAiGenerateMealsRoute
   '/api/ai/generate-prep': typeof ApiAiGeneratePrepRoute
   '/api/ai/regenerate-meals': typeof ApiAiRegenerateMealsRoute
@@ -160,6 +167,7 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/demo/better-auth': typeof DemoBetterAuthRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/api/ai/generate-meal-image': typeof ApiAiGenerateMealImageRoute
   '/api/ai/generate-meals': typeof ApiAiGenerateMealsRoute
   '/api/ai/generate-prep': typeof ApiAiGeneratePrepRoute
   '/api/ai/regenerate-meals': typeof ApiAiRegenerateMealsRoute
@@ -182,6 +190,7 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/demo/better-auth': typeof DemoBetterAuthRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/api/ai/generate-meal-image': typeof ApiAiGenerateMealImageRoute
   '/api/ai/generate-meals': typeof ApiAiGenerateMealsRoute
   '/api/ai/generate-prep': typeof ApiAiGeneratePrepRoute
   '/api/ai/regenerate-meals': typeof ApiAiRegenerateMealsRoute
@@ -205,6 +214,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/demo/better-auth'
     | '/demo/tanstack-query'
+    | '/api/ai/generate-meal-image'
     | '/api/ai/generate-meals'
     | '/api/ai/generate-prep'
     | '/api/ai/regenerate-meals'
@@ -226,6 +236,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/demo/better-auth'
     | '/demo/tanstack-query'
+    | '/api/ai/generate-meal-image'
     | '/api/ai/generate-meals'
     | '/api/ai/generate-prep'
     | '/api/ai/regenerate-meals'
@@ -247,6 +258,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/demo/better-auth'
     | '/demo/tanstack-query'
+    | '/api/ai/generate-meal-image'
     | '/api/ai/generate-meals'
     | '/api/ai/generate-prep'
     | '/api/ai/regenerate-meals'
@@ -269,6 +281,7 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   DemoBetterAuthRoute: typeof DemoBetterAuthRoute
   DemoTanstackQueryRoute: typeof DemoTanstackQueryRoute
+  ApiAiGenerateMealImageRoute: typeof ApiAiGenerateMealImageRoute
   ApiAiGenerateMealsRoute: typeof ApiAiGenerateMealsRoute
   ApiAiGeneratePrepRoute: typeof ApiAiGeneratePrepRoute
   ApiAiRegenerateMealsRoute: typeof ApiAiRegenerateMealsRoute
@@ -412,6 +425,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAiGenerateMealsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/ai/generate-meal-image': {
+      id: '/api/ai/generate-meal-image'
+      path: '/api/ai/generate-meal-image'
+      fullPath: '/api/ai/generate-meal-image'
+      preLoaderRoute: typeof ApiAiGenerateMealImageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -429,6 +449,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   DemoBetterAuthRoute: DemoBetterAuthRoute,
   DemoTanstackQueryRoute: DemoTanstackQueryRoute,
+  ApiAiGenerateMealImageRoute: ApiAiGenerateMealImageRoute,
   ApiAiGenerateMealsRoute: ApiAiGenerateMealsRoute,
   ApiAiGeneratePrepRoute: ApiAiGeneratePrepRoute,
   ApiAiRegenerateMealsRoute: ApiAiRegenerateMealsRoute,

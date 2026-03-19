@@ -52,6 +52,7 @@ export const Route = createFileRoute('/api/ai/generate-meals')({
                 description: meal.description,
                 keyIngredients: meal.keyIngredients,
                 estimatedPrepMinutes: meal.estimatedPrepMinutes,
+                imagePrompt: meal.imagePrompt,
                 sortOrder: sortOrder++,
               })
             }

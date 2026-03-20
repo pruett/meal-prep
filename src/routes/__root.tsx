@@ -60,7 +60,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
         content: 'width=device-width, initial-scale=1',
       },
       {
-        title: 'TanStack Start Starter',
+        title: 'Tastebud',
       },
     ],
     links: [
@@ -95,9 +95,9 @@ function DefaultPendingFallback() {
 function DefaultNotFoundComponent() {
   return (
     <main className="page-wrap flex min-h-[60vh] flex-col items-center justify-center px-4">
-      <h1 className="text-4xl font-bold tracking-tight text-[var(--sea-ink)]">404</h1>
-      <p className="mt-2 text-[var(--sea-ink-soft)]">Page not found</p>
-      <a href="/" className="mt-6 text-sm font-medium text-[var(--lagoon)] hover:underline">
+      <h1 className="text-4xl font-bold tracking-tight text-foreground">404</h1>
+      <p className="mt-2 text-muted-foreground">Page not found</p>
+      <a href="/" className="mt-6 text-sm font-medium text-primary hover:underline">
         Go home
       </a>
     </main>
@@ -145,7 +145,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <head>
         <HeadContent />
       </head>
-      <body className="font-sans antialiased [overflow-wrap:anywhere] selection:bg-[rgba(79,184,178,0.24)]">
+      <body className="font-sans antialiased [overflow-wrap:anywhere] selection:bg-[rgba(230,184,162,0.24)]">
         <TanStackQueryProvider>
           {children}
         </TanStackQueryProvider>

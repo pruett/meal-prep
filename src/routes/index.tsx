@@ -308,6 +308,7 @@ function HomePage() {
                 totalSlots={totalSlots}
                 generateMore={generateMore}
                 outOfCredits={outOfCredits}
+                onFinalize={handleGeneratePrep}
               />
             )}
             {currentWeek.phase === "finalized" && (

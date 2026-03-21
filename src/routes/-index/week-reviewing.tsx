@@ -64,6 +64,7 @@ export function WeekReviewing({
   totalSlots,
   generateMore,
   outOfCredits,
+  onFinalize,
 }: {
   meals: Doc<"meals">[];
   mealPlanId: Id<"mealPlans">;
@@ -71,6 +72,7 @@ export function WeekReviewing({
   totalSlots: number;
   generateMore: GenerateMoreMutation;
   outOfCredits: boolean;
+  onFinalize: () => void;
 }) {
   const updateStatus = useMutation(api.meals.updateStatus);
 
@@ -199,7 +201,7 @@ export function WeekReviewing({
           />
         </SwipeListEmpty>
       </SwipeListProvider>
-      <AcceptedMealsDrawer meals={meals} totalSlots={totalSlots} />
+      <AcceptedMealsDrawer meals={meals} totalSlots={totalSlots} onFinalize={onFinalize} />
     </>
   );
 }
@@ -209,9 +211,11 @@ export function WeekReviewing({
 function AcceptedMealsDrawer({
   meals,
   totalSlots,
+  onFinalize,
 }: {
   meals: Doc<"meals">[];
   totalSlots: number;
+  onFinalize: () => void;
 }) {
   const updateStatus = useMutation(api.meals.updateStatus);
   const acceptedMeals = useMemo(
@@ -242,7 +246,7 @@ function AcceptedMealsDrawer({
           ))}
         </div>
         <DrawerFooter>
-          <Button size="lg">
+          <Button size="lg" onClick={onFinalize}>
             Finalize Plan
             <ArrowRight data-icon="inline-end" />
           </Button>

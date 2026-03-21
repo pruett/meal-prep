@@ -31,19 +31,6 @@ function CardSkeleton({ className = '' }: { className?: string }) {
   )
 }
 
-function CollapsibleSectionSkeleton() {
-  return (
-    <div className="rounded-xl border border-[var(--line)] bg-[var(--surface)] px-5 py-4">
-      <div className="flex items-center justify-between">
-        <div className="space-y-1.5">
-          <Skeleton className="h-4 w-36" />
-          <Skeleton className="h-3 w-52" />
-        </div>
-        <Skeleton className="ml-3 h-4 w-4 shrink-0" />
-      </div>
-    </div>
-  )
-}
 
 // ─── Home Page Skeleton ───────────────────────────────────────────────────────
 
@@ -159,17 +146,37 @@ export function PrepGuideSkeleton() {
 
 export function PreferencesSkeleton() {
   return (
-    <main className="page-wrap px-4 pb-8 pt-14">
-      <PageHeader kicker="Preferences" titleWidth="w-52" />
+    <div className="flex min-h-dvh flex-col bg-background">
+      {/* Sticky header skeleton */}
+      <div className="border-b border-border">
+        <div className="mx-auto flex max-w-md items-center gap-3 px-4 py-3">
+          <Skeleton className="h-9 w-9 shrink-0 rounded-md" />
+          <Skeleton className="h-5 w-28" />
+        </div>
 
-      <div className="flex flex-col gap-3">
-        <CollapsibleSectionSkeleton />
-        <CollapsibleSectionSkeleton />
-        <CollapsibleSectionSkeleton />
-        <CollapsibleSectionSkeleton />
-        <CollapsibleSectionSkeleton />
+        {/* Tab bar skeleton */}
+        <div className="flex gap-1 px-4 pb-3">
+          {Array.from({ length: 5 }, (_, i) => (
+            <Skeleton
+              key={i}
+              className="h-8 shrink-0 rounded-full"
+              style={{ width: `${[80, 64, 76, 68, 84][i]}px` }}
+            />
+          ))}
+        </div>
       </div>
-    </main>
+
+      {/* Content skeleton */}
+      <div className="mx-auto w-full max-w-md px-4 pt-8">
+        <Skeleton className="mb-2 h-7 w-36" />
+        <Skeleton className="mb-6 h-4 w-52" />
+        <div className="space-y-3">
+          <Skeleton className="h-12 w-full rounded-xl" />
+          <Skeleton className="h-12 w-full rounded-xl" />
+          <Skeleton className="h-12 w-full rounded-xl" />
+        </div>
+      </div>
+    </div>
   )
 }
 

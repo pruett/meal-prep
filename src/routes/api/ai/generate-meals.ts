@@ -6,6 +6,7 @@ import { mealSuggestionSchema } from '~/lib/ai/schemas'
 import { buildMealSuggestionsPrompt } from '~/lib/ai/prompts'
 import { authenticateRequest, jsonResponse, withRetry } from '~/lib/ai/generate'
 import { fetchAuthQuery, fetchAuthMutation } from '~/lib/auth-server'
+import { MEAL_SUGGESTION_BUFFER } from '~/lib/meal-generation'
 
 export const Route = createFileRoute('/api/ai/generate-meals')({
   server: {
@@ -26,6 +27,8 @@ export const Route = createFileRoute('/api/ai/generate-meals')({
         const weekStartDate = monday.toISOString().split('T')[0]!
         const mealsPerWeek = preferences?.mealsPerWeek ?? { breakfast: 0, lunch: 0, dinner: 5 }
         const totalMeals = mealsPerWeek.breakfast + mealsPerWeek.lunch + mealsPerWeek.dinner
+        const buffer = Math.min(MEAL_SUGGESTION_BUFFER, totalMeals)
+        const toGenerate = totalMeals + buffer
 
         const mealPlanId = await fetchAuthMutation(api.mealPlans.create, {
           userId: user._id,
@@ -37,7 +40,7 @@ export const Route = createFileRoute('/api/ai/generate-meals')({
           fn: async () => {
             const stream = streamText({
               model: openai('gpt-4o-mini'),
-              prompt: buildMealSuggestionsPrompt(totalMeals, preferences),
+              prompt: buildMealSuggestionsPrompt(toGenerate, preferences),
               output: Output.array({
                 element: mealSuggestionSchema,
               }),

@@ -6,6 +6,7 @@ import { mealSuggestionSchema } from '~/lib/ai/schemas'
 import { buildMealSuggestionsPrompt } from '~/lib/ai/prompts'
 import { authenticateRequest, jsonResponse, withRetry } from '~/lib/ai/generate'
 import { fetchAuthQuery, fetchAuthMutation } from '~/lib/auth-server'
+import { LOAD_MORE_BATCH_SIZE } from '~/lib/meal-generation'
 
 export const Route = createFileRoute('/api/ai/generate-more-meals')({
   server: {
@@ -54,8 +55,8 @@ export const Route = createFileRoute('/api/ai/generate-more-meals')({
         })
 
         const toGenerate = typeof count === 'number' && count > 0
-          ? Math.min(count, needed + 3)
-          : needed + 3
+          ? Math.min(count, needed + LOAD_MORE_BATCH_SIZE)
+          : LOAD_MORE_BATCH_SIZE
         const maxSortOrder = existingMeals.reduce(
           (max, m) => Math.max(max, m.sortOrder),
           0,

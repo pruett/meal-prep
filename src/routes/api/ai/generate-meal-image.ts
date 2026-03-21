@@ -60,7 +60,7 @@ export const Route = createFileRoute('/api/ai/generate-meal-image')({
         const uploadResponse = await fetch(uploadUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'image/webp' },
-          body: resizedBuffer,
+          body: new Uint8Array(resizedBuffer),
         })
         const { storageId } = (await uploadResponse.json()) as {
           storageId: Id<'_storage'>

@@ -10,23 +10,39 @@ import { ThumbsUp, ThumbsDown } from "lucide-react";
 
 import { cn } from "~/lib/utils";
 import { Item } from "~/components/ui/item";
-
+import { Skeleton } from "~/components/ui/skeleton";
 
 // ────────────────────────────────────────────────
 // Context
 // ────────────────────────────────────────────────
 
+type Identifiable = { id: string } | { _id: string };
+
+function getItemId(item: Identifiable): string {
+  return "_id" in item ? item._id : item.id;
+}
+
+type SwipeListEvent = {
+  type: "swipeRight" | "swipeLeft";
+  item: unknown;
+  at: number;
+};
+
+type SwipeListTriggers<T = unknown> = {
+  onSwipeRight?: (item: T) => void;
+  onSwipeLeft?: (item: T) => void;
+};
+
 type SwipeListContextValue<T = unknown> = {
   items: T[];
-  pending: T[];
+  remaining: T[];
   swipedRight: T[];
   swipedLeft: T[];
   total: number;
-  swipeRight: (item: T) => void;
-  swipeLeft: (item: T) => void;
-  reset: () => void;
-  getItemId: (item: T) => string;
+  onSwipeRight: (item: T) => void;
+  onSwipeLeft: (item: T) => void;
   swipeThreshold: number;
+  lastEvent: SwipeListEvent | null;
 };
 
 const SwipeListContext = React.createContext<SwipeListContextValue | null>(
@@ -36,7 +52,9 @@ const SwipeListContext = React.createContext<SwipeListContextValue | null>(
 function useSwipeList<T = unknown>() {
   const ctx = React.useContext(SwipeListContext);
   if (!ctx) {
-    throw new Error("SwipeList components must be used within <SwipeListProvider>");
+    throw new Error(
+      "SwipeList components must be used within <SwipeListProvider>",
+    );
   }
   return ctx as SwipeListContextValue<T>;
 }
@@ -45,102 +63,102 @@ function useSwipeList<T = unknown>() {
 // SwipeListProvider
 // ────────────────────────────────────────────────
 
-type SwipeListProviderProps<T> = React.ComponentProps<"div"> & {
-  items: T[];
-  getItemId: (item: T) => string;
-  swipeThreshold?: number;
-  loadMoreThreshold?: number;
-  onSwipeRight?: (item: T) => void;
-  onSwipeLeft?: (item: T) => void;
-  onReset?: () => void;
-  onLoadMore?: () => void;
-};
+type SwipeListProviderProps<T extends Identifiable> =
+  React.ComponentProps<"div"> & {
+    items: T[];
+    swipeThreshold?: number;
+    loadMoreThreshold?: number;
+    onSwipeRight?: (item: T) => void;
+    onSwipeLeft?: (item: T) => void;
+    onLoadMore?: () => void;
+    triggers?: SwipeListTriggers<T>;
+  };
 
-function SwipeListProvider<T>({
+function SwipeListProvider<T extends Identifiable>({
   items,
-  getItemId,
   swipeThreshold = 100,
   loadMoreThreshold = 3,
   onSwipeRight,
   onSwipeLeft,
-  onReset,
   onLoadMore,
+  triggers,
   className,
   children,
   ...props
 }: SwipeListProviderProps<T>) {
   const [swipedRight, setSwipedRight] = React.useState<T[]>([]);
   const [swipedLeft, setSwipedLeft] = React.useState<T[]>([]);
+  const [lastEvent, setLastEvent] = React.useState<SwipeListEvent | null>(null);
+
+  // Destructure to stable refs — avoids useCallback churn from inline triggers objects
+  const triggerSwipeRight = triggers?.onSwipeRight;
+  const triggerSwipeLeft = triggers?.onSwipeLeft;
 
   const rightIds = React.useMemo(
     () => new Set(swipedRight.map(getItemId)),
-    [swipedRight, getItemId],
+    [swipedRight],
   );
   const leftIds = React.useMemo(
     () => new Set(swipedLeft.map(getItemId)),
-    [swipedLeft, getItemId],
+    [swipedLeft],
   );
 
-  const pending = React.useMemo(
+  const remaining = React.useMemo(
     () =>
-      items.filter((item) => {
-        const id = getItemId(item);
-        return !rightIds.has(id) && !leftIds.has(id);
-      }),
-    [items, rightIds, leftIds, getItemId],
+      items.filter(
+        (item) =>
+          !rightIds.has(getItemId(item)) && !leftIds.has(getItemId(item)),
+      ),
+    [items, rightIds, leftIds],
   );
 
   const swipeRight = React.useCallback(
     (item: T) => {
       setSwipedRight((prev) => [...prev, item]);
+      setLastEvent({ type: "swipeRight", item, at: Date.now() });
       onSwipeRight?.(item);
+      triggerSwipeRight?.(item);
     },
-    [onSwipeRight],
+    [onSwipeRight, triggerSwipeRight],
   );
 
   const swipeLeft = React.useCallback(
     (item: T) => {
       setSwipedLeft((prev) => [...prev, item]);
+      setLastEvent({ type: "swipeLeft", item, at: Date.now() });
       onSwipeLeft?.(item);
+      triggerSwipeLeft?.(item);
     },
-    [onSwipeLeft],
+    [onSwipeLeft, triggerSwipeLeft],
   );
 
-  const reset = React.useCallback(() => {
-    setSwipedRight([]);
-    setSwipedLeft([]);
-    onReset?.();
-  }, [onReset]);
-
   React.useEffect(() => {
-    if (pending.length > 0 && pending.length <= loadMoreThreshold) {
+    if (remaining.length > 0 && remaining.length <= loadMoreThreshold) {
       onLoadMore?.();
     }
-  }, [pending.length, loadMoreThreshold, onLoadMore]);
+  }, [remaining.length, loadMoreThreshold, onLoadMore]);
 
   const contextValue = React.useMemo<SwipeListContextValue>(
     () => ({
       items: items as unknown[],
-      pending: pending as unknown[],
+      remaining: remaining as unknown[],
       swipedRight: swipedRight as unknown[],
       swipedLeft: swipedLeft as unknown[],
-      total: pending.length + swipedRight.length + swipedLeft.length,
-      swipeRight: swipeRight as (item: unknown) => void,
-      swipeLeft: swipeLeft as (item: unknown) => void,
-      reset,
-      getItemId: getItemId as (item: unknown) => string,
+      total: remaining.length + swipedRight.length + swipedLeft.length,
+      onSwipeRight: swipeRight as (item: unknown) => void,
+      onSwipeLeft: swipeLeft as (item: unknown) => void,
       swipeThreshold,
+      lastEvent,
     }),
     [
       items,
-      pending,
+      remaining,
       swipedRight,
       swipedLeft,
       swipeRight,
       swipeLeft,
-      reset,
-      getItemId,
       swipeThreshold,
+      lastEvent,
     ],
   );
 
@@ -182,7 +200,7 @@ function SwipeListTitle({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="swipe-list-title"
-      className={cn("text-lg font-bold tracking-tight", className)}
+      className={cn("text-2xl font-semibold tracking-tight", className)}
       {...props}
     />
   );
@@ -243,9 +261,9 @@ function SwipeListProgress({
 // ────────────────────────────────────────────────
 
 function SwipeListHint({ className }: { className?: string }) {
-  const { pending, total } = useSwipeList();
+  const { remaining, total } = useSwipeList();
 
-  if (pending.length !== total) return null;
+  if (remaining.length !== total) return null;
 
   return (
     <motion.div
@@ -337,7 +355,7 @@ type SwipeListCardProps = {
 };
 
 function SwipeListCard({ value, className, children }: SwipeListCardProps) {
-  const { swipeRight, swipeLeft, swipeThreshold } = useSwipeList();
+  const { onSwipeRight, onSwipeLeft, swipeThreshold } = useSwipeList();
 
   const x = useMotionValue(0);
   const [swipeDirection, setSwipeDirection] = React.useState<
@@ -348,10 +366,10 @@ function SwipeListCard({ value, className, children }: SwipeListCardProps) {
 
   useMotionValueEvent(x, "change", (latest) => {
     if (acted.current) return;
-    if (latest > 20) {
+    if (latest > 0) {
       setSwipeDirection("right");
       setIsTriggered(latest > swipeThreshold);
-    } else if (latest < -20) {
+    } else if (latest < 0) {
       setSwipeDirection("left");
       setIsTriggered(latest < -swipeThreshold);
     } else {
@@ -364,12 +382,12 @@ function SwipeListCard({ value, className, children }: SwipeListCardProps) {
     if (!isTriggered) return;
     if (swipeDirection === "right") {
       acted.current = true;
-      swipeRight(value);
+      onSwipeRight(value);
     } else if (swipeDirection === "left") {
       acted.current = true;
-      swipeLeft(value);
+      onSwipeLeft(value);
     }
-  }, [isTriggered, swipeDirection, swipeRight, swipeLeft, value]);
+  }, [isTriggered, swipeDirection, onSwipeRight, onSwipeLeft, value]);
 
   const cardContext = React.useMemo<SwipeListCardContextValue>(
     () => ({
@@ -417,76 +435,79 @@ type SwipeListStageProps = React.ComponentProps<"div"> & {
   renderSwipeLeft?: (state: SwipeSlotState) => React.ReactNode;
 };
 
-function DefaultKeepIcon({ triggered }: SwipeSlotState) {
+function SwipeRightIcon({ triggered }: SwipeSlotState) {
   return (
     <motion.div
       className="text-white"
       animate={{ scale: triggered ? 1.4 : 1 }}
       transition={{ type: "spring", stiffness: 500, damping: 15 }}
     >
-      <ThumbsUp className="size-6" />
+      <ThumbsUp className="size-4" />
     </motion.div>
   );
 }
 
-function DefaultDismissIcon({ triggered }: SwipeSlotState) {
+function SwipeLeftIcon({ triggered }: SwipeSlotState) {
   return (
     <motion.div
       className="text-white"
       animate={{ scale: triggered ? 1.4 : 1 }}
       transition={{ type: "spring", stiffness: 500, damping: 15 }}
     >
-      <ThumbsDown className="size-6" />
+      <ThumbsDown className="size-4" />
     </motion.div>
   );
 }
 
 function SwipeListStage({
-  renderSwipeRight = (state) => <DefaultKeepIcon {...state} />,
-  renderSwipeLeft = (state) => <DefaultDismissIcon {...state} />,
+  renderSwipeRight = (state) => <SwipeRightIcon {...state} />,
+  renderSwipeLeft = (state) => <SwipeLeftIcon {...state} />,
   className,
   children,
   ...props
 }: SwipeListStageProps) {
   const { swipeDirection, isTriggered } = useSwipeListCard();
 
-  const keepActive = swipeDirection === "right";
-  const keepTriggered = keepActive && isTriggered;
-  const keepState = keepTriggered
+  const isRightActive = swipeDirection === "right";
+  const isRightTriggered = isRightActive && isTriggered;
+  const rightState = isRightTriggered
     ? "triggered"
-    : keepActive
+    : isRightActive
       ? "active"
       : "idle";
 
-  const dismissActive = swipeDirection === "left";
-  const dismissTriggered = dismissActive && isTriggered;
-  const dismissState = dismissTriggered
+  const isLeftActive = swipeDirection === "left";
+  const isLeftTriggered = isLeftActive && isTriggered;
+  const leftState = isLeftTriggered
     ? "triggered"
-    : dismissActive
+    : isLeftActive
       ? "active"
       : "idle";
 
   return (
     <div
-      data-slot="swipe-list-card-canvas"
+      data-slot="swipe-list-card-stage"
       className={cn("relative overflow-hidden", className)}
       {...props}
     >
       <div
-        data-slot="swipe-list-card-keep"
-        data-state={keepState}
-        className="absolute inset-0 flex items-center px-5 transition-colors duration-150 bg-muted data-[state=active]:z-[1] data-[state=active]:bg-[oklch(0.75_0.16_155)] data-[state=triggered]:z-[1] data-[state=triggered]:bg-[oklch(0.62_0.20_155)]"
+        data-slot="swipe-list-card-stage-right"
+        data-state={rightState}
+        className="absolute inset-0 flex items-center px-5 transition-colors duration-150 bg-muted data-[state=active]:z-1 data-[state=active]:bg-[oklch(0.75_0.16_155)] data-[state=triggered]:z-1 data-[state=triggered]:bg-[oklch(0.62_0.20_155)]"
       >
-        {renderSwipeRight({ active: keepActive, triggered: keepTriggered })}
+        {renderSwipeRight({
+          active: isRightActive,
+          triggered: isRightTriggered,
+        })}
       </div>
       <div
-        data-slot="swipe-list-card-dismiss"
-        data-state={dismissState}
+        data-slot="swipe-list-card-stage-left"
+        data-state={leftState}
         className="absolute inset-0 flex items-center justify-end px-5 transition-colors duration-150 bg-muted data-[state=active]:bg-[oklch(0.68_0.18_25)] data-[state=triggered]:bg-[oklch(0.55_0.22_25)]"
       >
         {renderSwipeLeft({
-          active: dismissActive,
-          triggered: dismissTriggered,
+          active: isLeftActive,
+          triggered: isLeftTriggered,
         })}
       </div>
       {children}
@@ -507,7 +528,7 @@ function SwipeListCardItem({
 
   return (
     <motion.div
-      data-slot="swipe-list-card-body"
+      data-slot="swipe-list-card-item"
       className="relative z-10 cursor-grab bg-card active:cursor-grabbing"
       style={{ x }}
       drag="x"
@@ -518,7 +539,10 @@ function SwipeListCardItem({
       whileTap={{ scale: 0.99 }}
     >
       <Item
-        className={cn("rounded-none border-transparent", className)}
+        className={cn(
+          "rounded-none border-transparent p-0 shadow-sm",
+          className,
+        )}
         {...props}
       >
         {children}
@@ -543,7 +567,7 @@ function SwipeListTray({
   label = "Your picks",
   className,
 }: SwipeListTrayProps) {
-  const { swipedRight, getItemId } = useSwipeList();
+  const { swipedRight } = useSwipeList();
 
   return (
     <AnimatePresence>
@@ -561,7 +585,7 @@ function SwipeListTray({
           <div className="flex gap-2 overflow-x-auto pb-1">
             {swipedRight.map((item) => (
               <motion.div
-                key={getItemId(item)}
+                key={getItemId(item as Identifiable)}
                 initial={{ scale: 0, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{
@@ -591,9 +615,9 @@ function SwipeListEmpty({
   className?: string;
   children?: React.ReactNode;
 }) {
-  const { pending } = useSwipeList();
+  const { remaining } = useSwipeList();
 
-  if (pending.length > 0) return null;
+  if (remaining.length > 0) return null;
 
   return (
     <motion.div
@@ -611,6 +635,152 @@ function SwipeListEmpty({
 }
 
 // ────────────────────────────────────────────────
+// SwipeListCardSkeleton
+// ────────────────────────────────────────────────
+
+function SwipeListCardSkeleton({
+  className,
+  children,
+  ...props
+}: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="swipe-list-card-skeleton"
+      className={cn(
+        "flex w-full items-center bg-card shadow-[0_1px_3px_0_rgba(0,0,0,0.04)]",
+        className,
+      )}
+      {...props}
+    >
+      {children}
+    </div>
+  );
+}
+
+// ────────────────────────────────────────────────
+// SwipeListProgressSkeleton
+// ────────────────────────────────────────────────
+
+function SwipeListProgressSkeleton({
+  className,
+  ...props
+}: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="swipe-list-progress-skeleton"
+      className={cn("px-4 pb-2 pt-1", className)}
+      {...props}
+    >
+      <div className="flex items-center gap-3">
+        <Skeleton className="h-3.5 w-14 rounded-md" />
+        <Skeleton className="h-3.5 w-18 rounded-md" />
+        <Skeleton className="ml-auto h-3.5 w-16 rounded-md" />
+      </div>
+      <Skeleton className="mt-2 h-1.5 w-full rounded-full" />
+    </div>
+  );
+}
+
+// ────────────────────────────────────────────────
+// SwipeListConfetti
+// ────────────────────────────────────────────────
+
+type ConfettiParticle = {
+  x: number;
+  y: number;
+  rotation: number;
+  scale: number;
+  color: string;
+  rounded: boolean;
+};
+
+const CONFETTI_COLORS = [
+  "#34d399",
+  "#fbbf24",
+  "#818cf8",
+  "#f472b6",
+  "#38bdf8",
+  "#a78bfa",
+  "#fb923c",
+];
+
+function generateParticles(count: number): ConfettiParticle[] {
+  return Array.from({ length: count }, () => ({
+    x: (Math.random() - 0.5) * 260,
+    y: Math.random() * -180 - 30,
+    rotation: Math.random() * 720 - 360,
+    scale: Math.random() * 0.6 + 0.4,
+    color: CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)]!,
+    rounded: Math.random() > 0.5,
+  }));
+}
+
+function SwipeListConfetti({
+  count = 16,
+  className,
+}: {
+  count?: number;
+  className?: string;
+}) {
+  const { lastEvent } = useSwipeList();
+  const [bursts, setBursts] = React.useState<
+    { id: number; particles: ConfettiParticle[] }[]
+  >([]);
+
+  React.useEffect(() => {
+    if (!lastEvent || lastEvent.type !== "swipeRight") return;
+
+    const id = lastEvent.at;
+    setBursts((prev) => [...prev, { id, particles: generateParticles(count) }]);
+
+    const timer = setTimeout(() => {
+      setBursts((prev) => prev.filter((b) => b.id !== id));
+    }, 900);
+
+    return () => clearTimeout(timer);
+  }, [lastEvent, count]);
+
+  if (bursts.length === 0) return null;
+
+  return (
+    <div
+      data-slot="swipe-list-confetti"
+      className={cn(
+        "pointer-events-none absolute inset-0 overflow-hidden",
+        className,
+      )}
+    >
+      {bursts.map((burst) => (
+        <div
+          key={burst.id}
+          className="absolute inset-0 flex items-center justify-center"
+        >
+          {burst.particles.map((p, i) => (
+            <motion.div
+              key={i}
+              className={cn(
+                "absolute size-2",
+                p.rounded ? "rounded-full" : "rounded-sm",
+              )}
+              style={{ backgroundColor: p.color }}
+              initial={{ x: 0, y: 0, scale: 0, rotate: 0, opacity: 1 }}
+              animate={{
+                x: p.x,
+                y: p.y,
+                scale: p.scale,
+                rotate: p.rotation,
+                opacity: 0,
+              }}
+              transition={{ duration: 0.7, ease: "easeOut" }}
+            />
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ────────────────────────────────────────────────
 // Exports
 // ────────────────────────────────────────────────
 
@@ -619,13 +789,18 @@ export {
   SwipeListHeader,
   SwipeListTitle,
   SwipeListProgress,
+  SwipeListProgressSkeleton,
   SwipeListHint,
   SwipeList,
   SwipeListCard,
+  SwipeListCardSkeleton,
   SwipeListStage,
   SwipeListCardItem,
   SwipeListTray,
   SwipeListEmpty,
+  SwipeListConfetti,
   useSwipeList,
   useSwipeListCard,
 };
+
+export type { SwipeListEvent, SwipeListTriggers };

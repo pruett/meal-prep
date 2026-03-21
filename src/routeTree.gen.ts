@@ -21,11 +21,16 @@ import { Route as AccountRouteImport } from './routes/account'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PrototypeIndexRouteImport } from './routes/prototype/index'
+import { Route as PlaygroundIndexRouteImport } from './routes/playground/index'
 import { Route as PrototypeSwipeListRouteImport } from './routes/prototype/swipe-list'
 import { Route as PrototypeSwipeRouteImport } from './routes/prototype/swipe'
 import { Route as PrototypeStoriesRouteImport } from './routes/prototype/stories'
 import { Route as PrototypeRouletteRouteImport } from './routes/prototype/roulette'
 import { Route as PrototypeQuickTapRouteImport } from './routes/prototype/quick-tap'
+import { Route as PlaygroundSwipeListRouteImport } from './routes/playground/swipe-list'
+import { Route as PlaygroundPrefsTabsRouteImport } from './routes/playground/prefs-tabs'
+import { Route as PlaygroundPrefsStepperRouteImport } from './routes/playground/prefs-stepper'
+import { Route as PlaygroundPrefsDrawerRouteImport } from './routes/playground/prefs-drawer'
 import { Route as DemoTanstackQueryRouteImport } from './routes/demo/tanstack-query'
 import { Route as DemoBetterAuthRouteImport } from './routes/demo/better-auth'
 import { Route as PlanWeekStartIndexRouteImport } from './routes/plan/$weekStart/index'
@@ -97,6 +102,11 @@ const PrototypeIndexRoute = PrototypeIndexRouteImport.update({
   path: '/prototype/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PlaygroundIndexRoute = PlaygroundIndexRouteImport.update({
+  id: '/playground/',
+  path: '/playground/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PrototypeSwipeListRoute = PrototypeSwipeListRouteImport.update({
   id: '/prototype/swipe-list',
   path: '/prototype/swipe-list',
@@ -120,6 +130,26 @@ const PrototypeRouletteRoute = PrototypeRouletteRouteImport.update({
 const PrototypeQuickTapRoute = PrototypeQuickTapRouteImport.update({
   id: '/prototype/quick-tap',
   path: '/prototype/quick-tap',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlaygroundSwipeListRoute = PlaygroundSwipeListRouteImport.update({
+  id: '/playground/swipe-list',
+  path: '/playground/swipe-list',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlaygroundPrefsTabsRoute = PlaygroundPrefsTabsRouteImport.update({
+  id: '/playground/prefs-tabs',
+  path: '/playground/prefs-tabs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlaygroundPrefsStepperRoute = PlaygroundPrefsStepperRouteImport.update({
+  id: '/playground/prefs-stepper',
+  path: '/playground/prefs-stepper',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlaygroundPrefsDrawerRoute = PlaygroundPrefsDrawerRouteImport.update({
+  id: '/playground/prefs-drawer',
+  path: '/playground/prefs-drawer',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DemoTanstackQueryRoute = DemoTanstackQueryRouteImport.update({
@@ -187,11 +217,16 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/demo/better-auth': typeof DemoBetterAuthRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/playground/prefs-drawer': typeof PlaygroundPrefsDrawerRoute
+  '/playground/prefs-stepper': typeof PlaygroundPrefsStepperRoute
+  '/playground/prefs-tabs': typeof PlaygroundPrefsTabsRoute
+  '/playground/swipe-list': typeof PlaygroundSwipeListRoute
   '/prototype/quick-tap': typeof PrototypeQuickTapRoute
   '/prototype/roulette': typeof PrototypeRouletteRoute
   '/prototype/stories': typeof PrototypeStoriesRoute
   '/prototype/swipe': typeof PrototypeSwipeRoute
   '/prototype/swipe-list': typeof PrototypeSwipeListRoute
+  '/playground/': typeof PlaygroundIndexRoute
   '/prototype/': typeof PrototypeIndexRoute
   '/api/ai/generate-meal-image': typeof ApiAiGenerateMealImageRoute
   '/api/ai/generate-meals': typeof ApiAiGenerateMealsRoute
@@ -216,11 +251,16 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/demo/better-auth': typeof DemoBetterAuthRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/playground/prefs-drawer': typeof PlaygroundPrefsDrawerRoute
+  '/playground/prefs-stepper': typeof PlaygroundPrefsStepperRoute
+  '/playground/prefs-tabs': typeof PlaygroundPrefsTabsRoute
+  '/playground/swipe-list': typeof PlaygroundSwipeListRoute
   '/prototype/quick-tap': typeof PrototypeQuickTapRoute
   '/prototype/roulette': typeof PrototypeRouletteRoute
   '/prototype/stories': typeof PrototypeStoriesRoute
   '/prototype/swipe': typeof PrototypeSwipeRoute
   '/prototype/swipe-list': typeof PrototypeSwipeListRoute
+  '/playground': typeof PlaygroundIndexRoute
   '/prototype': typeof PrototypeIndexRoute
   '/api/ai/generate-meal-image': typeof ApiAiGenerateMealImageRoute
   '/api/ai/generate-meals': typeof ApiAiGenerateMealsRoute
@@ -246,11 +286,16 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/demo/better-auth': typeof DemoBetterAuthRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/playground/prefs-drawer': typeof PlaygroundPrefsDrawerRoute
+  '/playground/prefs-stepper': typeof PlaygroundPrefsStepperRoute
+  '/playground/prefs-tabs': typeof PlaygroundPrefsTabsRoute
+  '/playground/swipe-list': typeof PlaygroundSwipeListRoute
   '/prototype/quick-tap': typeof PrototypeQuickTapRoute
   '/prototype/roulette': typeof PrototypeRouletteRoute
   '/prototype/stories': typeof PrototypeStoriesRoute
   '/prototype/swipe': typeof PrototypeSwipeRoute
   '/prototype/swipe-list': typeof PrototypeSwipeListRoute
+  '/playground/': typeof PlaygroundIndexRoute
   '/prototype/': typeof PrototypeIndexRoute
   '/api/ai/generate-meal-image': typeof ApiAiGenerateMealImageRoute
   '/api/ai/generate-meals': typeof ApiAiGenerateMealsRoute
@@ -277,11 +322,16 @@ export interface FileRouteTypes {
     | '/signup'
     | '/demo/better-auth'
     | '/demo/tanstack-query'
+    | '/playground/prefs-drawer'
+    | '/playground/prefs-stepper'
+    | '/playground/prefs-tabs'
+    | '/playground/swipe-list'
     | '/prototype/quick-tap'
     | '/prototype/roulette'
     | '/prototype/stories'
     | '/prototype/swipe'
     | '/prototype/swipe-list'
+    | '/playground/'
     | '/prototype/'
     | '/api/ai/generate-meal-image'
     | '/api/ai/generate-meals'
@@ -306,11 +356,16 @@ export interface FileRouteTypes {
     | '/signup'
     | '/demo/better-auth'
     | '/demo/tanstack-query'
+    | '/playground/prefs-drawer'
+    | '/playground/prefs-stepper'
+    | '/playground/prefs-tabs'
+    | '/playground/swipe-list'
     | '/prototype/quick-tap'
     | '/prototype/roulette'
     | '/prototype/stories'
     | '/prototype/swipe'
     | '/prototype/swipe-list'
+    | '/playground'
     | '/prototype'
     | '/api/ai/generate-meal-image'
     | '/api/ai/generate-meals'
@@ -335,11 +390,16 @@ export interface FileRouteTypes {
     | '/signup'
     | '/demo/better-auth'
     | '/demo/tanstack-query'
+    | '/playground/prefs-drawer'
+    | '/playground/prefs-stepper'
+    | '/playground/prefs-tabs'
+    | '/playground/swipe-list'
     | '/prototype/quick-tap'
     | '/prototype/roulette'
     | '/prototype/stories'
     | '/prototype/swipe'
     | '/prototype/swipe-list'
+    | '/playground/'
     | '/prototype/'
     | '/api/ai/generate-meal-image'
     | '/api/ai/generate-meals'
@@ -365,11 +425,16 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   DemoBetterAuthRoute: typeof DemoBetterAuthRoute
   DemoTanstackQueryRoute: typeof DemoTanstackQueryRoute
+  PlaygroundPrefsDrawerRoute: typeof PlaygroundPrefsDrawerRoute
+  PlaygroundPrefsStepperRoute: typeof PlaygroundPrefsStepperRoute
+  PlaygroundPrefsTabsRoute: typeof PlaygroundPrefsTabsRoute
+  PlaygroundSwipeListRoute: typeof PlaygroundSwipeListRoute
   PrototypeQuickTapRoute: typeof PrototypeQuickTapRoute
   PrototypeRouletteRoute: typeof PrototypeRouletteRoute
   PrototypeStoriesRoute: typeof PrototypeStoriesRoute
   PrototypeSwipeRoute: typeof PrototypeSwipeRoute
   PrototypeSwipeListRoute: typeof PrototypeSwipeListRoute
+  PlaygroundIndexRoute: typeof PlaygroundIndexRoute
   PrototypeIndexRoute: typeof PrototypeIndexRoute
   ApiAiGenerateMealImageRoute: typeof ApiAiGenerateMealImageRoute
   ApiAiGenerateMealsRoute: typeof ApiAiGenerateMealsRoute
@@ -467,6 +532,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrototypeIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/playground/': {
+      id: '/playground/'
+      path: '/playground'
+      fullPath: '/playground/'
+      preLoaderRoute: typeof PlaygroundIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/prototype/swipe-list': {
       id: '/prototype/swipe-list'
       path: '/prototype/swipe-list'
@@ -500,6 +572,34 @@ declare module '@tanstack/react-router' {
       path: '/prototype/quick-tap'
       fullPath: '/prototype/quick-tap'
       preLoaderRoute: typeof PrototypeQuickTapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/playground/swipe-list': {
+      id: '/playground/swipe-list'
+      path: '/playground/swipe-list'
+      fullPath: '/playground/swipe-list'
+      preLoaderRoute: typeof PlaygroundSwipeListRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/playground/prefs-tabs': {
+      id: '/playground/prefs-tabs'
+      path: '/playground/prefs-tabs'
+      fullPath: '/playground/prefs-tabs'
+      preLoaderRoute: typeof PlaygroundPrefsTabsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/playground/prefs-stepper': {
+      id: '/playground/prefs-stepper'
+      path: '/playground/prefs-stepper'
+      fullPath: '/playground/prefs-stepper'
+      preLoaderRoute: typeof PlaygroundPrefsStepperRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/playground/prefs-drawer': {
+      id: '/playground/prefs-drawer'
+      path: '/playground/prefs-drawer'
+      fullPath: '/playground/prefs-drawer'
+      preLoaderRoute: typeof PlaygroundPrefsDrawerRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/demo/tanstack-query': {
@@ -589,11 +689,16 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   DemoBetterAuthRoute: DemoBetterAuthRoute,
   DemoTanstackQueryRoute: DemoTanstackQueryRoute,
+  PlaygroundPrefsDrawerRoute: PlaygroundPrefsDrawerRoute,
+  PlaygroundPrefsStepperRoute: PlaygroundPrefsStepperRoute,
+  PlaygroundPrefsTabsRoute: PlaygroundPrefsTabsRoute,
+  PlaygroundSwipeListRoute: PlaygroundSwipeListRoute,
   PrototypeQuickTapRoute: PrototypeQuickTapRoute,
   PrototypeRouletteRoute: PrototypeRouletteRoute,
   PrototypeStoriesRoute: PrototypeStoriesRoute,
   PrototypeSwipeRoute: PrototypeSwipeRoute,
   PrototypeSwipeListRoute: PrototypeSwipeListRoute,
+  PlaygroundIndexRoute: PlaygroundIndexRoute,
   PrototypeIndexRoute: PrototypeIndexRoute,
   ApiAiGenerateMealImageRoute: ApiAiGenerateMealImageRoute,
   ApiAiGenerateMealsRoute: ApiAiGenerateMealsRoute,

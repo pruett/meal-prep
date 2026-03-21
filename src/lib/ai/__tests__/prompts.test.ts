@@ -59,6 +59,8 @@ describe('buildMealSuggestionsPrompt', () => {
       expect(prompt).toContain('A brief description')
       expect(prompt).toContain('Key ingredients')
       expect(prompt).toContain('Estimated total prep and cooking time')
+      expect(prompt).toContain('image generation prompt')
+      expect(prompt).toContain('Flat illustration of')
     })
   })
 

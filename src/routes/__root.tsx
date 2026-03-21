@@ -3,61 +3,69 @@ import {
   Outlet,
   Scripts,
   createRootRouteWithContext,
-} from '@tanstack/react-router'
-import { createServerFn } from '@tanstack/react-start'
-import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
-import { TanStackDevtools } from '@tanstack/react-devtools'
-import { ConvexBetterAuthProvider } from '@convex-dev/better-auth/react'
-import Header from '../components/layout/header'
-import { ThemeProvider } from '~/components/theme-provider'
-import { Toaster } from '~/components/ui/sonner'
-import { ErrorFallback } from '~/components/error-boundary'
-import { Skeleton } from '~/components/ui/skeleton'
+} from "@tanstack/react-router";
+import { createServerFn } from "@tanstack/react-start";
+import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
+import { TanStackDevtools } from "@tanstack/react-devtools";
+import { ConvexBetterAuthProvider } from "@convex-dev/better-auth/react";
+import Header from "../components/layout/header";
+import { ThemeProvider } from "~/components/theme-provider";
+import { Toaster } from "~/components/ui/sonner";
+import { ErrorFallback } from "~/components/error-boundary";
+import { Skeleton } from "~/components/ui/skeleton";
 
-import TanStackQueryProvider from '../integrations/tanstack-query/root-provider'
+import TanStackQueryProvider from "../integrations/tanstack-query/root-provider";
 
-import TanStackQueryDevtools from '../integrations/tanstack-query/devtools'
+import TanStackQueryDevtools from "../integrations/tanstack-query/devtools";
 
-import { api } from '../../convex/_generated/api'
-import { getToken, fetchAuthQuery } from '~/lib/auth-server'
-import { authClient } from '~/lib/auth-client'
+import { api } from "../../convex/_generated/api";
+import { getToken, fetchAuthQuery } from "~/lib/auth-server";
+import { authClient } from "~/lib/auth-client";
 
-import appCss from '../styles.css?url'
+import appCss from "../styles.css?url";
 
-import type { QueryClient } from '@tanstack/react-query'
-import type { ConvexQueryClient } from '@convex-dev/react-query'
+import type { QueryClient } from "@tanstack/react-query";
+import type { ConvexQueryClient } from "@convex-dev/react-query";
 
 interface MyRouterContext {
-  queryClient: QueryClient
-  convexQueryClient: ConvexQueryClient
+  queryClient: QueryClient;
+  convexQueryClient: ConvexQueryClient;
 }
 
-const getAuth = createServerFn({ method: 'GET' }).handler(async () => {
-  const token = await getToken()
-  if (!token) return { token: null, onboardingCompleted: undefined as boolean | undefined }
+const getAuth = createServerFn({ method: "GET" }).handler(async () => {
+  const token = await getToken();
+  if (!token)
+    return {
+      token: null,
+      onboardingCompleted: undefined as boolean | undefined,
+      user: null,
+    };
 
-  const user = await fetchAuthQuery(api.users.getAuthenticated, {})
+  const user = await fetchAuthQuery(api.users.getAuthenticated, {});
 
-  return { token, onboardingCompleted: user?.onboardingCompleted }
-})
-
+  return {
+    token,
+    onboardingCompleted: user?.onboardingCompleted,
+    user: user ?? null,
+  };
+});
 
 export const Route = createRootRouteWithContext<MyRouterContext>()({
   beforeLoad: async (ctx) => {
-    const { token, onboardingCompleted } = await getAuth()
+    const { token, onboardingCompleted, user } = await getAuth();
     if (token) {
-      ctx.context.convexQueryClient.serverHttpClient?.setAuth(token)
+      ctx.context.convexQueryClient.serverHttpClient?.setAuth(token);
     }
-    return { token, onboardingCompleted }
+    return { token, onboardingCompleted, user };
   },
   head: () => ({
     meta: [
       {
-        charSet: 'utf-8',
+        charSet: "utf-8",
       },
       {
-        name: 'viewport',
-        content: 'width=device-width, initial-scale=1',
+        name: "viewport",
+        content: "width=device-width, initial-scale=1",
       },
       {
         title: 'Tastebud',
@@ -65,7 +73,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
     ],
     links: [
       {
-        rel: 'stylesheet',
+        rel: "stylesheet",
         href: appCss,
       },
     ],
@@ -75,7 +83,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
   errorComponent: ErrorFallback,
   pendingComponent: DefaultPendingFallback,
   notFoundComponent: DefaultNotFoundComponent,
-})
+});
 
 function DefaultPendingFallback() {
   return (
@@ -89,7 +97,7 @@ function DefaultPendingFallback() {
         </div>
       </div>
     </main>
-  )
+  );
 }
 
 function DefaultNotFoundComponent() {
@@ -101,11 +109,11 @@ function DefaultNotFoundComponent() {
         Go home
       </a>
     </main>
-  )
+  );
 }
 
 function RootComponent() {
-  const { token, convexQueryClient } = Route.useRouteContext()
+  const { token, convexQueryClient } = Route.useRouteContext();
 
   return (
     <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
@@ -119,11 +127,11 @@ function RootComponent() {
         <Toaster position="bottom-center" />
         <TanStackDevtools
           config={{
-            position: 'bottom-right',
+            position: "bottom-right",
           }}
           plugins={[
             {
-              name: 'Tanstack Router',
+              name: "Tanstack Router",
               render: <TanStackRouterDevtoolsPanel />,
             },
             TanStackQueryDevtools,
@@ -131,7 +139,7 @@ function RootComponent() {
         />
       </ConvexBetterAuthProvider>
     </ThemeProvider>
-  )
+  );
 }
 
 function RootDocument({ children }: { children: React.ReactNode }) {
@@ -139,7 +147,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
     <html
       lang="en"
       className="light"
-      style={{ colorScheme: 'light' }}
+      style={{ colorScheme: "light" }}
       suppressHydrationWarning
     >
       <head>
@@ -152,5 +160,5 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <Scripts />
       </body>
     </html>
-  )
+  );
 }

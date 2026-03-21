@@ -1,26 +1,26 @@
-import type { ReactNode } from 'react'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { ConvexQueryClient } from '@convex-dev/react-query'
+import type { ReactNode } from "react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ConvexQueryClient } from "@convex-dev/react-query";
 
-const CONVEX_URL = (import.meta as any).env.VITE_CONVEX_URL
+const CONVEX_URL = (import.meta as any).env.VITE_CONVEX_URL;
 if (!CONVEX_URL) {
-  console.error('missing envar VITE_CONVEX_URL')
+  console.error("missing envar VITE_CONVEX_URL");
 }
 
 export const convexQueryClient = new ConvexQueryClient(CONVEX_URL, {
   expectAuth: true,
-})
+});
 
 let context:
   | {
-      queryClient: QueryClient
-      convexQueryClient: ConvexQueryClient
+      queryClient: QueryClient;
+      convexQueryClient: ConvexQueryClient;
     }
-  | undefined
+  | undefined;
 
 export function getContext() {
   if (context) {
-    return context
+    return context;
   }
 
   const queryClient = new QueryClient({
@@ -30,25 +30,25 @@ export function getContext() {
         queryFn: convexQueryClient.queryFn(),
       },
     },
-  })
-  convexQueryClient.connect(queryClient)
+  });
+  convexQueryClient.connect(queryClient);
 
   context = {
     queryClient,
     convexQueryClient,
-  }
+  };
 
-  return context
+  return context;
 }
 
 export default function TanStackQueryProvider({
   children,
 }: {
-  children: ReactNode
+  children: ReactNode;
 }) {
-  const { queryClient } = getContext()
+  const { queryClient } = getContext();
 
   return (
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-  )
+  );
 }

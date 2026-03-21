@@ -1,22 +1,15 @@
-import { SidebarNav, BottomNav } from './nav'
+import type { ComponentPropsWithoutRef } from "react";
+import { cn } from "~/lib/utils";
 
-export default function AppShell({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+type AppShellProps = ComponentPropsWithoutRef<"main">;
+
+export function AppShell({ className, children, ...props }: AppShellProps) {
   return (
-    <div className="flex">
-      {/* Desktop sidebar */}
-      <aside className="sticky top-[57px] hidden h-[calc(100dvh-57px)] w-52 shrink-0 flex-col border-r border-[var(--line)] lg:flex">
-        <SidebarNav />
-      </aside>
-
-      {/* Main content — extra bottom padding on mobile for bottom nav */}
-      <div className="min-w-0 flex-1 pb-[4.5rem] lg:pb-0">{children}</div>
-
-      {/* Mobile bottom nav */}
-      <BottomNav />
-    </div>
-  )
+    <main
+      className={cn("mx-auto min-h-dvh max-w-5xl px-4 pb-8 pt-14", className)}
+      {...props}
+    >
+      {children}
+    </main>
+  );
 }

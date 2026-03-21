@@ -6,47 +6,80 @@ import { mealSuggestionSchema } from '~/lib/ai/schemas'
 import { buildMealSuggestionsPrompt } from '~/lib/ai/prompts'
 import { authenticateRequest, jsonResponse, withRetry } from '~/lib/ai/generate'
 import { fetchAuthQuery, fetchAuthMutation } from '~/lib/auth-server'
-import { MEAL_SUGGESTION_BUFFER } from '~/lib/meal-generation'
+import { LOAD_MORE_BATCH_SIZE } from '~/lib/meal-generation'
 
-export const Route = createFileRoute('/api/ai/generate-meals')({
+export const Route = createFileRoute('/api/ai/generate-more-meals')({
   server: {
     handlers: {
-      POST: async () => {
+      POST: async ({ request }) => {
         const auth = await authenticateRequest()
         if (auth instanceof Response) return auth
         const { user } = auth
+
+        const body = await request.json()
+        const { mealPlanId, count } = body
+        if (!mealPlanId) {
+          return jsonResponse({ error: 'mealPlanId is required' }, 400)
+        }
+
+        const existingMeals = await fetchAuthQuery(api.meals.getByMealPlan, {
+          mealPlanId,
+        })
+
+        const acceptedMeals = existingMeals.filter((m) => m.status === 'accepted')
 
         const preferences = await fetchAuthQuery(api.preferences.getByUser, {
           userId: user._id,
         })
 
-        const now = new Date()
-        const day = now.getDay()
-        const diff = now.getDate() - day + (day === 0 ? -6 : 1)
-        const monday = new Date(now.getFullYear(), now.getMonth(), diff)
-        const weekStartDate = monday.toISOString().split('T')[0]!
-        const mealsPerWeek = preferences?.mealsPerWeek ?? { breakfast: 0, lunch: 0, dinner: 5 }
-        const totalMeals = mealsPerWeek.breakfast + mealsPerWeek.lunch + mealsPerWeek.dinner
-        const buffer = Math.min(MEAL_SUGGESTION_BUFFER, totalMeals)
-        const toGenerate = totalMeals + buffer
+        const mealsPerWeek = preferences?.mealsPerWeek ?? {
+          breakfast: 0,
+          lunch: 0,
+          dinner: 5,
+        }
+        const totalSlots =
+          mealsPerWeek.breakfast + mealsPerWeek.lunch + mealsPerWeek.dinner
+        const needed = Math.max(0, totalSlots - acceptedMeals.length)
 
-        const mealPlanId = await fetchAuthMutation(api.mealPlans.create, {
-          userId: user._id,
-          weekStartDate,
-          totalMealsRequested: totalMeals,
+        if (needed === 0) {
+          return jsonResponse(
+            { error: 'You already have enough meals accepted' },
+            400,
+          )
+        }
+
+        // Delete rejected meals — new ones will get fresh IDs
+        await fetchAuthMutation(api.meals.deleteByMealPlanAndStatus, {
+          mealPlanId,
+          status: 'rejected',
         })
+
+        const toGenerate = typeof count === 'number' && count > 0
+          ? Math.min(count, needed + LOAD_MORE_BATCH_SIZE)
+          : LOAD_MORE_BATCH_SIZE
+        const maxSortOrder = existingMeals.reduce(
+          (max, m) => Math.max(max, m.sortOrder),
+          0,
+        )
 
         const result = await withRetry({
           fn: async () => {
             const stream = streamText({
               model: openai('gpt-4o-mini'),
-              prompt: buildMealSuggestionsPrompt(toGenerate, preferences),
+              prompt: buildMealSuggestionsPrompt(
+                toGenerate,
+                preferences,
+                acceptedMeals.map((m) => ({
+                  name: m.name,
+                  description: m.description,
+                })),
+              ),
               output: Output.array({
                 element: mealSuggestionSchema,
               }),
             })
 
-            let sortOrder = 0
+            let sortOrder = maxSortOrder + 1
             for await (const meal of stream.elementStream) {
               await fetchAuthMutation(api.meals.create, {
                 mealPlanId,
@@ -64,15 +97,10 @@ export const Route = createFileRoute('/api/ai/generate-meals')({
             if (finishReason === 'error') {
               throw new Error('AI stream failed')
             }
-
-            await fetchAuthMutation(api.mealPlans.updateStatus, {
-              id: mealPlanId,
-              status: 'reviewing',
-            })
           },
           userId: user._id,
-          type: 'meal-suggestions',
-          label: 'Meal generation',
+          type: 'meal-regeneration',
+          label: 'Generate more meals',
         })
 
         if ('error' in result) {

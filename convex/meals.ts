@@ -9,6 +9,7 @@ export const create = mutation({
     description: v.string(),
     keyIngredients: v.array(v.string()),
     estimatedPrepMinutes: v.number(),
+    imagePrompt: v.optional(v.string()),
     sortOrder: v.number(),
   },
   handler: async (ctx, args) => {
@@ -19,10 +20,20 @@ export const create = mutation({
       description: args.description,
       keyIngredients: args.keyIngredients,
       estimatedPrepMinutes: args.estimatedPrepMinutes,
+      imagePrompt: args.imagePrompt,
       status: 'pending',
       fullRecipe: null,
       sortOrder: args.sortOrder,
     })
+  },
+})
+
+export const getById = query({
+  args: {
+    id: v.id('meals'),
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db.get(args.id)
   },
 })
 
@@ -82,6 +93,7 @@ export const replaceContent = mutation({
     description: v.string(),
     keyIngredients: v.array(v.string()),
     estimatedPrepMinutes: v.number(),
+    imagePrompt: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await ctx.db.patch(args.id, {
@@ -89,6 +101,7 @@ export const replaceContent = mutation({
       description: args.description,
       keyIngredients: args.keyIngredients,
       estimatedPrepMinutes: args.estimatedPrepMinutes,
+      imagePrompt: args.imagePrompt,
       status: 'pending',
       fullRecipe: null,
     })
@@ -133,6 +146,7 @@ export const batchCreate = mutation({
         description: v.string(),
         keyIngredients: v.array(v.string()),
         estimatedPrepMinutes: v.number(),
+        imagePrompt: v.optional(v.string()),
         sortOrder: v.number(),
       }),
     ),
@@ -148,5 +162,30 @@ export const batchCreate = mutation({
       ids.push(id)
     }
     return ids
+  },
+})
+
+export const generateUploadUrl = mutation({
+  handler: async (ctx) => {
+    return await ctx.storage.generateUploadUrl()
+  },
+})
+
+export const storeImage = mutation({
+  args: {
+    id: v.id('meals'),
+    storageId: v.id('_storage'),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.id, { imageStorageId: args.storageId })
+  },
+})
+
+export const getImageUrl = query({
+  args: {
+    storageId: v.id('_storage'),
+  },
+  handler: async (ctx, args) => {
+    return await ctx.storage.getUrl(args.storageId)
   },
 })
